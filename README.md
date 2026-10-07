@@ -62,26 +62,29 @@
 | Chatbot AI | Google Gemini API |
 | Thanh toán | SePay |
 | Đăng nhập | Google OAuth |
-| Backend | _(----)_ |
-| Frontend | _(------)_ |
-| Cơ sở dữ liệu | _(-----)_ |
+| Backend | Spring Boot (Java) |
+| Frontend | ReactJS (Vite) |
+| Cơ sở dữ liệu | MySQL |
 
 ## Cài đặt và chạy dự án
 
+### 1. Frontend (ReactJS)
 ```bash
-# 1. Clone dự án
-git clone https://github.com/thomaspham252/e-commerce-project.git
-cd e-commerce-project
+# Di chuyển vào thư mục frontend
+cd frontend
 
-# 2. Cài đặt thư viện
-# (điền lệnh cài đặt, ví dụ: npm install)
+# Cài đặt toàn bộ thư viện cần thiết (react-router-dom, axios, react-icons, react-toastify, react-hook-form)
+npm install
 
-# 3. Tạo file .env từ mẫu và điền các khóa cần thiết
-cp .env.example .env
-
-# 4. Chạy dự án
-# (điền lệnh chạy, ví dụ: npm start)
+# Khởi động server giao diện (mặc định chạy ở cổng 5173)
+npm run dev
 ```
+
+### 2. Backend (Spring Boot)
+1. Mở thư mục `backend/` bằng phần mềm IntelliJ IDEA, Eclipse hoặc IDE hỗ trợ Java.
+2. Đợi IDE tự động tải các thư viện (Maven/Gradle) về máy.
+3. Cấu hình file `src/main/resources/application.yml` (hoặc `.properties`) để kết nối Database.
+4. Chạy class chứa hàm main (`Application.java`) hoặc dùng lệnh `./mvnw spring-boot:run` để khởi động server (mặc định cổng 8080).
 
 ### Biến môi trường cần cấu hình
 
