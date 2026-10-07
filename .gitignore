@@ -1,0 +1,57 @@
+# ========================
+# Frontend (React/Node)
+# ========================
+node_modules/
+dist/
+dist-ssr/
+*.local
+.npm/
+npm-debug.log*
+yarn-error.log*
+yarn-debug.log*
+
+# ========================
+# Backend (Spring Boot / Java)
+# ========================
+target/
+build/
+.gradle/
+*.class
+*.log
+*.jar
+*.war
+*.ear
+
+# Ngoại trừ các file wrapper của Maven/Gradle để ae có thể build
+!gradle/wrapper/gradle-wrapper.jar
+!mvnw
+!mvnw.cmd
+!.mvn/wrapper/maven-wrapper.jar
+
+# ========================
+# Environment Variables & Secrets
+# ========================
+.env
+.env.*
+!.env.example
+
+# ========================
+# IDE & Editor Folders
+# ========================
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+
+# ========================
+# OS Generated Files
+# ========================
+.DS_Store
+Thumbs.db
+
+# ========================
+# Workspace / AI Tools
+# ========================
+.agents/
+.specify/
