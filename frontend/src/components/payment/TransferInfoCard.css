@@ -1,0 +1,190 @@
+.transfer-info-card {
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.transfer-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #F3F4F6;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.transfer-card-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.transfer-order-code {
+  font-size: 13px;
+  font-weight: 600;
+  color: #6B7280;
+  background-color: #F3F4F6;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.transfer-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.transfer-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  background-color: #F9FAFB;
+  border: 1px solid #F3F4F6;
+  border-radius: 8px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.transfer-row.highlight-row {
+  background-color: #F0FDF4;
+  border-color: #BBF7D0;
+}
+
+.transfer-label-with-tip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.transfer-label {
+  font-size: 13px;
+  color: #4B5563;
+  font-weight: 500;
+}
+
+.transfer-required-badge {
+  font-size: 11px;
+  font-weight: 600;
+  color: #DC2626;
+  background-color: #FEE2E2;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.transfer-value-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.transfer-value-text {
+  font-size: 15px;
+  color: #111827;
+}
+
+.transfer-value-text.mono {
+  font-family: 'Courier New', Courier, monospace;
+  letter-spacing: 0.5px;
+}
+
+.transfer-value-text.bold {
+  font-weight: 700;
+}
+
+.transfer-value-text.uppercase {
+  text-transform: uppercase;
+}
+
+.transfer-value-text.highlight-bank {
+  color: #1E40AF;
+  font-weight: 600;
+}
+
+.transfer-value-text.amount-text {
+  color: #059669;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.transfer-value-text.transfer-code {
+  color: #047857;
+  font-size: 17px;
+  background-color: #DCFCE7;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+/* Alert Box */
+.transfer-alert-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  background-color: #FFFBEB;
+  border: 1px solid #FDE68A;
+  border-radius: 8px;
+}
+
+.transfer-alert-icon {
+  font-size: 20px;
+  color: #D97706;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.transfer-alert-content {
+  font-size: 13px;
+  color: #92400E;
+  line-height: 1.5;
+}
+
+.transfer-alert-title {
+  margin: 0 0 2px 0;
+  font-weight: 700;
+}
+
+.transfer-alert-desc {
+  margin: 0;
+}
+
+.inline-code {
+  background-color: #FEF3C7;
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-weight: 700;
+  font-family: monospace;
+  color: #B45309;
+}
+
+.transfer-help-tip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #6B7280;
+}
+
+.tip-icon {
+  color: #9CA3AF;
+}
+
+@media (max-width: 640px) {
+  .transfer-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .transfer-value-box {
+    width: 100%;
+    justify-content: space-between;
+    margin-top: 4px;
+  }
+}

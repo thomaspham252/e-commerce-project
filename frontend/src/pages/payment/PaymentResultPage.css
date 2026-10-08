@@ -1,0 +1,294 @@
+.payment-result-page {
+  min-height: calc(100vh - 140px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 16px;
+  background-color: #F9FAFB;
+}
+
+.payment-result-card {
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 16px;
+  padding: 40px 32px;
+  max-width: 580px;
+  width: 100%;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+}
+
+.result-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.result-icon-wrapper {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.result-icon {
+  font-size: 44px;
+}
+
+.success-bg {
+  background-color: #ECFDF5;
+}
+.success-color {
+  color: #10B981;
+}
+
+.warning-bg {
+  background-color: #FFF7ED;
+}
+.warning-color {
+  color: #F97316;
+}
+.warning-text {
+  color: #C2410C;
+}
+
+.muted-bg {
+  background-color: #F3F4F6;
+}
+.muted-color {
+  color: #6B7280;
+}
+.muted-text {
+  color: #374151;
+}
+
+.danger-bg {
+  background-color: #FEF2F2;
+}
+.danger-color {
+  color: #EF4444;
+}
+.danger-text {
+  color: #B91C1C;
+}
+
+.result-title {
+  margin: 0 0 10px 0;
+  font-size: 24px;
+  font-weight: 800;
+  color: #111827;
+}
+
+.result-subtitle {
+  margin: 0 0 24px 0;
+  font-size: 14px;
+  color: #6B7280;
+  line-height: 1.6;
+}
+
+.result-details-box {
+  width: 100%;
+  background: #F9FAFB;
+  border: 1px solid #E5E7EB;
+  border-radius: 12px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+  text-align: left;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  gap: 12px;
+  border-bottom: 1px dashed #E5E7EB;
+  padding-bottom: 8px;
+}
+
+.detail-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.detail-label {
+  color: #6B7280;
+}
+
+.detail-value {
+  color: #111827;
+}
+
+.detail-value.mono {
+  font-family: monospace;
+}
+
+.detail-value.bold {
+  font-weight: 700;
+}
+
+.amount-success {
+  color: #059669;
+  font-size: 16px;
+}
+
+.wrong-amount-text {
+  color: #EA580C;
+  font-size: 16px;
+}
+
+/* Support Box */
+.support-contact-box {
+  width: 100%;
+  background: #FFFBEB;
+  border: 1px solid #FDE68A;
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 24px;
+  text-align: left;
+}
+
+.support-title {
+  margin: 0 0 6px 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: #92400E;
+}
+
+.support-desc {
+  font-size: 13px;
+  color: #78350F;
+  margin: 0 0 12px 0;
+  line-height: 1.5;
+}
+
+.support-channels {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.channel-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #92400E;
+}
+
+.channel-icon {
+  font-size: 15px;
+  color: #D97706;
+}
+
+/* Expired note */
+.expired-warning-note {
+  width: 100%;
+  background-color: #FEF2F2;
+  border: 1px solid #FECACA;
+  color: #991B1B;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-bottom: 24px;
+  text-align: left;
+  line-height: 1.5;
+}
+
+.result-actions {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.btn-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.btn-action.primary {
+  background-color: #10B981;
+  color: #FFFFFF;
+}
+
+.btn-action.primary:hover {
+  background-color: #059669;
+}
+
+.btn-action.secondary {
+  background-color: #F3F4F6;
+  color: #374151;
+  border: 1px solid #D1D5DB;
+}
+
+.btn-action.secondary:hover {
+  background-color: #E5E7EB;
+  color: #111827;
+}
+
+.spin-icon {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Loading & Error */
+.loading-state,
+.error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 350px;
+  text-align: center;
+}
+
+.result-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #E5E7EB;
+  border-top-color: #10B981;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-bottom: 16px;
+}
+
+.error-icon {
+  font-size: 48px;
+  color: #EF4444;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 640px) {
+  .payment-result-card {
+    padding: 24px 16px;
+  }
+  .result-actions {
+    flex-direction: column;
+  }
+  .btn-action {
+    width: 100%;
+  }
+}

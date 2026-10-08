@@ -1,0 +1,196 @@
+.qrcode-card {
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  max-width: 360px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.qrcode-header {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px dashed #E5E7EB;
+}
+
+.vietqr-badge {
+  font-size: 12px;
+  font-weight: 700;
+  color: #1E3A8A;
+  background-color: #DBEAFE;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+.napab-badge {
+  font-size: 11px;
+  font-weight: 600;
+  color: #047857;
+  background-color: #D1FAE5;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+.qrcode-container {
+  position: relative;
+  width: 250px;
+  height: 250px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #FAFAFA;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid #F3F4F6;
+}
+
+.qrcode-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transition: filter 0.3s ease;
+}
+
+.qrcode-image.loading {
+  display: none;
+}
+
+.qrcode-image.blurred {
+  filter: blur(6px) grayscale(80%);
+  opacity: 0.35;
+}
+
+/* Overlays */
+.qrcode-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  padding: 16px;
+  text-align: center;
+}
+
+.expired-overlay {
+  background-color: rgba(254, 226, 226, 0.9);
+  color: #DC2626;
+}
+
+.success-overlay {
+  background-color: rgba(209, 250, 229, 0.92);
+  color: #059669;
+}
+
+.cancelled-overlay {
+  background-color: rgba(243, 244, 246, 0.92);
+  color: #4B5563;
+}
+
+.overlay-icon {
+  font-size: 36px;
+  margin-bottom: 8px;
+}
+
+.overlay-text {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.overlay-sub {
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+/* Skeleton loader */
+.qrcode-skeleton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: #6B7280;
+  font-size: 13px;
+}
+
+.skeleton-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #E5E7EB;
+  border-top-color: #10B981;
+  border-radius: 50%;
+  animation: qr-spin 0.8s linear infinite;
+}
+
+@keyframes qr-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Fallback box */
+.qrcode-fallback {
+  text-align: center;
+  padding: 12px;
+}
+
+.fallback-qr-box {
+  width: 180px;
+  height: 180px;
+  border: 2px dashed #9CA3AF;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin: 0 auto 10px;
+  background: #FFF;
+}
+
+.fallback-title {
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: #374151;
+}
+
+.fallback-info {
+  font-size: 12px;
+  color: #6B7280;
+}
+
+.fallback-amount {
+  font-size: 14px;
+  font-weight: 700;
+  color: #059669;
+}
+
+.fallback-note {
+  font-size: 12px;
+  color: #6B7280;
+}
+
+.qrcode-guide {
+  margin-top: 16px;
+  text-align: center;
+}
+
+.guide-main {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1F2937;
+  margin-bottom: 4px;
+}
+
+.guide-sub {
+  font-size: 12px;
+  color: #6B7280;
+}
