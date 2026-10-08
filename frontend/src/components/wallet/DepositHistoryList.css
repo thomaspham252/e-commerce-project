@@ -1,0 +1,237 @@
+/* Lịch sử nạp tiền ngân hàng */
+.deposit-history-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.deposit-history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.deposit-history-title {
+  margin: 0 0 6px 0;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.deposit-history-desc {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #64748b;
+}
+
+.deposit-history-btn-refresh {
+  padding: 8px 16px;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.deposit-history-btn-refresh:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.deposit-history-table-wrap {
+  background: #ffffff;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+}
+
+.deposit-history-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.deposit-history-table th {
+  background: #f8fafc;
+  padding: 14px 18px;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #64748b;
+  font-weight: 600;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.deposit-history-table td {
+  padding: 16px 18px;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 0.9rem;
+  color: #334155;
+  vertical-align: middle;
+}
+
+.deposit-history-row:hover {
+  background: #f8fafc;
+}
+
+.order-code-badge {
+  display: inline-block;
+  background: #f1f5f9;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-family: monospace;
+  font-size: 0.825rem;
+  color: #2563eb;
+  font-weight: 600;
+  border: 1px solid #e2e8f0;
+}
+
+.deposit-time-box {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #475569;
+}
+
+.time-icon {
+  color: #94a3b8;
+  font-size: 0.85rem;
+}
+
+.service-name-text {
+  color: #0f172a;
+  font-size: 0.925rem;
+}
+
+.deposit-amount-highlight {
+  font-weight: 700;
+  color: #0f172a;
+  font-size: 0.95rem;
+}
+
+.deposit-btn-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 0.825rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.deposit-btn-action--pay {
+  background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%);
+  color: #1e1b4b;
+  box-shadow: 0 2px 6px rgba(234, 179, 8, 0.3);
+}
+
+.deposit-btn-action--pay:hover {
+  background: linear-gradient(135deg, #facc15 0%, #eab308 100%);
+  transform: translateY(-1px);
+}
+
+.deposit-btn-action--view {
+  background: #f1f5f9;
+  color: #2563eb;
+  border: 1px solid #cbd5e1;
+}
+
+.deposit-btn-action--view:hover {
+  background: #e2e8f0;
+  color: #1d4ed8;
+}
+
+.deposit-history-empty {
+  background: #ffffff;
+  padding: 48px 24px;
+  border-radius: 14px;
+  border: 1px dashed #cbd5e1;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.deposit-history-cards-mobile {
+  display: none;
+}
+
+/* Responsive mobile <= 640px */
+@media (max-width: 640px) {
+  .deposit-history-table-wrap {
+    display: none;
+  }
+
+  .deposit-history-cards-mobile {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .deposit-history-card-mobile {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 16px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .deposit-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .deposit-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .deposit-card-title {
+    margin: 0;
+    font-size: 0.95rem;
+    color: #0f172a;
+    font-weight: 600;
+  }
+
+  .deposit-card-amount {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    color: #475569;
+  }
+
+  .deposit-card-amount strong {
+    color: #0f172a;
+    font-size: 1rem;
+  }
+
+  .deposit-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px dashed #f1f5f9;
+    padding-top: 10px;
+  }
+
+  .deposit-card-time {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.775rem;
+    color: #64748b;
+  }
+}

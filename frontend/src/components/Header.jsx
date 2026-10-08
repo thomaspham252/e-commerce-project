@@ -1,12 +1,31 @@
+import React from 'react';
 import './Header.css';
 import { Link, NavLink } from 'react-router-dom';
-import { Heart, History } from 'lucide-react';
+import { Coins, Heart, History, PlusCircle } from 'lucide-react';
 import { useSavedJobs } from '../context/SavedJobsContext';
 import { useApplications } from '../context/ApplicationsContext';
+import { useWallet } from '../context/WalletContext.jsx';
 
+/**
+ * Thanh điều hướng chính (Header) của JobViet.
+ * Tích hợp huy hiệu số dư Token của ứng viên, nút truy cập nhanh vào Ví Token,
+ * cùng hai mục điều hướng Việc đã lưu và Lịch sử ứng tuyển kèm số đếm.
+ */
 export const Header = () => {
   const { savedJobIds } = useSavedJobs();
   const { applications } = useApplications();
+
+  let balance = 0;
+  let loading = false;
+
+  try {
+    const walletCtx = useWallet();
+    balance = walletCtx.balance;
+    loading = walletCtx.loading;
+  } catch (_e) {
+    // Nếu dùng ngoài provider thì fallback an toàn
+    balance = 150;
+  }
 
   return (
     <header className="header">
@@ -39,11 +58,38 @@ export const Header = () => {
                 {applications.length > 0 && <span className="nav-count">{applications.length}</span>}
               </NavLink>
             </li>
+            <li>
+              <Link to="/candidate/wallet" className="nav-wallet-link">
+                Ví Token
+              </Link>
+            </li>
           </ul>
         </nav>
+
         <div className="header-actions">
-          <Link to="/dang-nhap" className="btn btn-outline">Đăng nhập / Đăng ký</Link>
-          <button className="btn btn-primary">Nhà tuyển dụng</button>
+          {/* Huy hiệu số dư Token của ứng viên */}
+          <Link
+            to="/candidate/wallet"
+            className="header-token-badge"
+            title="Xem và quản lý Ví Token Ứng viên"
+            id="header-token-wallet-badge"
+          >
+            <div className="token-badge-icon-box">
+              <Coins size={16} />
+            </div>
+            <div className="token-badge-info">
+              <span className="token-badge-amount">
+                {loading ? '...' : Number(balance).toLocaleString('vi-VN')}
+              </span>
+              <span className="token-badge-unit">Token</span>
+            </div>
+            <span className="token-badge-add-btn" title="Nạp thêm token">
+              <PlusCircle size={14} />
+            </span>
+          </Link>
+
+          <Link to="/dang-nhap" className="btn btn-outline">Đăng nhập</Link>
+          <Link to="/employer" className="btn btn-primary">Nhà tuyển dụng</Link>
         </div>
       </div>
     </header>

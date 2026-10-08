@@ -10,26 +10,36 @@
 }
 
 .badge-success {
-  background-color: rgba(16, 185, 129, 0.1);
-  color: var(--color-primary); /* #10B981 */
+  background-color: rgba(16, 185, 129, 0.12);
+  color: #10B981;
 }
 
 .badge-warning {
-  background-color: rgba(249, 115, 22, 0.1);
-  color: var(--color-orange); /* #F97316 */
+  background-color: rgba(245, 158, 11, 0.12);
+  color: #D97706;
+}
+
+.badge-wrong-amount {
+  background-color: rgba(249, 115, 22, 0.15);
+  color: #EA580C;
 }
 
 .badge-danger {
-  background-color: rgba(239, 68, 68, 0.1);
+  background-color: rgba(239, 68, 68, 0.12);
   color: #EF4444; 
 }
 
 .badge-info {
-  background-color: rgba(59, 130, 246, 0.1);
+  background-color: rgba(59, 130, 246, 0.12);
   color: #3B82F6;
+}
+
+.badge-expired {
+  background-color: rgba(107, 114, 128, 0.15);
+  color: #4B5563;
 }
 
 .badge-default {
   background-color: rgba(107, 114, 128, 0.1);
-  color: var(--color-text-muted); /* #6B7280 */
+  color: var(--color-text-muted, #6B7280);
 }
