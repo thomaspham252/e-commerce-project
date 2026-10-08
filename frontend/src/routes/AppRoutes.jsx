@@ -7,6 +7,9 @@ import { AuthPage } from '../pages/AuthPage';
 import { PaymentPage } from '../pages/payment/PaymentPage';
 import { PaymentResultPage } from '../pages/payment/PaymentResultPage';
 
+// Candidate Imports (Ví Token)
+import { CandidateWalletPage } from '../pages/candidate/CandidateWalletPage';
+
 // Admin Imports
 import { AdminLayout } from '../layouts/AdminLayout';
 import { AdminDashboard } from '../pages/admin/AdminDashboard';
@@ -34,6 +37,8 @@ export const AppRoutes = () => {
           <Route path="/thanh-toan" element={<PaymentPage />} />
           <Route path="/thanh-toan/:orderId" element={<PaymentPage />} />
           <Route path="/thanh-toan/ket-qua/:orderId" element={<PaymentResultPage />} />
+          <Route path="/candidate/wallet" element={<CandidateWalletPage />} />
+          <Route path="/ung-vien/vi-token" element={<CandidateWalletPage />} />
         </Route>
 
         {/* Admin Routes */}

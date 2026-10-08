@@ -6,7 +6,7 @@ const adminSidebarItems = [
   { path: '/admin/users', label: 'Người dùng', icon: <Users size={20} /> },
   { path: '/admin/jobs', label: 'Tin tuyển dụng', icon: <Briefcase size={20} /> },
   { path: '/admin/companies', label: 'Doanh nghiệp', icon: <Building2 size={20} /> },
-  { path: '/admin/payments', label: 'Giao dịch SePay', icon: <CreditCard size={20} /> },
+  { path: '/admin/payments', label: 'Quản lý giao dịch', icon: <CreditCard size={20} /> },
 ];
 
 export const AdminLayout = () => {

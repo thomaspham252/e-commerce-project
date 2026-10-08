@@ -89,7 +89,7 @@ export const AdminPayments = () => {
     <div className="admin-payments-page">
       <div className="page-header">
         <div>
-          <h2 className="page-title">Quản lý giao dịch SePay (VietQR)</h2>
+          <h2 className="page-title">Quản lý giao dịch</h2>
           <p className="page-subtitle">
             Theo dõi, lọc trạng thái dòng tiền và đối soát log Webhook hệ thống
           </p>
