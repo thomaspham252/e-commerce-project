@@ -3,12 +3,17 @@ import { MainLayout } from '../layouts/MainLayout';
 import { HomePage } from '../pages/HomePage';
 import { AuthPage } from '../pages/AuthPage';
 
+// Payment Imports (Shared VietQR SePay)
+import { PaymentPage } from '../pages/payment/PaymentPage';
+import { PaymentResultPage } from '../pages/payment/PaymentResultPage';
+
 // Admin Imports
 import { AdminLayout } from '../layouts/AdminLayout';
 import { AdminDashboard } from '../pages/admin/AdminDashboard';
 import { AdminUsers } from '../pages/admin/AdminUsers';
 import { AdminJobs } from '../pages/admin/AdminJobs';
 import { AdminCompanies } from '../pages/admin/AdminCompanies';
+import { AdminPayments } from '../pages/admin/AdminPayments';
 
 // Employer Imports
 import { EmployerLayout } from '../layouts/EmployerLayout';
@@ -23,8 +28,12 @@ export const AppRoutes = () => {
       <Routes>
         <Route path="/dang-nhap" element={<AuthPage />} />
         
+        {/* Main Public Routes */}
         <Route element={<MainLayout />}>
           <Route path="/" element={<HomePage />} />
+          <Route path="/thanh-toan" element={<PaymentPage />} />
+          <Route path="/thanh-toan/:orderId" element={<PaymentPage />} />
+          <Route path="/thanh-toan/ket-qua/:orderId" element={<PaymentResultPage />} />
         </Route>
 
         {/* Admin Routes */}
@@ -33,6 +42,7 @@ export const AppRoutes = () => {
           <Route path="/admin/users" element={<AdminUsers />} />
           <Route path="/admin/jobs" element={<AdminJobs />} />
           <Route path="/admin/companies" element={<AdminCompanies />} />
+          <Route path="/admin/payments" element={<AdminPayments />} />
         </Route>
 
         {/* Employer Routes */}
@@ -46,4 +56,3 @@ export const AppRoutes = () => {
     </Router>
   );
 };
-
