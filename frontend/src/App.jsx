@@ -1,10 +1,13 @@
 import { AppRoutes } from './routes/AppRoutes';
 import { SavedJobsProvider } from './context/SavedJobsContext';
+import { ApplicationsProvider } from './context/ApplicationsContext';
 
 function App() {
   return (
     <SavedJobsProvider>
-      <AppRoutes />
+      <ApplicationsProvider>
+        <AppRoutes />
+      </ApplicationsProvider>
     </SavedJobsProvider>
   );
 }

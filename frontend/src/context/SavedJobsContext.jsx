@@ -1,13 +1,36 @@
-import { createContext, useState, useContext } from 'react';
+import { createContext, useState, useContext, useEffect } from 'react';
 
 const SavedJobsContext = createContext();
+
+const STORAGE_KEY = 'jobviet.savedJobIds';
 
 export const useSavedJobs = () => {
   return useContext(SavedJobsContext);
 };
 
+// Đọc danh sách đã lưu từ localStorage ngay khi khởi tạo state,
+// nhờ vậy tin đã lưu không bị mất khi người dùng tải lại trang.
+const readStoredIds = () => {
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    if (!raw) return new Set();
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? new Set(parsed) : new Set();
+  } catch {
+    return new Set();
+  }
+};
+
 export const SavedJobsProvider = ({ children }) => {
-  const [savedJobIds, setSavedJobIds] = useState(new Set());
+  const [savedJobIds, setSavedJobIds] = useState(readStoredIds);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify([...savedJobIds]));
+    } catch {
+      // Bỏ qua khi trình duyệt chặn localStorage (chế độ ẩn danh, hết dung lượng)
+    }
+  }, [savedJobIds]);
 
   const toggleSaveJob = (jobId) => {
     setSavedJobIds(prev => {
