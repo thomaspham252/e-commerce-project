@@ -2,6 +2,7 @@ import './JobCard.css';
 import { formatSalary } from '../utils/formatSalary';
 import { useSavedJobs } from '../context/SavedJobsContext';
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 export const JobCard = ({ job }) => {
   const { toggleSaveJob, isJobSaved } = useSavedJobs();
@@ -22,7 +23,9 @@ export const JobCard = ({ job }) => {
           />
         </div>
         <div className="job-info">
-          <h3 className="job-title">{job.title}</h3>
+          <Link to={`/viec-lam/${job.id}`} className="job-title-link">
+            <h3 className="job-title">{job.title}</h3>
+          </Link>
           <p className="company-name">{job.companyName}</p>
         </div>
         <button 
@@ -44,7 +47,9 @@ export const JobCard = ({ job }) => {
       </div>
       <div className="job-card-footer">
         <span className="job-time">{job.timeAgo}</span>
-        <button className="btn btn-primary btn-apply">Ứng tuyển</button>
+        <Link to={`/viec-lam/${job.id}/ung-tuyen`} className="btn btn-primary btn-apply">
+          Ứng tuyển
+        </Link>
       </div>
     </div>
   );

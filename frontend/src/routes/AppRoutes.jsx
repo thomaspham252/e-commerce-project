@@ -3,6 +3,12 @@ import { MainLayout } from '../layouts/MainLayout';
 import { HomePage } from '../pages/HomePage';
 import { AuthPage } from '../pages/AuthPage';
 
+// Candidate Imports
+import { JobDetailPage } from '../pages/candidate/JobDetailPage';
+import { SavedJobsPage } from '../pages/candidate/SavedJobsPage';
+import { ApplyPage } from '../pages/candidate/ApplyPage';
+import { ApplicationHistoryPage } from '../pages/candidate/ApplicationHistoryPage';
+
 // Admin Imports
 import { AdminLayout } from '../layouts/AdminLayout';
 import { AdminDashboard } from '../pages/admin/AdminDashboard';
@@ -25,6 +31,10 @@ export const AppRoutes = () => {
         
         <Route element={<MainLayout />}>
           <Route path="/" element={<HomePage />} />
+          <Route path="/viec-lam/:id" element={<JobDetailPage />} />
+          <Route path="/viec-lam/:id/ung-tuyen" element={<ApplyPage />} />
+          <Route path="/viec-lam-da-luu" element={<SavedJobsPage />} />
+          <Route path="/lich-su-ung-tuyen" element={<ApplicationHistoryPage />} />
         </Route>
 
         {/* Admin Routes */}
