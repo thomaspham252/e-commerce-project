@@ -1,0 +1,54 @@
+.admin-token-config-page {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.token-config-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.token-config-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.token-config-desc {
+  font-size: 14px;
+  color: #64748b;
+  margin-top: 4px;
+}
+
+.token-config-section {
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.token-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.token-section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.token-section-desc {
+  font-size: 13px;
+  color: #64748b;
+  margin-top: 2px;
+}

@@ -174,3 +174,89 @@ export const getServiceFees = async () => {
   await simulateDelay();
   return [...serviceFees];
 };
+
+/**
+ * 8. Quản lý Admin: Tạo mới hoặc chỉnh sửa gói nạp token.
+ */
+export const saveTokenPackage = async (packageData) => {
+  await simulateDelay();
+
+  const tokens = Number(packageData.tokens);
+  const price = Number(packageData.priceVND);
+  const bonus = Number(packageData.bonusTokens || 0);
+
+  if (!packageData.tokens || isNaN(tokens) || tokens <= 0) {
+    throw new Error('Số token cơ bản phải lớn hơn 0');
+  }
+  if (!packageData.priceVND || isNaN(price) || price <= 0) {
+    throw new Error('Giá nạp tiền phải lớn hơn 0 ₫');
+  }
+  if (isNaN(bonus) || bonus < 0) {
+    throw new Error('Số token thưởng không được âm');
+  }
+
+  const existingIndex = tokenPackages.findIndex((p) => p.id === packageData.id);
+  const totalTokens = tokens + bonus;
+
+  if (existingIndex >= 0) {
+    tokenPackages[existingIndex] = {
+      ...tokenPackages[existingIndex],
+      ...packageData,
+      tokens,
+      bonusTokens: bonus,
+      totalTokens,
+      priceVND: price,
+      isActive: packageData.isActive !== false,
+    };
+    return { ...tokenPackages[existingIndex] };
+  } else {
+    const newPackage = {
+      id: packageData.id || `pkg-tok-${Date.now().toString().slice(-4)}`,
+      tokens,
+      bonusTokens: bonus,
+      totalTokens,
+      priceVND: price,
+      isPopular: Boolean(packageData.isPopular),
+      badgeLabel: packageData.badgeLabel || '',
+      description: packageData.description || `Gói nạp ${tokens} Token`,
+      isActive: packageData.isActive !== false,
+    };
+    tokenPackages.push(newPackage);
+    return { ...newPackage };
+  }
+};
+
+/**
+ * 9. Quản lý Admin: Bật/tắt trạng thái mở bán gói Token.
+ */
+export const toggleTokenPackageStatus = async (packageId) => {
+  await simulateDelay();
+  const pkg = tokenPackages.find((p) => p.id === packageId);
+  if (!pkg) {
+    throw new Error(`Không tìm thấy gói token có mã: ${packageId}`);
+  }
+  pkg.isActive = pkg.isActive === false ? true : false;
+  return { ...pkg };
+};
+
+/**
+ * 10. Quản lý Admin: Chỉnh sửa mức trừ token của tính năng ứng viên.
+ */
+export const saveServiceFee = async (feeData) => {
+  await simulateDelay();
+  const cost = Number(feeData.tokenCost);
+  if (isNaN(cost) || cost <= 0) {
+    throw new Error('Mức trừ token phải lớn hơn 0');
+  }
+
+  const existing = serviceFees.find((f) => f.featureKey === feeData.featureKey);
+  if (!existing) {
+    throw new Error(`Không tìm thấy tính năng: ${feeData.featureKey}`);
+  }
+
+  existing.tokenCost = cost;
+  if (feeData.featureName) existing.featureName = feeData.featureName;
+  if (feeData.description) existing.description = feeData.description;
+
+  return { ...existing };
+};

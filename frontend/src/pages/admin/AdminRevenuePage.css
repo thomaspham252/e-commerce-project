@@ -1,0 +1,131 @@
+.admin-revenue-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.revenue-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.revenue-page-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.revenue-page-desc {
+  font-size: 14px;
+  color: #64748b;
+  margin-top: 4px;
+}
+
+.revenue-filter-card {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: #ffffff;
+  padding: 16px 20px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.revenue-presets {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.revenue-preset-btn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.revenue-preset-btn:hover {
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+.revenue-preset-btn.active {
+  background: #059669;
+  color: #ffffff;
+  border-color: #059669;
+  box-shadow: 0 2px 4px rgba(5, 150, 105, 0.2);
+}
+
+.revenue-custom-dates {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.revenue-date-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.revenue-date-input {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid #cbd5e1;
+  font-size: 13px;
+  color: #1e293b;
+  outline: none;
+}
+
+.revenue-date-input:focus {
+  border-color: #059669;
+  box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.15);
+}
+
+.revenue-recent-section {
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.revenue-recent-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.revenue-recent-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.revenue-view-all-link {
+  font-size: 13px;
+  color: #059669;
+  text-decoration: none;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.revenue-view-all-link:hover {
+  text-decoration: underline;
+}
