@@ -17,7 +17,7 @@ export const Header = () => {
           </ul>
         </nav>
         <div className="header-actions">
-          <button className="btn btn-outline">Đăng nhập / Đăng ký</button>
+          <Link to="/dang-nhap" className="btn btn-outline">Đăng nhập / Đăng ký</Link>
           <button className="btn btn-primary">Nhà tuyển dụng</button>
         </div>
       </div>
