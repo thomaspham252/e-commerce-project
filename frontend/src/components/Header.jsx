@@ -1,5 +1,9 @@
 import React from 'react';
 import './Header.css';
+import { Link, NavLink } from 'react-router-dom';
+import { Heart, History } from 'lucide-react';
+import { useSavedJobs } from '../context/SavedJobsContext';
+import { useApplications } from '../context/ApplicationsContext';
 import { Link } from 'react-router-dom';
 import { Coins, PlusCircle } from 'lucide-react';
 import { useWallet } from '../context/WalletContext.jsx';
@@ -9,6 +13,8 @@ import { useWallet } from '../context/WalletContext.jsx';
  * Tích hợp huy hiệu số dư Token của ứng viên và nút truy cập nhanh vào Ví Token.
  */
 export const Header = () => {
+  const { savedJobIds } = useSavedJobs();
+  const { applications } = useApplications();
   let balance = 0;
   let loading = false;
 
@@ -33,6 +39,24 @@ export const Header = () => {
             <li><a href="#">Công ty</a></li>
             <li><a href="#">Hồ sơ & CV</a></li>
             <li>
+              <NavLink
+                to="/viec-lam-da-luu"
+                className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}
+              >
+                <Heart size={16} />
+                Việc đã lưu
+                {savedJobIds.size > 0 && <span className="nav-count">{savedJobIds.size}</span>}
+              </NavLink>
+            </li>
+            <li>
+              <NavLink
+                to="/lich-su-ung-tuyen"
+                className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}
+              >
+                <History size={16} />
+                Lịch sử ứng tuyển
+                {applications.length > 0 && <span className="nav-count">{applications.length}</span>}
+              </NavLink>
               <Link to="/candidate/wallet" className="nav-wallet-link">
                 Ví Token
               </Link>

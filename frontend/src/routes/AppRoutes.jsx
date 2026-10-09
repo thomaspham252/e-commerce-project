@@ -3,6 +3,11 @@ import { MainLayout } from '../layouts/MainLayout';
 import { HomePage } from '../pages/HomePage';
 import { AuthPage } from '../pages/AuthPage';
 
+// Candidate Imports
+import { JobDetailPage } from '../pages/candidate/JobDetailPage';
+import { SavedJobsPage } from '../pages/candidate/SavedJobsPage';
+import { ApplyPage } from '../pages/candidate/ApplyPage';
+import { ApplicationHistoryPage } from '../pages/candidate/ApplicationHistoryPage';
 // Payment Imports (Shared VietQR SePay)
 import { PaymentPage } from '../pages/payment/PaymentPage';
 import { PaymentResultPage } from '../pages/payment/PaymentResultPage';
@@ -39,6 +44,10 @@ export const AppRoutes = () => {
         {/* Main Public Routes */}
         <Route element={<MainLayout />}>
           <Route path="/" element={<HomePage />} />
+          <Route path="/viec-lam/:id" element={<JobDetailPage />} />
+          <Route path="/viec-lam/:id/ung-tuyen" element={<ApplyPage />} />
+          <Route path="/viec-lam-da-luu" element={<SavedJobsPage />} />
+          <Route path="/lich-su-ung-tuyen" element={<ApplicationHistoryPage />} />
           <Route path="/thanh-toan" element={<PaymentPage />} />
           <Route path="/thanh-toan/:orderId" element={<PaymentPage />} />
           <Route path="/thanh-toan/ket-qua/:orderId" element={<PaymentResultPage />} />
