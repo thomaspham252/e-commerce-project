@@ -1,0 +1,388 @@
+/* Lịch sử biến động token */
+.token-tx-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.token-tx-filter-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  background: #ffffff;
+  padding: 16px;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+}
+
+.token-tx-filter-tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.token-tx-filter-tab {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #475569;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.token-tx-filter-tab:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.token-tx-filter-tab--active {
+  background: #2563eb;
+  color: #ffffff;
+  border-color: #2563eb;
+  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);
+}
+
+.token-tx-filter-tab--active:hover {
+  background: #1d4ed8;
+  color: #ffffff;
+}
+
+.token-tx-date-filters {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.token-tx-date-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  padding: 6px 12px;
+  border-radius: 8px;
+}
+
+.date-icon {
+  color: #64748b;
+  font-size: 0.95rem;
+}
+
+.token-tx-date-input {
+  border: none;
+  background: transparent;
+  font-size: 0.85rem;
+  color: #1e293b;
+  outline: none;
+  font-family: inherit;
+}
+
+.date-separator {
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.token-tx-btn-reset {
+  padding: 6px 12px;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.825rem;
+  color: #475569;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.token-tx-btn-reset:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+/* Bảng Desktop */
+.token-tx-table-wrapper {
+  background: #ffffff;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+}
+
+.token-tx-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.token-tx-table th {
+  background: #f8fafc;
+  padding: 14px 18px;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #64748b;
+  font-weight: 600;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.token-tx-table td {
+  padding: 16px 18px;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 0.9rem;
+  color: #334155;
+  vertical-align: middle;
+}
+
+.token-tx-row:hover {
+  background: #f8fafc;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.cell-time {
+  white-space: nowrap;
+}
+
+.tx-time-text {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+  color: #1e293b;
+}
+
+.cell-clock-icon {
+  color: #94a3b8;
+  font-size: 0.85rem;
+}
+
+.tx-code-sub {
+  font-size: 0.775rem;
+  color: #94a3b8;
+  font-family: monospace;
+  margin-top: 2px;
+  display: block;
+}
+
+.cell-details {
+  max-width: 380px;
+}
+
+.tx-title {
+  display: block;
+  font-size: 0.925rem;
+  color: #0f172a;
+  margin-bottom: 3px;
+}
+
+.tx-desc {
+  display: block;
+  font-size: 0.8rem;
+  color: #64748b;
+  line-height: 1.35;
+}
+
+/* Huy hiệu loại giao dịch */
+.tx-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.775rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.tx-badge--deposit {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.tx-badge--consume {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.tx-badge--refund {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.tx-badge--bonus {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.tx-badge--default {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+/* Số tiền biến động */
+.tx-amount-text {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.tx-amount--positive {
+  color: #16a34a;
+}
+
+.tx-amount--negative {
+  color: #dc2626;
+}
+
+.tx-balance-after {
+  font-weight: 600;
+  color: #1e293b;
+}
+
+/* Thẻ mobile */
+.token-tx-cards-mobile {
+  display: none;
+}
+
+/* Trạng thái trống */
+.token-tx-empty-state {
+  background: #ffffff;
+  padding: 48px 24px;
+  border-radius: 14px;
+  border: 1px dashed #cbd5e1;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.empty-icon {
+  font-size: 2.5rem;
+  color: #94a3b8;
+  margin-bottom: 12px;
+}
+
+.token-tx-empty-state h4 {
+  margin: 0 0 6px 0;
+  font-size: 1.1rem;
+  color: #1e293b;
+}
+
+.token-tx-empty-state p {
+  margin: 0 0 16px 0;
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+.btn-retry-filter {
+  padding: 8px 16px;
+  background: #2563eb;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Responsive di động <= 640px */
+@media (max-width: 640px) {
+  .token-tx-filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .token-tx-filter-tabs {
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+  .token-tx-date-filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .date-separator {
+    text-align: center;
+  }
+
+  .token-tx-table-wrapper {
+    display: none;
+  }
+
+  .token-tx-cards-mobile {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .token-tx-card-mobile {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 16px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .tx-mobile-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .tx-mobile-badge-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .tx-mobile-id {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    font-family: monospace;
+  }
+
+  .tx-mobile-amount {
+    font-size: 0.95rem;
+    font-weight: 700;
+  }
+
+  .tx-mobile-title {
+    margin: 0 0 4px 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #0f172a;
+  }
+
+  .tx-mobile-desc {
+    margin: 0;
+    font-size: 0.8rem;
+    color: #64748b;
+    line-height: 1.35;
+  }
+
+  .tx-mobile-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.8rem;
+    color: #64748b;
+    border-top: 1px dashed #f1f5f9;
+    padding-top: 8px;
+  }
+
+  .tx-mobile-time {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .tx-mobile-balance strong {
+    color: #0f172a;
+  }
+}

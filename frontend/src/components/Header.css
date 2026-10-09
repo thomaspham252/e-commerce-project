@@ -68,6 +68,64 @@
   align-items: center;
 }
 
+/* Huy hiệu số dư Token */
+.header-token-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #fefce8 0%, #fef3c7 100%);
+  border: 1px solid #fde68a;
+  padding: 6px 12px;
+  border-radius: 999px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(245, 158, 11, 0.1);
+}
+
+.header-token-badge:hover {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde047 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(245, 158, 11, 0.2);
+  border-color: #f59e0b;
+}
+
+.token-badge-icon-box {
+  color: #d97706;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.token-badge-info {
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+}
+
+.token-badge-amount {
+  font-weight: 800;
+  color: #92400e;
+  font-size: 0.925rem;
+}
+
+.token-badge-unit {
+  font-weight: 600;
+  color: #b45309;
+  font-size: 0.775rem;
+}
+
+.token-badge-add-btn {
+  color: #d97706;
+  display: flex;
+  align-items: center;
+  margin-left: 2px;
+}
+
+.nav-wallet-link {
+  color: #2563eb !important;
+  font-weight: 700 !important;
+}
+
 .btn {
   padding: 10px 20px;
   border-radius: var(--radius-full);
