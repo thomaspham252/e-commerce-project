@@ -4,8 +4,6 @@ import {
   FiClock,
   FiExternalLink,
   FiCreditCard,
-  FiAlertCircle,
-  FiCheckCircle,
 } from 'react-icons/fi';
 import { StatusBadge } from '../common/StatusBadge.jsx';
 import './DepositHistoryList.css';

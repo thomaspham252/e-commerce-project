@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { getPaymentOrder, createPaymentOrder } from '../../services/paymentService';
 import { formatCurrencyVND } from '../../utils/formatCurrency';
 import { StatusBadge } from '../../components/common/StatusBadge';
@@ -27,7 +27,6 @@ import './PaymentResultPage.css';
 export const PaymentResultPage = () => {
   const { orderId } = useParams();
   const navigate = useNavigate();
-  const location = useLocation();
 
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);

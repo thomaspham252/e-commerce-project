@@ -82,7 +82,15 @@ export const EmployerPackageProvider = ({ children }) => {
 export const useEmployerPackage = () => {
   const context = useContext(EmployerPackageContext);
   if (!context) {
-    throw new Error('useEmployerPackage phải được sử dụng bên trong EmployerPackageProvider');
+    return {
+      subscription: null,
+      packages: [],
+      loading: false,
+      refreshSubscription: () => {},
+      purchasePackage: async () => ({ success: false }),
+      checkPermission: async () => ({ allowed: true }),
+      incrementUsage: async () => null,
+    };
   }
   return context;
 };

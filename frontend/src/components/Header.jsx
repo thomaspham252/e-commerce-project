@@ -1,11 +1,9 @@
 import React from 'react';
 import './Header.css';
 import { Link, NavLink } from 'react-router-dom';
-import { Heart, History } from 'lucide-react';
+import { Heart, History, Coins, PlusCircle } from 'lucide-react';
 import { useSavedJobs } from '../context/SavedJobsContext';
 import { useApplications } from '../context/ApplicationsContext';
-import { Link } from 'react-router-dom';
-import { Coins, PlusCircle } from 'lucide-react';
 import { useWallet } from '../context/WalletContext.jsx';
 
 /**
@@ -15,17 +13,7 @@ import { useWallet } from '../context/WalletContext.jsx';
 export const Header = () => {
   const { savedJobIds } = useSavedJobs();
   const { applications } = useApplications();
-  let balance = 0;
-  let loading = false;
-
-  try {
-    const walletCtx = useWallet();
-    balance = walletCtx.balance;
-    loading = walletCtx.loading;
-  } catch (_e) {
-    // Nếu dùng ngoài provider thì fallback an toàn
-    balance = 150;
-  }
+  const { balance = 0, loading = false } = useWallet();
 
   return (
     <header className="header">
@@ -45,7 +33,7 @@ export const Header = () => {
               >
                 <Heart size={16} />
                 Việc đã lưu
-                {savedJobIds.size > 0 && <span className="nav-count">{savedJobIds.size}</span>}
+                {savedJobIds?.size > 0 && <span className="nav-count">{savedJobIds.size}</span>}
               </NavLink>
             </li>
             <li>
@@ -55,11 +43,17 @@ export const Header = () => {
               >
                 <History size={16} />
                 Lịch sử ứng tuyển
-                {applications.length > 0 && <span className="nav-count">{applications.length}</span>}
+                {applications?.length > 0 && <span className="nav-count">{applications.length}</span>}
               </NavLink>
-              <Link to="/candidate/wallet" className="nav-wallet-link">
+            </li>
+            <li>
+              <NavLink
+                to="/candidate/wallet"
+                className={({ isActive }) => (isActive ? 'nav-link nav-wallet-link active' : 'nav-link nav-wallet-link')}
+              >
+                <Coins size={16} />
                 Ví Token
-              </Link>
+              </NavLink>
             </li>
           </ul>
         </nav>

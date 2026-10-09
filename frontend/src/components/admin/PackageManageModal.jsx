@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FiX, FiCheck, FiAlertCircle } from 'react-icons/fi';
+import { FiX, FiCheck } from 'react-icons/fi';
 import './PackageManageModal.css';
 
 /**

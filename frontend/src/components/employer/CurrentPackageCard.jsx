@@ -6,7 +6,6 @@ import {
   FiCheckCircle,
   FiArrowUpRight,
   FiRefreshCw,
-  FiMessageSquare,
   FiBriefcase,
 } from 'react-icons/fi';
 import './CurrentPackageCard.css';

@@ -8,13 +8,12 @@ function App() {
   return (
     <SavedJobsProvider>
       <ApplicationsProvider>
-        <AppRoutes />
+        <WalletProvider>
+          <EmployerPackageProvider>
+            <AppRoutes />
+          </EmployerPackageProvider>
+        </WalletProvider>
       </ApplicationsProvider>
-      <WalletProvider>
-        <EmployerPackageProvider>
-          <AppRoutes />
-        </EmployerPackageProvider>
-      </WalletProvider>
     </SavedJobsProvider>
   );
 }

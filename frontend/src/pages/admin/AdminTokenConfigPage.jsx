@@ -224,49 +224,57 @@ export const AdminTokenConfigPage = () => {
         </div>
       </div>
 
-      {/* Phần 1: Danh sách các gói nạp token */}
-      <div className="token-config-section">
-        <div className="token-section-header">
-          <div>
-            <h3 className="token-section-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <FiLayers color="#2563eb" />
-              <span>Danh mục Gói nạp Token (Ứng viên)</span>
-            </h3>
-            <p className="token-section-desc">
-              Các mốc nạp token hiển thị trên trang Ví của ứng viên.
-            </p>
+      {loading ? (
+        <div style={{ padding: '40px', textAlign: 'center', color: '#64748b', fontSize: '15px' }}>
+          Đang tải dữ liệu cấu hình...
+        </div>
+      ) : (
+        <>
+          {/* Phần 1: Danh sách các gói nạp token */}
+          <div className="token-config-section">
+            <div className="token-section-header">
+              <div>
+                <h3 className="token-section-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <FiLayers color="#2563eb" />
+                  <span>Danh mục Gói nạp Token (Ứng viên)</span>
+                </h3>
+                <p className="token-section-desc">
+                  Các mốc nạp token hiển thị trên trang Ví của ứng viên.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={handleCreatePackage}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+              >
+                <FiPlus size={16} />
+                <span>Thêm gói Token</span>
+              </button>
+            </div>
+
+            <DataTable columns={packageColumns} data={packages} searchable={false} />
           </div>
 
-          <button
-            type="button"
-            className="btn btn-primary"
-            onClick={handleCreatePackage}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-          >
-            <FiPlus size={16} />
-            <span>Thêm gói Token</span>
-          </button>
-        </div>
+          {/* Phần 2: Biểu phí trừ token các tiện ích */}
+          <div className="token-config-section">
+            <div className="token-section-header">
+              <div>
+                <h3 className="token-section-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <FiZap color="#d97706" />
+                  <span>Biểu phí Tiêu thụ Token của Tính năng ứng viên</span>
+                </h3>
+                <p className="token-section-desc">
+                  Số lượng Token bị trừ khi ứng viên sử dụng các quyền lợi và tiện ích đặc biệt trên hệ thống.
+                </p>
+              </div>
+            </div>
 
-        <DataTable columns={packageColumns} data={packages} searchable={false} />
-      </div>
-
-      {/* Phần 2: Biểu phí trừ token các tiện ích */}
-      <div className="token-config-section">
-        <div className="token-section-header">
-          <div>
-            <h3 className="token-section-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <FiZap color="#d97706" />
-              <span>Biểu phí Tiêu thụ Token của Tính năng ứng viên</span>
-            </h3>
-            <p className="token-section-desc">
-              Số lượng Token bị trừ khi ứng viên sử dụng các quyền lợi và tiện ích đặc biệt trên hệ thống.
-            </p>
+            <DataTable columns={feeColumns} data={serviceFees} searchable={false} />
           </div>
-        </div>
-
-        <DataTable columns={feeColumns} data={serviceFees} searchable={false} />
-      </div>
+        </>
+      )}
 
       {/* Modal chỉnh sửa gói token hoặc biểu phí */}
       <TokenConfigModal
