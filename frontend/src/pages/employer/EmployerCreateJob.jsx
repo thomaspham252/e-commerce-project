@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { JobForm } from '../../components/common/JobForm';
 import { useEmployerPackage } from '../../context/EmployerPackageContext.jsx';
 import { PackageLimitModal } from '../../components/employer/PackageLimitModal.jsx';
-import { FiAlertCircle, FiShield, FiBriefcase } from 'react-icons/fi';
+import { FiBriefcase } from 'react-icons/fi';
 
 /**
  * Trang Đăng tin tuyển dụng mới của Nhà tuyển dụng.

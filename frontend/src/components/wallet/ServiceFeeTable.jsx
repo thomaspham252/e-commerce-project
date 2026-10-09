@@ -1,5 +1,5 @@
 import React from 'react';
-import { FiCheck, FiArrowRight, FiInfo, FiZap } from 'react-icons/fi';
+import { FiArrowRight, FiInfo, FiZap } from 'react-icons/fi';
 import { Coins, Sparkles } from 'lucide-react';
 import './ServiceFeeTable.css';
 

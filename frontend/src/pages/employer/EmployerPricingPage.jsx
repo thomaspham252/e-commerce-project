@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   FiShield,
@@ -8,7 +8,7 @@ import {
   FiInfo,
   FiArrowRight,
 } from 'react-icons/fi';
-import { Sparkles, Briefcase } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 
 import { useEmployerPackage } from '../../context/EmployerPackageContext.jsx';
 import { createPaymentOrder } from '../../services/paymentService.js';

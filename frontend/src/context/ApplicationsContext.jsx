@@ -10,7 +10,17 @@ const STORAGE_KEY = 'jobviet.myApplications';
 const WITHDRAWN_KEY = 'jobviet.withdrawnApplicationIds';
 
 export const useApplications = () => {
-  return useContext(ApplicationsContext);
+  const context = useContext(ApplicationsContext);
+  if (!context) {
+    return {
+      applications: [],
+      loading: false,
+      hasApplied: () => false,
+      addApplication: () => {},
+      withdrawApplication: () => {},
+    };
+  }
+  return context;
 };
 
 const readStored = (key, fallback) => {

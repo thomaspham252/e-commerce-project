@@ -5,7 +5,15 @@ const SavedJobsContext = createContext();
 const STORAGE_KEY = 'jobviet.savedJobIds';
 
 export const useSavedJobs = () => {
-  return useContext(SavedJobsContext);
+  const context = useContext(SavedJobsContext);
+  if (!context) {
+    return {
+      savedJobIds: new Set(),
+      toggleSaveJob: () => {},
+      isJobSaved: () => false,
+    };
+  }
+  return context;
 };
 
 // Đọc danh sách đã lưu từ localStorage ngay khi khởi tạo state,

@@ -1,5 +1,5 @@
 import React from 'react';
-import { FiCheck, FiX, FiZap, FiArrowRight, FiShield, FiMessageSquare } from 'react-icons/fi';
+import { FiCheck, FiX, FiArrowRight, FiShield, FiMessageSquare } from 'react-icons/fi';
 import { Sparkles, Briefcase } from 'lucide-react';
 import './EmployerPackageCard.css';
 

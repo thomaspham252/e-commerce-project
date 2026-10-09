@@ -70,7 +70,14 @@ export const WalletProvider = ({ children }) => {
 export const useWallet = () => {
   const context = useContext(WalletContext);
   if (!context) {
-    throw new Error('useWallet phải được sử dụng bên trong WalletProvider');
+    return {
+      wallet: { userId: 'USR-UV-01', balance: 0, totalDeposited: 0, totalConsumed: 0 },
+      balance: 0,
+      loading: false,
+      refreshWallet: () => {},
+      deposit: async () => ({ success: false }),
+      consume: async () => ({ success: false }),
+    };
   }
   return context;
 };

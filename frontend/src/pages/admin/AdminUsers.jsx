@@ -1,6 +1,6 @@
 import { DataTable } from '../../components/common/DataTable';
 import { StatusBadge } from '../../components/common/StatusBadge';
-import { Edit, Trash2, Lock, Unlock } from 'lucide-react';
+import { Trash2, Lock, Unlock } from 'lucide-react';
 
 export const AdminUsers = () => {
   const users = [

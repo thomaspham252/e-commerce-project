@@ -8,7 +8,6 @@ import {
   initialRecruitmentTimeline,
   initialCvStatusDistribution,
   initialRevenueTimeline,
-  initialRevenueSourceComposition,
 } from './analyticsMockData.js';
 
 const simulateDelay = (ms = 100) => new Promise((resolve) => setTimeout(resolve, ms));
