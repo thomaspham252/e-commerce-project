@@ -1,0 +1,35 @@
+.verification-card .auth-heading {
+  margin-bottom: 28px;
+}
+
+.verification-code {
+  letter-spacing: 2px;
+}
+
+.verification-code::placeholder {
+  color: #9CA3AF;
+  font-size: 14px;
+  letter-spacing: normal;
+}
+
+.verification-resend {
+  margin-top: 22px;
+  color: var(--color-text-muted);
+  font-size: 14px;
+  text-align: center;
+}
+
+.verification-resend button,
+.verification-card .auth-switch a {
+  color: var(--color-primary-hover);
+  font-weight: 700;
+}
+
+.verification-resend button:hover,
+.verification-card .auth-switch a:hover {
+  text-decoration: underline;
+}
+
+.verification-back-button {
+  width: 100%;
+}

@@ -1,14 +1,24 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import './AuthPage.css';
 
 export const AuthPage = () => {
-  const [mode, setMode] = useState('login');
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [mode, setMode] = useState(location.state?.mode === 'register' ? 'register' : 'login');
   const [notice, setNotice] = useState('');
   const isLogin = mode === 'login';
 
   const handleSubmit = (event) => {
     event.preventDefault();
+    if (!isLogin) {
+      const formData = new FormData(event.currentTarget);
+      navigate('/xac-thuc-email', {
+        state: { email: formData.get('email'), purpose: 'signup' },
+      });
+      return;
+    }
+
     setNotice('Tính năng tài khoản chưa được kết nối. Vui lòng quay lại sau.');
   };
 
@@ -82,6 +92,7 @@ export const AuthPage = () => {
               <span>Email</span>
               <input
                 autoComplete="email"
+                defaultValue={location.state?.email || ''}
                 name="email"
                 type="email"
                 placeholder="ban@email.com"
