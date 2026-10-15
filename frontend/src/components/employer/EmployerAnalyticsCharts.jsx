@@ -14,6 +14,7 @@ import {
 } from 'recharts';
 import { FiUsers, FiClock, FiCheckCircle, FiFileText, FiInbox } from 'react-icons/fi';
 import { getRecruitmentAnalytics } from '../../services/analyticsService.js';
+import { toIsoDate } from '../../utils/formatDate.js';
 import './EmployerAnalyticsCharts.css';
 
 /**
@@ -40,15 +41,15 @@ export const EmployerAnalyticsCharts = ({ employerId = 'EMP-001' }) => {
   const applyPreset = (type) => {
     setPreset(type);
     const end = new Date();
-    const endStr = end.toISOString().slice(0, 10);
+    const endStr = toIsoDate(end);
     let startStr = '';
 
     if (type === '7d') {
       const start = new Date(Date.now() - 6 * 86400 * 1000);
-      startStr = start.toISOString().slice(0, 10);
+      startStr = toIsoDate(start);
     } else if (type === '30d') {
       const start = new Date(Date.now() - 29 * 86400 * 1000);
-      startStr = start.toISOString().slice(0, 10);
+      startStr = toIsoDate(start);
     } else if (type === 'all') {
       startStr = '';
     }
@@ -98,7 +99,7 @@ export const EmployerAnalyticsCharts = ({ employerId = 'EMP-001' }) => {
     if (active && payload && payload.length) {
       return (
         <div className="chart-custom-tooltip">
-          <div className="tooltip-date">Ngày: {label}</div>
+          <div className="tooltip-date">{label?.startsWith('T') ? 'Tháng' : 'Ngày'}: {label}</div>
           <div className="tooltip-value">Số hồ sơ ứng tuyển: {payload[0].value}</div>
         </div>
       );

@@ -1,0 +1,157 @@
+.app-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+}
+
+.app-modal {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  width: 100%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.app-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.app-modal-header h3 {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--color-text-main);
+}
+
+.app-modal-close {
+  color: var(--color-text-muted);
+  display: inline-flex;
+}
+
+.app-modal-body {
+  padding: 20px 24px;
+  overflow-y: auto;
+  font-size: 14px;
+  color: var(--color-text-main);
+}
+
+.app-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 24px;
+  border-top: 1px solid var(--color-border);
+}
+
+/* Các thành phần dùng chung cho trang quản trị */
+.mgmt-select {
+  padding: 9px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  background: var(--color-surface);
+  color: var(--color-text-main);
+}
+
+.mgmt-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.mgmt-btn {
+  padding: 4px 10px;
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.mgmt-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.mgmt-btn-danger {
+  color: #EF4444 !important;
+  border-color: #EF4444 !important;
+}
+
+.mgmt-btn-danger:hover {
+  background: rgba(239, 68, 68, 0.08) !important;
+}
+
+.mgmt-error {
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  border-radius: var(--radius-md);
+  background: rgba(239, 68, 68, 0.08);
+  color: #B91C1C;
+  font-size: 14px;
+}
+
+.mgmt-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.mgmt-field label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-main);
+}
+
+.mgmt-field input,
+.mgmt-field textarea,
+.mgmt-field select {
+  padding: 9px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-family: inherit;
+}
+
+.mgmt-detail-grid {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 8px 12px;
+  margin-bottom: 16px;
+}
+
+.mgmt-detail-grid dt {
+  color: var(--color-text-muted);
+}
+
+.mgmt-detail-grid dd {
+  margin: 0;
+  word-break: break-word;
+}
+
+.mgmt-timeline {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 16px;
+  font-size: 13px;
+}
+
+.mgmt-timeline li {
+  padding: 6px 0;
+  border-bottom: 1px dashed var(--color-border);
+}
+
+.mgmt-muted {
+  color: var(--color-text-muted);
+  font-size: 13px;
+}

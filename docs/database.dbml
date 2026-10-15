@@ -1,0 +1,586 @@
+// =====================================================
+// Job Portal Database v3 - dbdiagram.io (DBML)
+// Dán toàn bộ nội dung file này vào https://dbdiagram.io/d
+// =====================================================
+// Các điểm CẦN NHÓM CHỐT được đánh dấu [CHỐT] trong note/comment.
+// =====================================================
+
+// ---------- ENUMS ----------
+Enum chatbot_message_type {
+  text           // Tin nhắn văn bản thông thường
+  job_suggestion // Tin nhắn chứa danh sách việc làm gợi ý
+  action         // Tin nhắn yêu cầu hành động (ví dụ: nút "Tạo CV ngay")
+}
+
+Enum feedback_rating {
+  like
+  dislike
+}
+Enum user_role {
+  candidate
+  employer
+  admin
+}
+
+Enum user_status {
+  active
+  locked
+}
+
+Enum verification_status {
+  pending
+  verified
+  rejected
+}
+
+Enum job_status {
+  draft
+  pending_review
+  open
+  closed
+  rejected
+  expired
+}
+
+Enum salary_unit {
+  hour
+  month
+  project
+}
+
+Enum application_status {
+  pending
+  viewed
+  invited
+  rejected
+  hired
+}
+
+Enum invitation_status {
+  pending
+  accepted
+  declined
+}
+
+Enum review_status {
+  visible
+  hidden
+}
+
+Enum subscription_status {
+  active
+  cancelled
+  expired
+}
+
+Enum discount_type {
+  percent
+  fixed_amount
+}
+
+Enum order_type {
+  subscription
+  token
+}
+
+Enum order_status {
+  pending
+  paid
+  fulfilled
+  cancelled
+  failed
+  refunded
+}
+
+Enum payment_status {
+  pending
+  success
+  failed
+  refunded
+}
+
+Enum token_transaction_type {
+  welcome
+  purchase
+  spend
+  refund
+  adjustment
+}
+
+Enum chatbot_role {
+  user
+  bot
+}
+
+// =====================================================
+// 1. TÀI KHOẢN VÀ HỒ SƠ
+// =====================================================
+
+Table users {
+  id int [pk, increment]
+  email varchar(255) [unique, not null]
+  password_hash varchar(255) [not null]
+  role user_role [not null]
+  status user_status [not null, default: 'active']
+  created_at timestamp [not null, default: `now()`]
+
+  Note: 'Đăng ký, đăng nhập, quản lý & khóa tài khoản'
+}
+
+Table candidate_profiles {
+  user_id int [pk, not null] // 1-1 với users, chỉ tài khoản role = candidate
+  full_name varchar(255) [not null]
+  phone varchar(20)
+  dob date
+  address varchar(500)
+  avatar varchar(500)
+  summary text
+  is_searchable boolean [not null, default: true, note: 'Ứng viên cho phép xuất hiện trong tìm kiếm hồ sơ']
+
+  Note: 'Backend kiểm tra users.role = candidate'
+}
+
+Table cvs {
+  id int [pk, increment]
+  candidate_id int [not null]
+  file_url varchar(500) [not null]
+  file_name varchar(255)
+  is_default boolean [not null, default: false]
+  uploaded_at timestamp [not null, default: `now()`]
+
+  indexes {
+    (id, candidate_id) [unique, note: 'Để applications ràng buộc CV thuộc đúng ứng viên']
+  }
+
+  Note: 'Không ghi đè/xóa file đã gửi; upload bản mới = tạo bản ghi mới. Mỗi ứng viên tối đa 1 CV is_default = true (partial unique index ở SQL: UNIQUE(candidate_id) WHERE is_default)'
+}
+
+Table skills {
+  id int [pk, increment]
+  name varchar(100) [unique, not null]
+}
+
+Table candidate_skills {
+  candidate_id int [not null]
+  skill_id int [not null]
+  level varchar(50)
+  years_exp decimal(4,1)
+
+  indexes {
+    (candidate_id, skill_id) [pk]
+  }
+}
+
+Table companies {
+  id int [pk, increment]
+  owner_id int [not null, note: '[CHỐT] 1 chủ nhiều DN: giữ nguyên. 1 chủ 1 DN: thêm unique(owner_id). Nhiều nhân viên/DN: thêm bảng company_members']
+  name varchar(255) [not null]
+  legal_name varchar(255)
+  tax_code varchar(14) [unique]
+  description text
+  logo varchar(500)
+  website varchar(255)
+  address varchar(500)
+  latitude decimal(10,7)
+  longitude decimal(10,7)
+  industry varchar(100)
+  size varchar(50)
+  business_license_url varchar(500)
+  verification_status verification_status [not null, default: 'pending']
+  verified_at timestamp
+  verified_by int [note: 'Admin xác minh']
+
+  Note: 'Backend kiểm tra owner_id có role = employer, verified_by có role = admin'
+}
+
+// =====================================================
+// 2. TUYỂN DỤNG
+// =====================================================
+
+Table jobs {
+  id int [pk, increment]
+  company_id int [not null]
+  title varchar(255) [not null]
+  description text
+  requirements text
+  salary_min decimal(15,2)
+  salary_max decimal(15,2)
+  salary_unit salary_unit [not null, default: 'month']
+  location varchar(255)
+  job_type varchar(50)
+  level varchar(50)
+  vacancies int [not null, default: 1]
+  working_schedule varchar(255)
+  deadline date
+  status job_status [not null, default: 'draft']
+  is_highlighted boolean [not null, default: false, note: 'Tin nổi bật (quyền lợi gói)']
+  is_prioritized boolean [not null, default: false, note: 'Ưu tiên hiển thị (quyền lợi gói)']
+  reviewed_by int [note: 'Admin duyệt tin']
+  reviewed_at timestamp
+  rejection_reason text
+  created_at timestamp [not null, default: `now()`]
+  updated_at timestamp [not null, default: `now()`]
+
+  indexes {
+    title
+    location
+    status
+  }
+
+  Note: 'job_post_limit của gói = số tin miễn phí trong gói; vượt quá thì trừ token [CHỐT]'
+}
+
+Table job_skills {
+  job_id int [not null]
+  skill_id int [not null]
+
+  indexes {
+    (job_id, skill_id) [pk]
+  }
+}
+
+Table wishlists {
+  candidate_id int [not null]
+  job_id int [not null]
+  created_at timestamp [not null, default: `now()`]
+
+  indexes {
+    (candidate_id, job_id) [pk]
+  }
+}
+
+Table applications {
+  id int [pk, increment]
+  job_id int [not null]
+  candidate_id int [not null]
+  cv_id int [not null, note: 'Bắt buộc nộp CV [CHỐT]. FK ghép (cv_id, candidate_id) đảm bảo CV thuộc đúng ứng viên']
+  cover_letter text
+  status application_status [not null, default: 'pending', note: 'hired = được tuyển. Phản hồi phỏng vấn nằm ở interview_invitations']
+  applied_at timestamp [not null, default: `now()`]
+  updated_at timestamp [not null, default: `now()`]
+
+  indexes {
+    (job_id, candidate_id) [unique]
+    candidate_id
+    job_id
+  }
+}
+
+Table application_status_history {
+  id int [pk, increment]
+  application_id int [not null]
+  from_status application_status
+  to_status application_status [not null]
+  changed_by int [not null]
+  changed_at timestamp [not null, default: `now()`]
+  note text
+}
+
+Table interview_invitations {
+  id int [pk, increment]
+  application_id int [not null]
+  scheduled_at timestamp
+  location varchar(500)
+  notes text
+  status invitation_status [not null, default: 'pending']
+}
+
+Table candidate_profile_views {
+  id int [pk, increment]
+  subscription_id int [not null]
+  candidate_id int [not null]
+  viewed_by int [not null]
+  viewed_at timestamp [not null, default: `now()`]
+
+  indexes {
+    (subscription_id, candidate_id) [unique, note: 'Xem lại cùng hồ sơ trong 1 gói không tính thêm lượt [CHỐT]']
+  }
+
+  Note: 'Theo dõi lượt xem hồ sơ để áp cv_view_limit'
+}
+
+// =====================================================
+// 3. ĐÁNH GIÁ DOANH NGHIỆP
+// =====================================================
+
+Table company_reviews {
+  id int [pk, increment]
+  company_id int [not null]
+  candidate_id int [not null]
+  rating smallint [not null, check: `rating between 1 and 5`]
+  content text
+  status review_status [not null, default: 'visible']
+  created_at timestamp [not null, default: `now()`]
+}
+
+Table review_replies {
+  id int [pk, increment]
+  review_id int [unique, not null, note: 'Mỗi đánh giá tối đa 1 phản hồi']
+  employer_id int [not null, note: 'Backend kiểm tra người trả lời thuộc DN được đánh giá']
+  content text [not null]
+  created_at timestamp [not null, default: `now()`]
+}
+
+// =====================================================
+// 4. CHAT
+// =====================================================
+
+Table conversations {
+  id int [pk, increment]
+  candidate_id int [not null]
+  employer_id int [not null]
+  job_id int [note: 'Tin tuyển dụng gây ra cuộc chat (nullable)']
+  created_at timestamp [not null, default: `now()`]
+
+  indexes {
+    (candidate_id, employer_id) [unique, note: 'Chat theo cặp người, tránh tạo trùng [CHỐT]']
+  }
+}
+
+Table messages {
+  id int [pk, increment]
+  conversation_id int [not null]
+  sender_id int [not null, note: 'Backend kiểm tra sender là thành viên cuộc trò chuyện']
+  content text [not null]
+  is_read boolean [not null, default: false]
+  sent_at timestamp [not null, default: `now()`]
+
+  indexes {
+    (conversation_id, sent_at)
+  }
+}
+
+Table chatbot_sessions {
+  id int [pk, increment]
+  user_id int [not null]
+  title varchar(255)
+  created_at timestamp [not null, default: `now()`]
+}
+
+Table chatbot_messages {
+  id int [pk, increment]
+  session_id int [not null]
+  role chatbot_role [not null]
+  type chatbot_message_type [not null, default: 'text', note: 'Phân loại tin nhắn để UI render tương ứng']
+  content text [not null, note: 'Nội dung text bot nói (ví dụ: "Dưới đây là các công việc phù hợp với bạn:")']
+  metadata json [note: 'Lưu thêm dữ liệu linh hoạt (VD: filter user đã chọn, url điều hướng)']
+  created_at timestamp [not null, default: `now()`]
+}
+
+Table chatbot_suggested_jobs {
+  id int [pk, increment]
+  message_id int [not null, note: 'Thuộc tin nhắn phản hồi nào của bot']
+  job_id int [not null, note: 'ID của công việc được gợi ý']
+  relevance_score decimal(5,2) [note: 'Điểm độ phù hợp (AI/Bot chấm) nếu có']
+  created_at timestamp [not null, default: `now()`]
+
+  indexes {
+    (message_id, job_id) [unique, note: 'Tránh 1 tin nhắn gợi ý lặp lại 1 công việc']
+  }
+
+  Note: 'Bảng này giúp kết nối tin nhắn của bot với các Job cụ thể. Frontend sẽ join với bảng jobs để hiển thị Card việc làm có thể click.'
+}
+
+Table chatbot_message_feedbacks {
+  id int [pk, increment]
+  message_id int [unique, not null, note: 'Người dùng đánh giá câu trả lời nào của bot']
+  user_id int [not null]
+  rating feedback_rating [not null]
+  reason text [note: 'Lý do dislike (VD: "Không đúng ngành nghề", "Lương thấp")']
+  created_at timestamp [not null, default: `now()`]
+
+  Note: 'Lưu lại phản hồi đánh giá của người dùng để cải thiện độ chính xác của Bot'
+}
+
+// =====================================================
+// 5. GÓI ĐĂNG KÝ, KHUYẾN MÃI, ĐƠN HÀNG, THANH TOÁN
+// =====================================================
+
+Table packages {
+  id int [pk, increment]
+  name varchar(100) [not null]
+  price decimal(15,2) [not null]
+  duration_days int [not null]
+  job_post_limit int [note: 'Số tin đăng miễn phí trong gói [CHỐT]']
+  cv_view_limit int [note: 'Số hồ sơ được xem, theo dõi bằng candidate_profile_views']
+  included_tokens int [not null, default: 0, note: 'Token được cấp kèm gói, nếu có']
+  can_highlight_jobs boolean [not null, default: false]
+  can_prioritize_jobs boolean [not null, default: false]
+  can_search_candidates boolean [not null, default: false]
+  can_direct_contact boolean [not null, default: false]
+  is_active boolean [not null, default: true]
+}
+
+Table token_packages {
+  id int [pk, increment]
+  tokens int [not null]
+  price decimal(15,2) [not null]
+  is_active boolean [not null, default: true]
+}
+
+Table promotions {
+  id int [pk, increment]
+  code varchar(50) [unique, not null]
+  discount_type discount_type [not null]
+  discount_value decimal(15,2) [not null]
+  min_order_amount decimal(15,2)
+  max_discount_amount decimal(15,2)
+  start_at timestamp
+  end_at timestamp
+  usage_limit int
+  per_user_limit int
+  is_active boolean [not null, default: true]
+}
+
+Table promotion_usages {
+  id int [pk, increment]
+  promotion_id int [not null]
+  user_id int [not null]
+  order_id int [unique, not null, note: 'Mỗi đơn dùng tối đa 1 mã']
+  used_at timestamp [not null, default: `now()`]
+
+  Note: 'Đếm lượt dùng thực tế (thay cho used_count)'
+}
+
+Table orders {
+  id int [pk, increment]
+  order_code varchar(50) [unique, not null]
+  user_id int [not null]
+  order_type order_type [not null]
+  package_id int [note: 'Có khi order_type = subscription']
+  token_package_id int [note: 'Có khi order_type = token']
+  subtotal decimal(15,2) [not null]
+  discount_amount decimal(15,2) [not null, default: 0]
+  total_amount decimal(15,2) [not null]
+  promotion_id int
+  product_snapshot json [not null, note: 'Giá và quyền lợi tại thời điểm mua']
+  status order_status [not null, default: 'pending']
+  created_at timestamp [not null, default: `now()`]
+  paid_at timestamp
+  fulfilled_at timestamp [note: 'Thời điểm đã cấp gói/token (chỉ 1 lần)']
+
+  checks {
+    `(order_type = 'subscription' AND package_id IS NOT NULL AND token_package_id IS NULL) OR (order_type = 'token' AND token_package_id IS NOT NULL AND package_id IS NULL)` [name: 'chk_order_product_type']
+    `subtotal >= 0 AND discount_amount >= 0 AND discount_amount <= subtotal` [name: 'chk_order_amounts']
+    `total_amount = subtotal - discount_amount` [name: 'chk_order_total']
+  }
+}
+
+Table payments {
+  id int [pk, increment]
+  order_id int [not null]
+  amount decimal(15,2) [not null]
+  gateway varchar(50) [note: 'VNPay / Momo ...']
+  transaction_code varchar(100)
+  status payment_status [not null, default: 'pending']
+  created_at timestamp [not null, default: `now()`]
+  paid_at timestamp
+
+  indexes {
+    (gateway, transaction_code) [unique]
+  }
+
+  Note: 'Một đơn có thể thanh toán thử lại nhiều lần'
+}
+
+Table subscriptions {
+  id int [pk, increment]
+  employer_id int [not null]
+  package_id int [not null]
+  order_id int [unique, not null, note: 'Chỉ cấp sau khi đơn thanh toán thành công']
+  start_at timestamp [not null]
+  end_at timestamp [not null]
+  status subscription_status [not null, default: 'active']
+  cancelled_at timestamp [note: 'Hủy = dùng đến hết end_at hay kết thúc ngay? [CHỐT]']
+}
+
+// =====================================================
+// 6. TOKEN
+// =====================================================
+
+Table token_wallets {
+  user_id int [pk, not null]
+  balance int [not null, default: 0, check: `balance >= 0`]
+}
+
+Table token_transactions {
+  id int [pk, increment]
+  wallet_id int [not null]
+  type token_transaction_type [not null]
+  amount int [not null, note: 'Cộng = số dương, trừ = số âm']
+  balance_after int [not null]
+  idempotency_key varchar(100) [unique, not null, note: 'VD: welcome:{user_id}, order:{order_id}. Chống cấp/trừ trùng']
+  order_id int [note: 'FK rõ ràng cho giao dịch mua token']
+  ref_type varchar(50) [note: 'job, application... (không phải FK cứng)']
+  ref_id int
+  created_at timestamp [not null, default: `now()`]
+
+  Note: 'Cập nhật ví + ghi giao dịch + hành động (đăng tin/ứng tuyển) phải cùng 1 DB transaction'
+}
+
+// =====================================================
+// QUAN HỆ
+// =====================================================
+// Quan hệ phần Chatbot nâng cao
+Ref: chatbot_suggested_jobs.message_id > chatbot_messages.id
+Ref: chatbot_suggested_jobs.job_id > jobs.id
+Ref: chatbot_message_feedbacks.message_id - chatbot_messages.id
+Ref: chatbot_message_feedbacks.user_id > users.id
+// Tài khoản & hồ sơ
+Ref: users.id - candidate_profiles.user_id
+Ref: cvs.candidate_id > candidate_profiles.user_id
+Ref: candidate_skills.candidate_id > candidate_profiles.user_id
+Ref: candidate_skills.skill_id > skills.id
+Ref: companies.owner_id > users.id
+Ref: companies.verified_by > users.id
+
+// Tuyển dụng
+Ref: jobs.company_id > companies.id
+Ref: jobs.reviewed_by > users.id
+Ref: job_skills.job_id > jobs.id
+Ref: job_skills.skill_id > skills.id
+Ref: wishlists.candidate_id > candidate_profiles.user_id
+Ref: wishlists.job_id > jobs.id
+Ref: applications.job_id > jobs.id
+Ref: applications.candidate_id > candidate_profiles.user_id
+Ref: applications.(cv_id, candidate_id) > cvs.(id, candidate_id)
+Ref: application_status_history.application_id > applications.id
+Ref: application_status_history.changed_by > users.id
+Ref: interview_invitations.application_id > applications.id
+Ref: candidate_profile_views.subscription_id > subscriptions.id
+Ref: candidate_profile_views.candidate_id > candidate_profiles.user_id
+Ref: candidate_profile_views.viewed_by > users.id
+
+// Đánh giá
+Ref: company_reviews.company_id > companies.id
+Ref: company_reviews.candidate_id > candidate_profiles.user_id
+Ref: company_reviews.id - review_replies.review_id
+Ref: review_replies.employer_id > users.id
+
+// Chat
+
+Ref: conversations.candidate_id > candidate_profiles.user_id
+Ref: conversations.employer_id > users.id
+Ref: conversations.job_id > jobs.id
+Ref: messages.conversation_id > conversations.id
+Ref: messages.sender_id > users.id
+Ref: chatbot_sessions.user_id > users.id
+Ref: chatbot_messages.session_id > chatbot_sessions.id
+
+// Đơn hàng, thanh toán, gói
+Ref: orders.user_id > users.id
+Ref: orders.package_id > packages.id
+Ref: orders.token_package_id > token_packages.id
+Ref: orders.promotion_id > promotions.id
+Ref: payments.order_id > orders.id
+Ref: subscriptions.employer_id > users.id
+Ref: subscriptions.package_id > packages.id
+Ref: orders.id - subscriptions.order_id
+Ref: promotion_usages.promotion_id > promotions.id
+Ref: promotion_usages.user_id > users.id
+Ref: orders.id - promotion_usages.order_id
+
+// Token
+Ref: users.id - token_wallets.user_id
+Ref: token_transactions.wallet_id > token_wallets.user_id
+Ref: token_transactions.order_id > orders.id

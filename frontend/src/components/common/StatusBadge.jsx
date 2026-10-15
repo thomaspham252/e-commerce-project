@@ -16,6 +16,8 @@ export const StatusBadge = ({ status }) => {
     case 'đã tuyển':
     case 'success':
     case 'đã thanh toán':
+    case 'đang tuyển':
+    case 'đã xác minh':
       badgeClass = 'badge-success';
       label = status === 'SUCCESS' ? 'Đã thanh toán' : label;
       break;
@@ -25,6 +27,7 @@ export const StatusBadge = ({ status }) => {
     case 'chờ duyệt':
     case 'đang xem xét':
     case 'chờ thanh toán':
+    case 'chờ xem':
       badgeClass = 'badge-warning';
       label = status === 'PENDING' ? 'Chờ thanh toán' : label;
       break;
@@ -37,6 +40,12 @@ export const StatusBadge = ({ status }) => {
       break;
 
     // Trạng thái hết hạn
+    // Tin đã đóng / bản nháp: cùng màu xám với hết hạn nhưng giữ nguyên nhãn
+    case 'đã đóng':
+    case 'bản nháp':
+      badgeClass = 'badge-expired';
+      break;
+
     case 'expired':
     case 'hết hạn':
       badgeClass = 'badge-expired';
