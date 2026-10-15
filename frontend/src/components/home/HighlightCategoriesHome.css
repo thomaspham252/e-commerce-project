@@ -1,0 +1,126 @@
+.highlight-categories-section {
+  padding: 48px 0;
+  background-color: #FFFFFF;
+}
+
+.categories-section-head {
+  text-align: center;
+  max-width: 680px;
+  margin: 0 auto 32px auto;
+}
+
+.categories-pill-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--color-primary);
+  background-color: #ECFDF5;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  margin-bottom: 8px;
+}
+
+.categories-section-title {
+  font-size: 26px;
+  font-weight: 800;
+  color: #111827;
+  letter-spacing: -0.01em;
+  margin-bottom: 6px;
+}
+
+.categories-section-desc {
+  font-size: 14.5px;
+  color: #6B7280;
+}
+
+/* Grid 8 items */
+.highlight-categories-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.category-tile-card {
+  background-color: #F9FAFB;
+  border: 1px solid #E5E7EB;
+  border-radius: 14px;
+  padding: 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.category-tile-card:hover {
+  background-color: #FFFFFF;
+  border-color: #10B981;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px -4px rgba(16, 185, 129, 0.12), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
+}
+
+.category-tile-card:hover .category-tile-icon-box {
+  background-color: var(--color-primary);
+  color: #FFFFFF;
+}
+
+.category-tile-card:hover .category-tile-title {
+  color: var(--color-primary);
+}
+
+.category-tile-icon-box {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background-color: #ECFDF5;
+  color: #059669;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+
+.category-tile-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.category-tile-title {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #1F2937;
+  line-height: 1.35;
+  margin-bottom: 4px;
+  transition: color 0.15s;
+}
+
+.category-tile-jobs {
+  font-size: 12.5px;
+  color: #6B7280;
+  font-weight: 500;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .highlight-categories-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .highlight-categories-section {
+    padding: 32px 0;
+  }
+
+  .categories-section-title {
+    font-size: 22px;
+  }
+
+  .highlight-categories-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}

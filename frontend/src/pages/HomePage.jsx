@@ -1,257 +1,52 @@
-import { SearchBar } from '../components/SearchBar';
-import { JobCard } from '../components/JobCard';
-import { CategoryCard } from '../components/CategoryCard';
-import { CompanyCard } from '../components/CompanyCard';
-import { useJobs } from '../hooks/useJobs';
-import { jobService } from '../services/jobService';
-import { useState, useEffect } from 'react';
-import { Rocket, Shield, Lightbulb } from 'lucide-react';
+import React from 'react';
+import { HeroHomeSection } from '../components/home/HeroHomeSection';
+import { FeaturedJobsHome } from '../components/home/FeaturedJobsHome';
+import { FeaturedCompaniesHome } from '../components/home/FeaturedCompaniesHome';
+import { HighlightCategoriesHome } from '../components/home/HighlightCategoriesHome';
+import { CandidateToolsHome } from '../components/home/CandidateToolsHome';
+import { EmployerCtaHome } from '../components/home/EmployerCtaHome';
 import './HomePage.css';
 
+/**
+ * Trang chủ Ứng viên JobViet (Redesigned)
+ * Tái cấu trúc chuẩn mực theo luồng thông tin cổng tuyển dụng hiện đại:
+ * 1. Header (được bao bọc bởi MainLayout)
+ * 2. Hero: Nền emerald đậm, search lớn trắng, số liệu tích hợp, cụm 2 cột nổi đè mép dưới
+ * 3. Việc làm nổi bật: 2 tabs (Mới nhất / Phù hợp), lọc nhanh địa điểm, lưới 2-3 cột
+ * 4. Công ty tiêu biểu: Tabs theo ngành, thẻ avatar công ty
+ * 5. Ngành nghề nổi bật: Lưới 8 mục với icon Lucide
+ * 6. Công cụ cho ứng viên: 3 thẻ giải pháp (Tạo CV, Gợi ý việc làm, Mức lương)
+ * 7. CTA cho nhà tuyển dụng: Đăng tin và kết nối ứng viên
+ * 8. Footer nhiều cột (được bao bọc bởi MainLayout)
+ */
 export const HomePage = () => {
-  const { jobs, loading, error, fetchJobs } = useJobs();
-  const [categories, setCategories] = useState([]);
-  const [companies, setCompanies] = useState([]);
-  const [loadingExtras, setLoadingExtras] = useState(true);
-
-  useEffect(() => {
-    const fetchExtras = async () => {
-      try {
-        const [cats, comps] = await Promise.all([
-          jobService.getCategories(),
-          jobService.getCompanies()
-        ]);
-        setCategories(cats);
-        setCompanies(comps);
-      } catch (err) {
-        console.error("Failed to load categories or companies", err);
-      } finally {
-        setLoadingExtras(false);
-      }
-    };
-    fetchExtras();
-  }, []);
-
-  const handleSearch = (keyword, location) => {
-    fetchJobs(keyword, location);
+  const handleHeroSearch = (_keyword, _location) => {
+    // Cuộn mượt xuống khối việc làm nổi bật khi tìm kiếm
+    const target = document.getElementById('featured-jobs-section');
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth' });
+    }
   };
 
   return (
-    <div className="home-page">
-      <SearchBar onSearch={handleSearch} />
-      
-      {/* Categories Grid */}
-      <div className="section-container fade-in">
-        <div className="container">
-          <div className="section-header">
-            <h2 className="section-title">Ngành nghề nổi bật</h2>
-            <a href="#" className="view-all">Xem tất cả &rarr;</a>
-          </div>
-          {loadingExtras ? (
-            <div className="loading">Đang tải...</div>
-          ) : (
-            <div className="category-grid">
-              {categories.map(cat => (
-                <CategoryCard key={cat.id} category={cat} />
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
+    <div className="home-candidate-page">
+      {/* Khối 2: Hero (kèm cụm nổi Danh mục + Banner Career Boost) */}
+      <HeroHomeSection onSearch={handleHeroSearch} />
 
-      {/* Jobs Grid */}
-      <div className="section-container fade-in" style={{ backgroundColor: '#F0FDF4' }}>
-        <div className="container">
-          <div className="section-header">
-            <h2 className="section-title">Việc làm nổi bật</h2>
-            <a href="#" className="view-all">Xem tất cả &rarr;</a>
-          </div>
-        
-        {loading && <div className="loading">Đang tải dữ liệu...</div>}
-        {error && <div className="error">{error}</div>}
-        
-        {!loading && !error && jobs.length === 0 && (
-          <div className="empty-state">
-            <div className="empty-icon">🔍</div>
-            <p>Không tìm thấy kết quả phù hợp với tiêu chí của bạn.</p>
-            <button className="btn btn-primary mt-4" onClick={() => fetchJobs('', '')}>
-              Xem tất cả việc làm
-            </button>
-          </div>
-        )}
+      {/* Khối 3: Việc làm nổi bật */}
+      <FeaturedJobsHome />
 
-        <div className="job-list-grid">
-          {jobs.map(job => (
-            <JobCard key={job.id} job={job} />
-          ))}
-        </div>
-      </div>
-      </div>
+      {/* Khối 4: Doanh nghiệp tiêu biểu */}
+      <FeaturedCompaniesHome />
 
-      {/* Features / Why Choose Us */}
-      <div className="section-container fade-in" style={{ backgroundColor: '#F0FDF4' }}>
-        <div className="container">
-          <div className="section-header">
-            <h2 className="section-title">Vì sao chọn JobViet</h2>
-          </div>
-          <div className="features-grid">
-            <div className="feature-card">
-              <div className="feature-icon-wrapper" style={{ backgroundColor: '#DBEAFE' }}>
-                <Rocket size={32} color="#3B82F6" />
-              </div>
-              <h3>Ứng tuyển nhanh</h3>
-              <p>Tạo CV và ứng tuyển ngay chỉ với 1 cú click. Tiết kiệm thời gian, gia tăng cơ hội.</p>
-            </div>
-            <div className="feature-card">
-              <div className="feature-icon-wrapper" style={{ backgroundColor: '#D1FAE5' }}>
-                <Shield size={32} color="#10B981" />
-              </div>
-              <h3>Công ty uy tín</h3>
-              <p>Hàng ngàn doanh nghiệp hàng đầu đã được xác thực, đảm bảo quyền lợi ứng viên.</p>
-            </div>
-            <div className="feature-card">
-              <div className="feature-icon-wrapper" style={{ backgroundColor: '#FEF3C7' }}>
-                <Lightbulb size={32} color="#F59E0B" />
-              </div>
-              <h3>Gợi ý thông minh</h3>
-              <p>Hệ thống AI tự động đề xuất việc làm phù hợp nhất với kỹ năng và định hướng của bạn.</p>
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* Khối 5: Ngành nghề nổi bật */}
+      <HighlightCategoriesHome />
 
-      {/* CTA Banner */}
-      <div className="section-container fade-in">
-        <div className="container">
-          <div className="cta-banner">
-            <div className="cta-content">
-              <h2>Bạn là nhà tuyển dụng?</h2>
-              <p>Đăng tin tuyển dụng ngay để tiếp cận hàng triệu ứng viên tiềm năng trên toàn quốc.</p>
-              <button className="btn btn-primary cta-btn">Đăng tin tuyển dụng</button>
-            </div>
-            <div className="cta-image">
-              <img src="/images/recruiter-banner.png" alt="Nhà tuyển dụng" style={{ borderRadius: '16px', objectFit: 'cover' }} />
-              <div className="cta-floating-card c-1">✨ 2.000 hồ sơ mới/ngày</div>
-              <div className="cta-floating-card c-2">⚡ Đăng tin miễn phí</div>
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* Khối 6: Công cụ cho ứng viên */}
+      <CandidateToolsHome />
 
-      {/* Top Companies Grid */}
-      <div className="section-container fade-in" style={{ backgroundColor: '#F0FDF4' }}>
-        <div className="container">
-          <div className="section-header">
-            <h2 className="section-title">Nhà tuyển dụng hàng đầu</h2>
-            <a href="#" className="view-all">Xem tất cả &rarr;</a>
-          </div>
-          {loadingExtras ? (
-            <div className="loading">Đang tải...</div>
-          ) : (
-            <div className="company-grid">
-              {companies.map(comp => (
-                <CompanyCard key={comp.id} company={comp} />
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Testimonials */}
-      <div className="section-container fade-in">
-        <div className="container">
-          <div className="section-header">
-            <h2 className="section-title">Cảm nhận từ ứng viên</h2>
-          </div>
-          <div className="testimonials-grid">
-            {[
-              {
-                id: 1,
-                name: "Nguyễn Văn A",
-                role: "Product Manager",
-                quote: "Nhờ JobViet mà tôi đã tìm được công việc mơ ước chỉ sau 2 tuần. Giao diện rất dễ sử dụng và tính năng gợi ý cực kỳ thông minh.",
-                stars: "⭐⭐⭐⭐⭐",
-                avatar: "/images/avatar-1.png"
-              },
-              {
-                id: 2,
-                name: "Trần Thị B",
-                role: "Frontend Developer",
-                quote: "Quá tuyệt vời! Tôi nhận được 3 lời mời phỏng vấn chỉ trong vài ngày. Chất lượng các nhà tuyển dụng ở đây rất đáng tin cậy.",
-                stars: "⭐⭐⭐⭐",
-                avatar: "/images/avatar-2.png"
-              },
-              {
-                id: 3,
-                name: "Lê Hoàng C",
-                role: "Marketing Executive",
-                quote: "Cực kỳ thích tính năng lọc thông minh và UI/UX của JobViet. Trải nghiệm tìm việc chưa bao giờ thú vị và nhanh chóng đến thế.",
-                stars: "⭐⭐⭐⭐⭐",
-                avatar: "/images/avatar-3.png"
-              }
-            ].map(test => (
-              <div key={test.id} className="testimonial-card">
-                <div className="stars">{test.stars}</div>
-                <p className="quote">"{test.quote}"</p>
-                <div className="author">
-                  <img src={test.avatar} alt={test.name} className="avatar" />
-                  <div>
-                    <h4>{test.name}</h4>
-                    <span>{test.role}</span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Blog / Cẩm nang */}
-      <div className="section-container fade-in" style={{ backgroundColor: '#F0FDF4' }}>
-        <div className="container">
-          <div className="section-header">
-            <h2 className="section-title">Cẩm nang nghề nghiệp</h2>
-            <a href="#" className="view-all">Xem tất cả &rarr;</a>
-          </div>
-          <div className="blog-grid">
-            {[
-              {
-                id: 1,
-                title: "Bí quyết viết CV chuẩn ATS chinh phục nhà tuyển dụng",
-                date: "10 Tháng 10, 2026",
-                category: "Kỹ năng mềm",
-                image: "/images/blog-1.png"
-              },
-              {
-                id: 2,
-                title: "10 câu hỏi phỏng vấn thường gặp và cách trả lời",
-                date: "08 Tháng 10, 2026",
-                category: "Phỏng vấn",
-                image: "/images/blog-2.png"
-              },
-              {
-                id: 3,
-                title: "Lộ trình thăng tiến cho Frontend Developer 2026",
-                date: "05 Tháng 10, 2026",
-                category: "Định hướng",
-                image: "/images/image.png"
-              }
-            ].map(blog => (
-              <div key={blog.id} className="blog-card">
-                <div className="blog-cover-wrapper">
-                  <img src={blog.image} alt={blog.title} className="blog-cover" />
-                </div>
-                <div className="blog-content">
-                  <span className="badge badge-green" style={{ display: 'inline-block', marginBottom: '12px', backgroundColor: 'var(--color-primary)', color: 'white' }}>{blog.category}</span>
-                  <span className="blog-date" style={{ display: 'block' }}>{blog.date}</span>
-                  <h3>{blog.title}</h3>
-                  <a href="#" className="blog-read-more">Đọc thêm &rarr;</a>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
+      {/* Khối 7: CTA Nhà tuyển dụng */}
+      <EmployerCtaHome />
     </div>
   );
 };

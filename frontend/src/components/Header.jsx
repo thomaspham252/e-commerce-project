@@ -1,9 +1,8 @@
 import React from 'react';
 import './Header.css';
 import { Link, NavLink } from 'react-router-dom';
-import { Heart, History, Coins, PlusCircle } from 'lucide-react';
+import { Heart, Coins, PlusCircle } from 'lucide-react';
 import { useSavedJobs } from '../context/SavedJobsContext';
-import { useApplications } from '../context/ApplicationsContext';
 import { useWallet } from '../context/WalletContext.jsx';
 
 /**
@@ -12,51 +11,35 @@ import { useWallet } from '../context/WalletContext.jsx';
  */
 export const Header = () => {
   const { savedJobIds } = useSavedJobs();
-  const { applications } = useApplications();
   const { balance = 0, loading = false } = useWallet();
 
   return (
     <header className="header">
       <div className="container header-container">
-        <Link to="/" className="logo">
-          JobViet
-        </Link>
-        <nav className="main-nav">
-          <ul>
-            <li><Link to="/">Việc làm</Link></li>
-            <li><a href="#">Công ty</a></li>
-            <li><a href="#">Hồ sơ & CV</a></li>
-            <li>
-              <NavLink
-                to="/viec-lam-da-luu"
-                className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}
-              >
-                <Heart size={16} />
-                Việc đã lưu
-                {savedJobIds?.size > 0 && <span className="nav-count">{savedJobIds.size}</span>}
-              </NavLink>
-            </li>
-            <li>
-              <NavLink
-                to="/lich-su-ung-tuyen"
-                className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}
-              >
-                <History size={16} />
-                Lịch sử ứng tuyển
-                {applications?.length > 0 && <span className="nav-count">{applications.length}</span>}
-              </NavLink>
-            </li>
-            <li>
-              <NavLink
-                to="/candidate/wallet"
-                className={({ isActive }) => (isActive ? 'nav-link nav-wallet-link active' : 'nav-link nav-wallet-link')}
-              >
-                <Coins size={16} />
-                Ví Token
-              </NavLink>
-            </li>
-          </ul>
-        </nav>
+        <div className="header-left-cluster">
+          <Link to="/" className="logo">
+            JobViet
+          </Link>
+          <nav className="main-nav" aria-label="Điều hướng chính">
+            <ul>
+              <li><Link to="/">Việc làm</Link></li>
+              <li><a href="#companies-section">Công ty</a></li>
+              <li><a href="#candidate-tools-section">Tạo CV</a></li>
+              <li><a href="#cam-nang-section">Cẩm nang</a></li>
+              <li>
+                <NavLink
+                  to="/viec-lam-da-luu"
+                  className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}
+                  title="Danh sách việc làm đã lưu"
+                >
+                  <Heart size={16} strokeWidth={1.75} />
+                  <span>Việc đã lưu</span>
+                  {savedJobIds?.size > 0 && <span className="nav-count">{savedJobIds.size}</span>}
+                </NavLink>
+              </li>
+            </ul>
+          </nav>
+        </div>
 
         <div className="header-actions">
           {/* Huy hiệu số dư Token của ứng viên */}
@@ -67,7 +50,7 @@ export const Header = () => {
             id="header-token-wallet-badge"
           >
             <div className="token-badge-icon-box">
-              <Coins size={16} />
+              <Coins size={16} strokeWidth={1.75} />
             </div>
             <div className="token-badge-info">
               <span className="token-badge-amount">
@@ -76,7 +59,7 @@ export const Header = () => {
               <span className="token-badge-unit">Token</span>
             </div>
             <span className="token-badge-add-btn" title="Nạp thêm token">
-              <PlusCircle size={14} />
+              <PlusCircle size={14} strokeWidth={1.75} />
             </span>
           </Link>
 
