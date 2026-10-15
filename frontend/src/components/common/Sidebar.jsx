@@ -28,6 +28,7 @@ export const Sidebar = ({ title, items, isOpen, toggleSidebar }) => {
                 >
                   <span className="sidebar-icon">{item.icon}</span>
                   <span className="sidebar-text">{item.label}</span>
+                  {item.badge > 0 && <span className="sidebar-badge">{item.badge}</span>}
                 </NavLink>
               </li>
             ))}

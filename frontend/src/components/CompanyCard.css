@@ -1,31 +1,49 @@
+/* ==========================================================
+   CSS Cho Thẻ Nhà Tuyển Dụng Hàng Đầu (CompanyCard)
+   ========================================================== */
+
 .company-card {
-  background: white;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: var(--spacing-md);
+  background: #ffffff;
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: var(--radius-lg, 12px);
+  padding: 18px 14px;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 120px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: var(--shadow-sm);
-  overflow: hidden;
+  gap: 10px;
+  min-height: 120px;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  cursor: pointer;
 }
 
 .company-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-  border-color: var(--color-mint);
+  box-shadow: 0 12px 20px -5px rgba(16, 185, 129, 0.12);
+  border-color: var(--color-primary, #10b981);
 }
 
-.company-card-logo {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  padding: 12px;
+.company-card-logo-box {
+  transition: transform 0.25s ease;
 }
 
-.company-card:hover .company-card-logo {
-  transform: scale(1.1);
+.company-card:hover .company-card-logo-box {
+  transform: scale(1.06);
+}
+
+.company-card-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-main, #1e293b);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  transition: color 0.2s ease;
+}
+
+.company-card:hover .company-card-name {
+  color: var(--color-primary, #10b981);
 }

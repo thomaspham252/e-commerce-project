@@ -4,7 +4,7 @@ import { DataTable } from '../../components/common/DataTable';
 import { StatusBadge } from '../../components/common/StatusBadge';
 import { EmployerAnalyticsCharts } from '../../components/employer/EmployerAnalyticsCharts.jsx';
 import { useEmployerPackage } from '../../context/EmployerPackageContext.jsx';
-import { FiPlusCircle, FiBox, FiArrowRight } from 'react-icons/fi';
+import { FiPlusCircle, FiBox, FiArrowRight, FiMessageSquare } from 'react-icons/fi';
 
 export const EmployerDashboard = () => {
   const { subscription } = useEmployerPackage();
@@ -21,6 +21,31 @@ export const EmployerDashboard = () => {
     { header: 'Vị trí', accessor: 'jobTitle' },
     { header: 'Trạng thái', accessor: 'status', render: (row) => <StatusBadge status={row.status} /> },
     { header: 'Ngày ứng tuyển', accessor: 'date' },
+    {
+      header: 'Thao tác',
+      accessor: 'actions',
+      render: (row) => (
+        <Link
+          to={`/employer/messages?candidateId=${row.id}`}
+          className="btn btn-outline"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            fontSize: '12px',
+            padding: '5px 10px',
+            borderRadius: '6px',
+            color: 'var(--color-primary)',
+            borderColor: 'var(--color-primary)',
+            textDecoration: 'none'
+          }}
+          title={`Nhắn tin với ${row.applicantName}`}
+        >
+          <FiMessageSquare size={13} />
+          <span>Nhắn tin</span>
+        </Link>
+      )
+    }
   ];
 
   return (

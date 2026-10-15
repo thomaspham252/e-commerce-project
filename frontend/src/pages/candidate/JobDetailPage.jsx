@@ -20,6 +20,8 @@ import {
   Wallet
 } from 'lucide-react';
 import { JobCard } from '../../components/JobCard';
+import { Icon } from '../../components/Icon';
+import { CompanyLogo } from '../../components/CompanyLogo';
 import { useSavedJobs } from '../../context/SavedJobsContext';
 import { useApplications } from '../../context/ApplicationsContext';
 import { jobService } from '../../services/jobService';
@@ -132,17 +134,25 @@ export const JobDetailPage = () => {
         {/* Thẻ tiêu đề: tên vị trí, công ty, lương, địa điểm và hai nút hành động */}
         <section className="jd-hero">
           <div className="jd-hero-main">
-            <div className="jd-logo">
-              <img
-                src={logoError ? fallbackLogo : job.companyLogo}
-                alt={job.companyName}
-                onError={() => setLogoError(true)}
-              />
-            </div>
+            <CompanyLogo
+              companyName={job.companyName}
+              logoUrl={job.companyLogo}
+              initials={job.companyInitials}
+              size={64}
+              className="jd-logo"
+            />
             <div className="jd-hero-info">
               <div className="jd-badges">
-                {job.isHot && <span className="badge badge-hot">🔥 Tin hot</span>}
-                {job.isNew && <span className="badge badge-orange">✨ Mới</span>}
+                {job.isHot && (
+                  <span className="badge badge-hot">
+                    <Icon name="flame" size="badge" /> Tin hot
+                  </span>
+                )}
+                {job.isNew && (
+                  <span className="badge badge-orange">
+                    <Icon name="sparkles" size="badge" /> Mới
+                  </span>
+                )}
                 <span className="badge badge-green">{job.jobType}</span>
               </div>
               <h1 className="jd-title">{job.title}</h1>

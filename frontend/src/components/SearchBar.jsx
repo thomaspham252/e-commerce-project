@@ -1,5 +1,6 @@
 import './SearchBar.css';
 import { useState, useEffect } from 'react';
+import { Icon } from './Icon';
 
 const BANNERS = [
   '/images/banner1.png',
@@ -47,7 +48,9 @@ export const SearchBar = ({ onSearch }) => {
           <h1 className="hero-title">Tìm kiếm công việc<br/>mơ ước của bạn</h1>
           <form className="search-form" onSubmit={handleSearch}>
             <div className="search-input-group">
-              <span className="search-icon">🔍</span>
+              <span className="search-icon">
+                <Icon name="search" size="meta" />
+              </span>
               <input 
                 type="text" 
                 placeholder="Nhập từ khóa việc làm..." 
@@ -58,7 +61,9 @@ export const SearchBar = ({ onSearch }) => {
             </div>
             <div className="search-divider"></div>
             <div className="search-input-group">
-              <span className="search-icon">📍</span>
+              <span className="search-icon">
+                <Icon name="map-pin" size="meta" />
+              </span>
               <select 
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
@@ -92,8 +97,12 @@ export const SearchBar = ({ onSearch }) => {
         <div className="hero-illustration">
           <div className="banner-slider">
             <img src={BANNERS[currentBanner]} alt={`Banner ${currentBanner + 1}`} className="banner-image" />
-            <button className="slider-btn prev-btn" onClick={prevBanner}>&#10094;</button>
-            <button className="slider-btn next-btn" onClick={nextBanner}>&#10095;</button>
+            <button className="slider-btn prev-btn" onClick={prevBanner} aria-label="Banner trước">
+              <Icon name="chevron-left" size="job" />
+            </button>
+            <button className="slider-btn next-btn" onClick={nextBanner} aria-label="Banner tiếp theo">
+              <Icon name="chevron-right" size="job" />
+            </button>
             <div className="slider-dots">
               {BANNERS.map((_, idx) => (
                 <span 
