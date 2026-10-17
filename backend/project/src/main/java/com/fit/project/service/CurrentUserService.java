@@ -11,8 +11,7 @@ import org.springframework.stereotype.Service;
 
 /**
  * Xác định người dùng hiện tại.
- * TẠM THỜI: đọc id từ header X-User-Id vì module Đăng nhập (JWT) chưa có.
- * Khi module tài khoản xong, chỉ cần đổi chỗ này sang lấy từ SecurityContext.
+ * Tạm thời đọc id từ header X-User-Id; thay bằng SecurityContext khi có xác thực token/session.
  */
 @Service
 @RequiredArgsConstructor

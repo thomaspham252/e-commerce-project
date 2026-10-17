@@ -29,7 +29,7 @@ import java.util.Random;
 @ConditionalOnProperty(name = "app.seed.enabled", havingValue = "true", matchIfMissing = true)
 public class DataSeeder implements CommandLineRunner {
 
-    /** Chưa có module đăng nhập/BCrypt: mật khẩu mẫu để dạng {noop}. Module tài khoản cần thay khi làm login. */
+    /** Tài khoản seed dùng mật khẩu development; định dạng {noop} được hỗ trợ cho dữ liệu mẫu. */
     private static final String SAMPLE_PASSWORD = "{noop}123456";
 
     private final UserRepository userRepository;
