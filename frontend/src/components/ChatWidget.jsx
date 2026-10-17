@@ -1,11 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
-import { MessageSquare, X, Send, User, Bot, RefreshCw } from 'lucide-react';
+import { MessageSquare, X, Send, Bot, RefreshCw } from 'lucide-react';
 import { sendMessage } from '../services/chatbot';
 import './ChatWidget.css';
 
 export const ChatWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState([
+  const [messages, setMessages] = useState(() => [
     { id: 1, text: "Xin chào! Mình có thể giúp bạn tìm việc phù hợp hôm nay.", sender: 'bot', time: new Date() }
   ]);
   const [inputValue, setInputValue] = useState('');
@@ -33,7 +33,7 @@ export const ChatWidget = () => {
     try {
       const response = await sendMessage(text, messages);
       setMessages(prev => [...prev, { id: Date.now(), text: response, sender: 'bot', time: new Date() }]);
-    } catch (err) {
+    } catch {
       setError(true);
     } finally {
       setIsTyping(false);

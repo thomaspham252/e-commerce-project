@@ -1,0 +1,138 @@
+.candidate-tools-section {
+  padding: 48px 0;
+  background-color: #F9FAFB;
+  border-top: 1px solid var(--color-border);
+}
+
+.tools-section-head {
+  text-align: center;
+  max-width: 680px;
+  margin: 0 auto 32px auto;
+}
+
+.tools-pill-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--color-primary);
+  background-color: #ECFDF5;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  margin-bottom: 8px;
+}
+
+.tools-section-title {
+  font-size: 26px;
+  font-weight: 800;
+  color: #111827;
+  letter-spacing: -0.01em;
+  margin-bottom: 6px;
+}
+
+.tools-section-desc {
+  font-size: 14.5px;
+  color: #6B7280;
+}
+
+/* Grid 3 cards */
+.candidate-tools-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.candidate-tool-card {
+  background-color: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 16px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.candidate-tool-card:hover {
+  border-color: #10B981;
+  transform: translateY(-3px);
+  box-shadow: 0 10px 20px -5px rgba(16, 185, 129, 0.15), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.tool-card-icon-wrapper {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%);
+  color: #059669;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 18px;
+  border: 1px solid #A7F3D0;
+  transition: transform 0.2s ease;
+}
+
+.candidate-tool-card:hover .tool-card-icon-wrapper {
+  transform: scale(1.05);
+  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+  color: #FFFFFF;
+}
+
+.tool-card-body {
+  flex: 1;
+  margin-bottom: 20px;
+}
+
+.tool-card-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #111827;
+  line-height: 1.35;
+  margin-bottom: 8px;
+}
+
+.tool-card-desc {
+  font-size: 13.5px;
+  color: #6B7280;
+  line-height: 1.5;
+}
+
+.tool-card-footer {
+  margin-top: auto;
+}
+
+.tool-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: all 0.15s;
+}
+
+.tool-action-btn:hover {
+  color: var(--color-primary-hover);
+  transform: translateX(3px);
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .candidate-tools-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+@media (max-width: 640px) {
+  .candidate-tools-section {
+    padding: 32px 0;
+  }
+
+  .tools-section-title {
+    font-size: 22px;
+  }
+}

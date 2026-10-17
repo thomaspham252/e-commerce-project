@@ -1,0 +1,133 @@
+.tok-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+  animation: fadeInModal 0.2s ease-out;
+}
+
+.tok-modal-dialog {
+  background: #ffffff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 540px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.tok-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.tok-modal-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.tok-modal-close-btn {
+  background: transparent;
+  border: none;
+  font-size: 20px;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tok-modal-close-btn:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.tok-modal-body {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.tok-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tok-form-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+}
+
+.tok-form-label .required {
+  color: #ef4444;
+  margin-left: 2px;
+}
+
+.tok-form-input {
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  font-size: 14px;
+  color: #1e293b;
+  outline: none;
+}
+
+.tok-form-input:focus {
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.15);
+}
+
+.tok-form-input.error {
+  border-color: #ef4444;
+}
+
+.tok-form-error {
+  font-size: 12px;
+  color: #ef4444;
+}
+
+.tok-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.tok-calculation-preview {
+  background: #fefce8;
+  border: 1px dashed #fde047;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 13px;
+  color: #854d0e;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.tok-modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid #e2e8f0;
+  background: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}

@@ -1,0 +1,45 @@
+/* ==========================================================
+   CSS cho CompanyLogo: Avatar chữ viết tắt nền trung tính
+   ========================================================== */
+
+.company-logo-container {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+  user-select: none;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+/* Kiểu dáng khi hiển thị chữ viết tắt (Nền trung tính sang trọng) */
+.company-logo-container.is-initials {
+  background-color: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  color: #334155;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.company-logo-initials {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+/* Kiểu dáng khi hiển thị ảnh thật */
+.company-logo-container.has-image {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+}
+
+.company-logo-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 4px;
+}

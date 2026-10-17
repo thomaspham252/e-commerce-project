@@ -1,34 +1,34 @@
+import React from 'react';
 import './CategoryCard.css';
-import { Monitor, Calculator, Megaphone, ShoppingCart } from 'lucide-react';
+import { Icon } from './Icon';
 
-const getCategoryIcon = (id) => {
-  switch(id) {
-    case 'cat-1': return <Monitor size={36} color="#3B82F6" />;
-    case 'cat-2': return <Calculator size={36} color="#10B981" />;
-    case 'cat-3': return <Megaphone size={36} color="#F59E0B" />;
-    case 'cat-4': return <ShoppingCart size={36} color="#EF4444" />;
-    default: return <Monitor size={36} color="#6B7280" />;
-  }
-};
-
-const getCategoryBg = (id) => {
-  switch(id) {
-    case 'cat-1': return '#DBEAFE';
-    case 'cat-2': return '#D1FAE5';
-    case 'cat-3': return '#FEF3C7';
-    case 'cat-4': return '#FEE2E2';
-    default: return '#F3F4F6';
+/**
+ * Thẻ Ngành nghề tuyển dụng
+ * Thiết kế theo phong cách Minimalist Architectural Tile:
+ * - Không dùng ô pastel lòe loẹt
+ * - Icon chuẩn 28px với strokeWidth 1.75
+ * - Viền tinh tế, hover chuyển màu emerald đặc trưng
+ */
+const getCategoryIconName = (id) => {
+  switch (id) {
+    case 'cat-1': return 'monitor';
+    case 'cat-2': return 'calculator';
+    case 'cat-3': return 'megaphone';
+    case 'cat-4': return 'shopping-cart';
+    default: return 'briefcase';
   }
 };
 
 export const CategoryCard = ({ category }) => {
+  const iconName = category.iconName || getCategoryIconName(category.id);
+
   return (
     <div className="category-card">
-      <div className="category-icon" style={{ backgroundColor: getCategoryBg(category.id) }}>
-        {getCategoryIcon(category.id)}
+      <div className="category-icon-wrapper">
+        <Icon name={iconName} size="category" className="category-icon" />
       </div>
       <h3 className="category-name">{category.name}</h3>
-      <p className="job-count">{category.jobCount} việc làm</p>
+      <span className="job-count-pill">{category.jobCount?.toLocaleString('vi-VN')} việc làm</span>
     </div>
   );
 };

@@ -1,0 +1,239 @@
+/* Thẻ gói dịch vụ Nhà tuyển dụng */
+.employer-package-card {
+  position: relative;
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 32px 28px 28px 28px;
+  border: 2px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04);
+}
+
+.employer-package-card:hover {
+  transform: translateY(-4px);
+  border-color: #cbd5e1;
+  box-shadow: 0 16px 32px -8px rgba(0, 0, 0, 0.1);
+}
+
+.employer-package-card--popular {
+  border-color: #3b82f6;
+  background: linear-gradient(180deg, #f8faff 0%, #ffffff 100%);
+  box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.15);
+}
+
+.employer-package-card--current {
+  border-color: #10b981;
+  background: linear-gradient(180deg, #f0fdf4 0%, #ffffff 100%);
+}
+
+.emp-pkg-badge {
+  position: absolute;
+  top: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 16px;
+  border-radius: 999px;
+  font-size: 0.775rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+.emp-pkg-badge--popular {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+}
+
+.emp-pkg-badge--current {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.emp-pkg-badge--custom {
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+}
+
+.emp-pkg-card-top {
+  margin-bottom: 16px;
+}
+
+.emp-pkg-name {
+  margin: 0 0 6px 0;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.emp-pkg-desc {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #64748b;
+  line-height: 1.45;
+  min-height: 38px;
+}
+
+.emp-pkg-price-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px dashed #e2e8f0;
+}
+
+.emp-pkg-price {
+  display: flex;
+  align-items: baseline;
+}
+
+.emp-pkg-price-number {
+  font-size: 2.1rem;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1;
+}
+
+.emp-pkg-currency {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #64748b;
+  margin-left: 2px;
+}
+
+.emp-pkg-period {
+  font-size: 0.9rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.emp-pkg-highlights {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: #f8fafc;
+  padding: 14px 16px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  border: 1px solid #f1f5f9;
+}
+
+.emp-highlight-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.875rem;
+  color: #334155;
+}
+
+.emp-highlight-icon {
+  font-size: 1.05rem;
+  color: #2563eb;
+  flex-shrink: 0;
+}
+
+.text-success {
+  color: #16a34a;
+}
+
+.text-muted {
+  color: #94a3b8;
+}
+
+.emp-pkg-features-list {
+  margin-bottom: 24px;
+  flex-grow: 1;
+}
+
+.emp-features-title {
+  display: block;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  color: #64748b;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  margin-bottom: 12px;
+}
+
+.emp-pkg-features-list ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.emp-feature-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: #475569;
+  line-height: 1.4;
+}
+
+.feature-check-icon {
+  color: #10b981;
+  font-size: 1rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.feature-x-icon {
+  color: #cbd5e1;
+  font-size: 1rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.emp-pkg-card-footer {
+  margin-top: auto;
+}
+
+.emp-pkg-btn-action {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 20px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.emp-pkg-btn-action--upgrade {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+}
+
+.emp-pkg-btn-action--upgrade:hover {
+  background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.45);
+}
+
+.emp-pkg-btn-action--renew {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
+}
+
+.emp-pkg-btn-action--renew:hover {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  transform: translateY(-1px);
+}
