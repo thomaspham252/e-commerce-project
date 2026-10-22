@@ -19,3 +19,19 @@ export const toIsoDate = (date) => {
   const pad = (n) => String(n).padStart(2, '0');
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 };
+
+/** Tính khoảng thời gian tương đối: "Vừa đăng", "2 ngày trước", v.v. */
+export const formatTimeAgo = (value) => {
+  if (!value) return 'Mới đăng';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return 'Mới đăng';
+  const diffMs = Date.now() - d.getTime();
+  if (diffMs < 0) return 'Vừa đăng';
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  if (diffHours < 1) return 'Vừa đăng';
+  if (diffHours < 24) return `${diffHours} giờ trước`;
+  const diffDays = Math.floor(diffHours / 24);
+  if (diffDays < 30) return `${diffDays} ngày trước`;
+  const diffMonths = Math.floor(diffDays / 30);
+  return `${diffMonths} tháng trước`;
+};

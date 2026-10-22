@@ -67,7 +67,14 @@ export const Header = () => {
           </Link>
           <nav className="main-nav" aria-label="Điều hướng chính">
             <ul>
-              <li><Link to="/">Việc làm</Link></li>
+              <li>
+                <NavLink
+                  to="/viec-lam"
+                  className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}
+                >
+                  Việc làm
+                </NavLink>
+              </li>
               <li><a href="#companies-section">Công ty</a></li>
               <li><a href="#candidate-tools-section">Tạo CV</a></li>
               <li><a href="#cam-nang-section">Cẩm nang</a></li>

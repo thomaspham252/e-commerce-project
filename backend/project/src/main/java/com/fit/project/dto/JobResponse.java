@@ -1,5 +1,6 @@
 package com.fit.project.dto;
 
+import com.fit.project.entity.Company;
 import com.fit.project.entity.Job;
 import com.fit.project.enums.JobStatus;
 import com.fit.project.enums.SalaryUnit;
@@ -13,6 +14,11 @@ public record JobResponse(
         String title,
         Integer companyId,
         String companyName,
+        String companyLogo,
+        String companyIndustry,
+        String companyDescription,
+        String companyWebsite,
+        String companySize,
         String description,
         String requirements,
         BigDecimal salaryMin,
@@ -25,6 +31,7 @@ public record JobResponse(
         String workingSchedule,
         LocalDate deadline,
         JobStatus status,
+        Boolean isHighlighted,
         String rejectionReason,
         LocalDateTime reviewedAt,
         LocalDateTime createdAt,
@@ -32,11 +39,36 @@ public record JobResponse(
         Long applicationCount
 ) {
     public static JobResponse of(Job j, Long applicationCount) {
-        return new JobResponse(j.getId(), j.getTitle(), j.getCompany().getId(), j.getCompany().getName(),
-                j.getDescription(), j.getRequirements(), j.getSalaryMin(), j.getSalaryMax(), j.getSalaryUnit(),
-                j.getLocation(), j.getJobType(), j.getLevel(), j.getVacancies(), j.getWorkingSchedule(),
-                j.getDeadline(), j.getStatus(), j.getRejectionReason(), j.getReviewedAt(),
-                j.getCreatedAt(), j.getUpdatedAt(), applicationCount);
+        Company comp = j.getCompany();
+        return new JobResponse(
+                j.getId(),
+                j.getTitle(),
+                comp != null ? comp.getId() : null,
+                comp != null ? comp.getName() : null,
+                comp != null ? comp.getLogo() : null,
+                comp != null ? comp.getIndustry() : null,
+                comp != null ? comp.getDescription() : null,
+                comp != null ? comp.getWebsite() : null,
+                comp != null ? comp.getSize() : null,
+                j.getDescription(),
+                j.getRequirements(),
+                j.getSalaryMin(),
+                j.getSalaryMax(),
+                j.getSalaryUnit(),
+                j.getLocation(),
+                j.getJobType(),
+                j.getLevel(),
+                j.getVacancies(),
+                j.getWorkingSchedule(),
+                j.getDeadline(),
+                j.getStatus(),
+                j.getIsHighlighted(),
+                j.getRejectionReason(),
+                j.getReviewedAt(),
+                j.getCreatedAt(),
+                j.getUpdatedAt(),
+                applicationCount
+        );
     }
 
     public static JobResponse of(Job j) {
