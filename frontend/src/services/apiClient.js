@@ -3,6 +3,14 @@ import axios from 'axios';
 /** Axios dùng chung cho backend Spring Boot. Vite proxy /api → backend (xem vite.config.js). */
 export const apiClient = axios.create({ baseURL: '/api' });
 
+apiClient.interceptors.request.use((config) => {
+  const session = getAuthSession();
+  if (session?.id && !config.headers['X-User-Id']) {
+    config.headers['X-User-Id'] = session.id;
+  }
+  return config;
+});
+
 const AUTH_SESSION_KEY = 'jobviet.authSession';
 
 export const DEV_USER_IDS = {

@@ -70,8 +70,8 @@ export const CandidateWalletPage = () => {
       setLoadingData(true);
       const [pkgs, txs, deps, fees] = await Promise.all([
         getTokenPackages(),
-        getTokenTransactions('USR-UV-01'),
-        getDepositHistory('USR-UV-01'),
+        getTokenTransactions(),
+        getDepositHistory(),
         getServiceFees(),
       ]);
       setPackages(pkgs);
@@ -100,9 +100,10 @@ export const CandidateWalletPage = () => {
           pkg.bonusTokens > 0 ? `(+${pkg.bonusTokens} tặng kèm)` : ''
         }`,
         amount: pkg.priceVND,
-        userId: wallet.userId || 'USR-UV-01',
-        userName: wallet.userName || 'Nguyễn Văn An',
-        userEmail: wallet.userEmail || 'an.nguyen@gmail.com',
+        tokenPackageId: pkg.id,
+        userId: wallet.userId,
+        userName: wallet.userName,
+        userEmail: wallet.userEmail,
         userRole: 'candidate',
       });
 
@@ -142,8 +143,8 @@ export const CandidateWalletPage = () => {
         );
         setModalConfig((prev) => ({ ...prev, isOpen: false, loading: false }));
 
-        // Cập nhật lại lịch sử biến động
-        const updatedTxs = await getTokenTransactions('USR-UV-01');
+        // Cập nhật lại lịch sử biến động và số dư
+        const updatedTxs = await getTokenTransactions();
         setTransactions(updatedTxs);
       } else {
         showToast(res.message || 'Thao tác không thành công', 'error');
@@ -159,7 +160,7 @@ export const CandidateWalletPage = () => {
   // 4. Lọc lịch sử biến động
   const handleFilterTransactions = async (filters) => {
     try {
-      const filtered = await getTokenTransactions('USR-UV-01', filters);
+      const filtered = await getTokenTransactions(null, filters);
       setTransactions(filtered);
     } catch (err) {
       console.error('Lỗi khi lọc lịch sử:', err);

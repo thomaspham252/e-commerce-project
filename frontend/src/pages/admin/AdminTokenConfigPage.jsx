@@ -28,7 +28,7 @@ export const AdminTokenConfigPage = () => {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [pkgs, fees] = await Promise.all([getTokenPackages(), getServiceFees()]);
+      const [pkgs, fees] = await Promise.all([getTokenPackages(true), getServiceFees()]);
       setPackages(pkgs);
       setServiceFees(fees);
     } catch (err) {

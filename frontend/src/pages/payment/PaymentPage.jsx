@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { getPaymentOrder, simulateOrderStatus } from '../../services/paymentService';
+import { getAuthSession } from '../../services/apiClient';
 import { QRCodeCard } from '../../components/payment/QRCodeCard';
 import { TransferInfoCard } from '../../components/payment/TransferInfoCard';
 import { CountdownTimer } from '../../components/payment/CountdownTimer';
-import { PaymentDevSimulator } from '../../components/payment/PaymentDevSimulator';
 import { StatusBadge } from '../../components/common/StatusBadge';
 import { usePaymentPolling } from '../../hooks/usePaymentPolling';
 import { formatCurrencyVND } from '../../utils/formatCurrency';
@@ -28,6 +28,9 @@ export const PaymentPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showCancelModal, setShowCancelModal] = useState(false);
+
+  const session = getAuthSession();
+  const isAdmin = session?.role === 'ADMIN';
 
   // 1. Tải hoặc khởi tạo đơn thanh toán
   const loadOrder = useCallback(async () => {
@@ -144,24 +147,26 @@ export const PaymentPage = () => {
   return (
     <div className="payment-page">
       <div className="payment-container">
-        {/* Thanh chọn nhanh vai trò (Phục vụ thử nghiệm dùng chung) */}
-        <div className="role-switch-bar">
-          <span className="switch-hint">Thử nghiệm loại dịch vụ:</span>
-          <button
-            type="button"
-            className={`switch-tab ${order.orderType === 'CANDIDATE_TOKEN' ? 'active' : ''}`}
-            onClick={() => handleSwitchServiceType('token')}
-          >
-            Ứng viên: Nạp Token (50.000 ₫)
-          </button>
-          <button
-            type="button"
-            className={`switch-tab ${order.orderType === 'EMPLOYER_PACKAGE' ? 'active' : ''}`}
-            onClick={() => handleSwitchServiceType('package')}
-          >
-            Nhà tuyển dụng: Mua Gói (500.000 ₫)
-          </button>
-        </div>
+        {/* Thanh chọn nhanh vai trò (Chỉ hiển thị cho Quản trị viên để kiểm thử nhanh) */}
+        {isAdmin && (
+          <div className="role-switch-bar">
+            <span className="switch-hint">Thử nghiệm loại dịch vụ (Admin):</span>
+            <button
+              type="button"
+              className={`switch-tab ${order.orderType === 'CANDIDATE_TOKEN' ? 'active' : ''}`}
+              onClick={() => handleSwitchServiceType('token')}
+            >
+              Ứng viên: Nạp Token (50.000 ₫)
+            </button>
+            <button
+              type="button"
+              className={`switch-tab ${order.orderType === 'EMPLOYER_PACKAGE' ? 'active' : ''}`}
+              onClick={() => handleSwitchServiceType('package')}
+            >
+              Nhà tuyển dụng: Mua Gói (500.000 ₫)
+            </button>
+          </div>
+        )}
 
         {/* Thanh tiêu đề và đếm ngược */}
         <div className="payment-top-bar">
@@ -262,17 +267,6 @@ export const PaymentPage = () => {
           </div>
         </div>
       )}
-
-      {/* Bảng công cụ giả lập kiểm thử kịch bản SePay (Dev Simulator) */}
-      <PaymentDevSimulator
-        orderId={order.orderId}
-        onStatusUpdated={(updated) => {
-          setOrder(updated);
-          if (updated.status !== 'PENDING') {
-            navigate(`/thanh-toan/ket-qua/${updated.orderId}`);
-          }
-        }}
-      />
     </div>
   );
 };

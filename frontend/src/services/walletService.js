@@ -1,262 +1,214 @@
 /**
  * Tầng dịch vụ Ví Token của Ứng viên (Wallet Service).
- * Tuân thủ hợp đồng tại specs/003-candidate-token-wallet/contracts/wallet-service.md.
- * Thao tác in-memory, giả lập Promise bất đồng bộ như gọi API thực tế.
+ * Kết nối trực tiếp với Backend Spring Boot và Database MySQL.
+ * Loại bỏ toàn bộ dữ liệu mock cứng, đồng bộ số dư và lịch sử thực tế.
  */
 
-import {
-  initialCandidateWallet,
-  initialTokenPackages,
-  initialTokenTransactions,
-  initialServiceFees,
-} from './walletMockData.js';
-import { getTransactions } from './paymentService.js';
+import { apiClient, getErrorMessage } from './apiClient.js';
 
-// Trạng thái lưu trữ in-memory
-let currentWallet = { ...initialCandidateWallet };
-let tokenPackages = [...initialTokenPackages];
-let tokenTransactions = [...initialTokenTransactions];
-let serviceFees = [...initialServiceFees];
-
-const simulateDelay = (ms = 120) => new Promise((resolve) => setTimeout(resolve, ms));
+// Danh mục biểu phí các tính năng dùng token của ứng viên
+export const initialServiceFees = [
+  {
+    featureKey: 'UNLOCK_CONTACT',
+    featureName: 'Mở khóa liên hệ trực tiếp NTD',
+    tokenCost: 30,
+    badge: 'Phổ biến',
+    description: 'Xem trực tiếp số điện thoại và email riêng của người phụ trách tuyển dụng',
+  },
+  {
+    featureKey: 'BOOST_CV',
+    featureName: 'Đẩy hồ sơ CV lên đầu danh sách',
+    tokenCost: 20,
+    badge: 'Hiệu quả',
+    description: 'Giữ vị trí ưu tiên cao trong kết quả tìm kiếm ứng viên của NTD trong 72 giờ',
+  },
+  {
+    featureKey: 'URGENT_APPLY',
+    featureName: 'Gắn huy hiệu Ứng tuyển nổi bật',
+    tokenCost: 25,
+    badge: 'Ưu tiên',
+    description: 'Hồ sơ được đánh dấu sao nổi bật trong hòm thư tuyển dụng của nhà tuyển dụng',
+  },
+];
 
 /**
- * 1. Lấy thông tin ví và số dư của ứng viên.
+ * 1. Lấy thông tin ví và số dư thực tế từ database MySQL qua API /api/v1/wallet.
  */
-export const getWallet = async (_userId = 'USR-UV-01') => {
-  await simulateDelay();
-  return { ...currentWallet };
-};
-
-/**
- * 2. Lấy danh sách các mốc nạp token.
- */
-export const getTokenPackages = async () => {
-  await simulateDelay();
-  return [...tokenPackages];
-};
-
-/**
- * 3. Cộng token vào ví sau khi nạp tiền thành công (hoặc qua giả lập).
- */
-export const depositTokens = async (
-  _userId = 'USR-UV-01',
-  packageId = 'pkg-100',
-  orderId = null
-) => {
-  await simulateDelay();
-  const pkg = tokenPackages.find((p) => p.id === packageId) || tokenPackages[1];
-  const addedTokens = pkg.totalTokens;
-
-  const newBalance = currentWallet.balance + addedTokens;
-  currentWallet = {
-    ...currentWallet,
-    balance: newBalance,
-    totalDeposited: currentWallet.totalDeposited + addedTokens,
-    updatedAt: new Date().toISOString(),
-  };
-
-  const newTx = {
-    id: `TX-TOK-${Date.now().toString().slice(-6)}`,
-    userId: currentWallet.userId,
-    type: 'DEPOSIT',
-    amount: addedTokens,
-    balanceAfter: newBalance,
-    title: 'Nạp token qua VietQR SePay',
-    description: `Gói ${pkg.tokens} Token ${
-      pkg.bonusTokens > 0 ? `(+${pkg.bonusTokens} tặng thêm)` : ''
-    }${orderId ? ` • Đơn: ${orderId}` : ''}`,
-    createdAt: new Date().toISOString(),
-  };
-
-  tokenTransactions.unshift(newTx);
-
-  return {
-    wallet: { ...currentWallet },
-    transaction: { ...newTx },
-  };
-};
-
-/**
- * 4. Trừ token khi ứng viên sử dụng một tính năng có phí.
- */
-export const consumeTokens = async (_userId = 'USR-UV-01', featureKey = 'UNLOCK_CONTACT') => {
-  await simulateDelay();
-  const fee = serviceFees.find((f) => f.featureKey === featureKey);
-  if (!fee) {
-    throw new Error(`Không tìm thấy biểu phí cho tính năng: ${featureKey}`);
+export const getWallet = async () => {
+  try {
+    const res = await apiClient.get('/v1/wallet');
+    if (res.data?.success && res.data?.data) {
+      return res.data.data;
+    }
+  } catch (err) {
+    console.error('[WalletService] Lỗi khi lấy thông tin ví từ DB:', getErrorMessage(err));
   }
-
-  // Kiểm tra số dư không đủ
-  if (currentWallet.balance < fee.tokenCost) {
-    return {
-      success: false,
-      error: 'INSUFFICIENT_BALANCE',
-      message: `Số dư không đủ. Cần ${fee.tokenCost} token nhưng bạn chỉ còn ${currentWallet.balance} token.`,
-      required: fee.tokenCost,
-      current: currentWallet.balance,
-      missing: fee.tokenCost - currentWallet.balance,
-    };
-  }
-
-  const newBalance = currentWallet.balance - fee.tokenCost;
-  currentWallet = {
-    ...currentWallet,
-    balance: newBalance,
-    totalConsumed: currentWallet.totalConsumed + fee.tokenCost,
-    updatedAt: new Date().toISOString(),
-  };
-
-  const newTx = {
-    id: `TX-TOK-${Date.now().toString().slice(-6)}`,
-    userId: currentWallet.userId,
-    type: 'CONSUME',
-    amount: -fee.tokenCost,
-    balanceAfter: newBalance,
-    title: fee.featureName,
-    description: fee.description,
-    createdAt: new Date().toISOString(),
-  };
-
-  tokenTransactions.unshift(newTx);
-
-  return {
-    success: true,
-    wallet: { ...currentWallet },
-    transaction: { ...newTx },
-  };
+  return { balance: 0, totalDeposited: 0, totalConsumed: 0 };
 };
 
 /**
- * 5. Lấy danh sách lịch sử biến động token có lọc theo loại và ngày.
+ * 2. Lấy danh sách các mốc nạp token từ database MySQL qua API /api/v1/token-packages.
+ */
+export const getTokenPackages = async (includeAll = false) => {
+  try {
+    const res = await apiClient.get('/v1/token-packages', {
+      params: { all: includeAll },
+    });
+    if (res.data?.success && res.data?.data) {
+      return res.data.data;
+    }
+  } catch (err) {
+    console.error('[WalletService] Lỗi khi lấy danh sách gói token:', getErrorMessage(err));
+  }
+  return [];
+};
+
+/**
+ * 3. Lấy lịch sử biến động token thực tế từ database qua API /api/v1/wallet/transactions.
  */
 export const getTokenTransactions = async (
-  _userId = 'USR-UV-01',
+  _userId,
   { type = 'ALL', startDate = '', endDate = '' } = {}
 ) => {
-  await simulateDelay();
-  let list = [...tokenTransactions];
+  try {
+    const res = await apiClient.get('/v1/wallet/transactions');
+    let list = res.data?.success && res.data?.data ? res.data.data : [];
 
-  if (type && type !== 'ALL') {
-    list = list.filter((t) => t.type === type);
+    if (type && type !== 'ALL') {
+      list = list.filter((t) => t.type === type);
+    }
+    if (startDate) {
+      const start = new Date(startDate).setHours(0, 0, 0, 0);
+      list = list.filter((t) => new Date(t.createdAt).getTime() >= start);
+    }
+    if (endDate) {
+      const end = new Date(endDate).setHours(23, 59, 59, 999);
+      list = list.filter((t) => new Date(t.createdAt).getTime() <= end);
+    }
+    return list;
+  } catch (err) {
+    console.error('[WalletService] Lỗi khi lấy lịch sử giao dịch:', getErrorMessage(err));
+    return [];
   }
-
-  if (startDate) {
-    const start = new Date(startDate).setHours(0, 0, 0, 0);
-    list = list.filter((t) => new Date(t.createdAt).getTime() >= start);
-  }
-
-  if (endDate) {
-    const end = new Date(endDate).setHours(23, 59, 59, 999);
-    list = list.filter((t) => new Date(t.createdAt).getTime() <= end);
-  }
-
-  return list;
 };
 
 /**
- * 6. Lấy lịch sử các lần nạp tiền ngân hàng của ứng viên từ paymentService.
+ * 4. Lấy lịch sử nạp tiền ngân hàng từ bảng orders qua API /api/v1/wallet/deposits.
  */
-export const getDepositHistory = async (_userId = 'USR-UV-01') => {
-  await simulateDelay();
-  const res = await getTransactions({
-    orderType: 'CANDIDATE_TOKEN',
-    page: 1,
-    pageSize: 50,
-  });
-  return res.data || [];
+export const getDepositHistory = async () => {
+  try {
+    const res = await apiClient.get('/v1/wallet/deposits');
+    if (res.data?.success && res.data?.data) {
+      return res.data.data;
+    }
+  } catch (err) {
+    console.error('[WalletService] Lỗi khi lấy lịch sử nạp tiền:', getErrorMessage(err));
+  }
+  return [];
 };
 
 /**
- * 7. Lấy danh sách biểu phí các tính năng dùng token.
+ * 5. Trừ token khi ứng viên sử dụng tiện ích (lưu vào bảng token_transactions trong DB).
+ */
+export const consumeTokens = async (_userId, featureKey = 'UNLOCK_CONTACT') => {
+  const fee = initialServiceFees.find((f) => f.featureKey === featureKey) || {
+    featureName: 'Sử dụng tiện ích ứng viên',
+    tokenCost: 30,
+  };
+
+  try {
+    const res = await apiClient.post('/v1/wallet/consume', {
+      featureKey,
+      featureName: fee.featureName,
+      tokenCost: fee.tokenCost,
+    });
+
+    if (res.data?.success) {
+      return {
+        success: true,
+        wallet: res.data.wallet,
+        transaction: res.data.transaction,
+      };
+    }
+  } catch (err) {
+    const msg = err.response?.data?.message || 'Không thể trừ token. Vui lòng kiểm tra số dư.';
+    return {
+      success: false,
+      message: msg,
+    };
+  }
+
+  return { success: false, message: 'Thao tác không thành công' };
+};
+
+/**
+ * 6. Lấy danh sách biểu phí các tính năng dùng token từ Database MySQL qua API /api/v1/service-fees.
  */
 export const getServiceFees = async () => {
-  await simulateDelay();
-  return [...serviceFees];
+  try {
+    const res = await apiClient.get('/v1/service-fees');
+    if (res.data?.success && res.data?.data) {
+      return res.data.data;
+    }
+  } catch (err) {
+    console.error('[WalletService] Lỗi khi lấy danh sách biểu phí từ DB:', err);
+  }
+  return [...initialServiceFees];
 };
 
 /**
- * 8. Quản lý Admin: Tạo mới hoặc chỉnh sửa gói nạp token.
+ * 7. Admin: Lưu thông tin gói token (thêm mới hoặc chỉnh sửa vào Database MySQL).
  */
 export const saveTokenPackage = async (packageData) => {
-  await simulateDelay();
-
-  const tokens = Number(packageData.tokens);
-  const price = Number(packageData.priceVND);
-  const bonus = Number(packageData.bonusTokens || 0);
-
-  if (!packageData.tokens || isNaN(tokens) || tokens <= 0) {
-    throw new Error('Số token cơ bản phải lớn hơn 0');
-  }
-  if (!packageData.priceVND || isNaN(price) || price <= 0) {
-    throw new Error('Giá nạp tiền phải lớn hơn 0 ₫');
-  }
-  if (isNaN(bonus) || bonus < 0) {
-    throw new Error('Số token thưởng không được âm');
-  }
-
-  const existingIndex = tokenPackages.findIndex((p) => p.id === packageData.id);
-  const totalTokens = tokens + bonus;
-
-  if (existingIndex >= 0) {
-    tokenPackages[existingIndex] = {
-      ...tokenPackages[existingIndex],
-      ...packageData,
-      tokens,
-      bonusTokens: bonus,
-      totalTokens,
-      priceVND: price,
-      isActive: packageData.isActive !== false,
-    };
-    return { ...tokenPackages[existingIndex] };
-  } else {
-    const newPackage = {
-      id: packageData.id || `pkg-tok-${Date.now().toString().slice(-4)}`,
-      tokens,
-      bonusTokens: bonus,
-      totalTokens,
-      priceVND: price,
-      isPopular: Boolean(packageData.isPopular),
-      badgeLabel: packageData.badgeLabel || '',
-      description: packageData.description || `Gói nạp ${tokens} Token`,
-      isActive: packageData.isActive !== false,
-    };
-    tokenPackages.push(newPackage);
-    return { ...newPackage };
+  try {
+    if (packageData.id) {
+      const res = await apiClient.put(`/v1/token-packages/${packageData.id}`, packageData);
+      return res.data?.data || packageData;
+    } else {
+      const res = await apiClient.post('/v1/token-packages', packageData);
+      return res.data?.data || packageData;
+    }
+  } catch (err) {
+    console.error('[WalletService] Lỗi khi lưu gói token vào DB:', err);
+    throw err;
   }
 };
 
 /**
- * 9. Quản lý Admin: Bật/tắt trạng thái mở bán gói Token.
+ * 8. Admin: Bật/tắt trạng thái mở bán gói token trong Database MySQL.
  */
 export const toggleTokenPackageStatus = async (packageId) => {
-  await simulateDelay();
-  const pkg = tokenPackages.find((p) => p.id === packageId);
-  if (!pkg) {
-    throw new Error(`Không tìm thấy gói token có mã: ${packageId}`);
+  try {
+    const res = await apiClient.patch(`/v1/token-packages/${packageId}/toggle-status`);
+    return res.data?.data || { id: packageId };
+  } catch (err) {
+    console.error('[WalletService] Lỗi khi đổi trạng thái gói token trong DB:', err);
+    throw err;
   }
-  pkg.isActive = pkg.isActive === false ? true : false;
-  return { ...pkg };
 };
 
 /**
- * 10. Quản lý Admin: Chỉnh sửa mức trừ token của tính năng ứng viên.
+ * 9. Admin: Lưu chỉnh sửa biểu phí tính năng trực tiếp vào Database MySQL qua API PUT /api/v1/service-fees/{id}.
  */
 export const saveServiceFee = async (feeData) => {
-  await simulateDelay();
-  const cost = Number(feeData.tokenCost);
-  if (isNaN(cost) || cost <= 0) {
-    throw new Error('Mức trừ token phải lớn hơn 0');
+  try {
+    const id = feeData.id || feeData.featureKey;
+    if (!id) {
+      throw new Error('Không xác định được ID hoặc mã tính năng để cập nhật');
+    }
+    const res = await apiClient.put(`/v1/service-fees/${id}`, {
+      tokenCost: feeData.tokenCost,
+      featureName: feeData.featureName,
+      description: feeData.description,
+      badge: feeData.badge,
+    });
+    if (res.data?.success && res.data?.data) {
+      return res.data.data;
+    }
+    return feeData;
+  } catch (err) {
+    console.error('[WalletService] Lỗi khi cập nhật biểu phí vào DB:', err);
+    throw err;
   }
-
-  const existing = serviceFees.find((f) => f.featureKey === feeData.featureKey);
-  if (!existing) {
-    throw new Error(`Không tìm thấy tính năng: ${feeData.featureKey}`);
-  }
-
-  existing.tokenCost = cost;
-  if (feeData.featureName) existing.featureName = feeData.featureName;
-  if (feeData.description) existing.description = feeData.description;
-
-  return { ...existing };
 };
+

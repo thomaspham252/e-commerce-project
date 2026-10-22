@@ -42,9 +42,11 @@ export const TokenConfigModal = ({
         });
       } else {
         setFormData({
+          id: initialData.id,
           featureKey: initialData.featureKey || '',
           featureName: initialData.featureName || '',
           tokenCost: initialData.tokenCost ?? '',
+          badge: initialData.badge || '',
           description: initialData.description || '',
         });
       }
@@ -114,6 +116,7 @@ export const TokenConfigModal = ({
       if (mode === 'PACKAGE') {
         const payload = {
           ...formData,
+          id: initialData?.id || formData.id,
           tokens: Number(formData.tokens),
           bonusTokens: Number(formData.bonusTokens || 0),
           priceVND: Number(formData.priceVND),
@@ -122,6 +125,7 @@ export const TokenConfigModal = ({
       } else {
         const payload = {
           ...formData,
+          id: initialData?.id || formData.id,
           tokenCost: Number(formData.tokenCost),
         };
         await onSave?.(payload);
