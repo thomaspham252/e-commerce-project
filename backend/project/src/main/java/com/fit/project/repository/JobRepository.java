@@ -76,6 +76,8 @@ public interface JobRepository extends JpaRepository<Job, Integer> {
 
     long countByCompanyOwnerIdAndStatus(Integer ownerId, JobStatus status);
 
+    long countByCompanyOwnerId(Integer ownerId);
+
     @Query("select j.createdAt from Job j where j.createdAt >= :from and j.createdAt < :to")
     List<LocalDateTime> findCreatedAtBetween(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
 
