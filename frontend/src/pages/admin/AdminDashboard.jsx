@@ -27,7 +27,13 @@ const growth = (current, previous) =>
   previous > 0 ? Math.round(((current - previous) / previous) * 1000) / 10 : null;
 
 export const AdminDashboard = () => {
+  // months: số tháng gần nhất, hoặc 'custom' để chọn khoảng tháng (range.from / range.to dạng yyyy-MM)
   const [months, setMonths] = useState(6);
+  const [range, setRange] = useState(() => {
+    const now = new Date();
+    const to = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    return { from: `${now.getFullYear()}-01`, to };
+  });
   const [overview, setOverview] = useState(null);
   const [monthly, setMonthly] = useState([]);
   const [jobStatus, setJobStatus] = useState([]);
@@ -53,8 +59,15 @@ export const AdminDashboard = () => {
   }, []);
 
   useEffect(() => {
-    adminService.getMonthlyStats(months).then(setMonthly).catch((err) => setError(getErrorMessage(err)));
-  }, [months]);
+    if (months === 'custom' && (!range.from || !range.to)) return;
+    const params = months === 'custom' ? range : { months };
+    adminService.getMonthlyStats(params)
+      .then((data) => {
+        setMonthly(data);
+        setError('');
+      })
+      .catch((err) => setError(getErrorMessage(err)));
+  }, [months, range]);
 
   const columns = [
     { header: 'Tên công việc', accessor: 'title' },
@@ -101,11 +114,23 @@ export const AdminDashboard = () => {
         <div style={cardStyle}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', gap: 12 }}>
             <h3 style={titleStyle}>Hoạt động theo tháng</h3>
-            <select className="mgmt-select" value={months} onChange={(e) => setMonths(Number(e.target.value))}>
-              <option value={3}>3 tháng</option>
-              <option value={6}>6 tháng</option>
-              <option value={12}>12 tháng</option>
-            </select>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+              <select className="mgmt-select" value={months}
+                onChange={(e) => setMonths(e.target.value === 'custom' ? 'custom' : Number(e.target.value))}>
+                <option value={3}>3 tháng</option>
+                <option value={6}>6 tháng</option>
+                <option value={12}>12 tháng</option>
+                <option value="custom">Tùy chọn...</option>
+              </select>
+              {months === 'custom' && (
+                <>
+                  <input type="month" className="mgmt-select" value={range.from} max={range.to}
+                    onChange={(e) => setRange((r) => ({ ...r, from: e.target.value }))} aria-label="Từ tháng" />
+                  <input type="month" className="mgmt-select" value={range.to} min={range.from}
+                    onChange={(e) => setRange((r) => ({ ...r, to: e.target.value }))} aria-label="Đến tháng" />
+                </>
+              )}
+            </div>
           </div>
           <div style={{ width: '100%', height: 300 }}>
             <ResponsiveContainer>

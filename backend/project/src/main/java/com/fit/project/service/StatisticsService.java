@@ -58,13 +58,28 @@ public class StatisticsService {
                 userRepository.findCreatedAtBetween(lastMonthStart, thisMonthStart).size());
     }
 
-    /** Biểu đồ cột: số người dùng mới, tin đăng mới, hồ sơ ứng tuyển theo từng tháng. */
-    public List<MonthlyStat> adminMonthly(int months) {
-        if (months < 1 || months > 24) {
-            throw ApiException.badRequest("Số tháng phải từ 1 đến 24");
+    /**
+     * Biểu đồ cột: số người dùng mới, tin đăng mới, hồ sơ ứng tuyển theo từng tháng.
+     * Có fromMonth/toMonth thì lấy đúng khoảng đó (thiếu toMonth → tháng hiện tại);
+     * không có thì lấy {@code months} tháng gần nhất.
+     */
+    public List<MonthlyStat> adminMonthly(YearMonth fromMonth, YearMonth toMonth, int months) {
+        YearMonth last = toMonth != null ? toMonth : YearMonth.now();
+        YearMonth first;
+        if (fromMonth != null) {
+            first = fromMonth;
+            if (first.isAfter(last)) {
+                throw ApiException.badRequest("Tháng bắt đầu phải trước tháng kết thúc");
+            }
+            if (ChronoUnit.MONTHS.between(first, last) >= 24) {
+                throw ApiException.badRequest("Khoảng thời gian tối đa 24 tháng");
+            }
+        } else {
+            if (months < 1 || months > 24) {
+                throw ApiException.badRequest("Số tháng phải từ 1 đến 24");
+            }
+            first = last.minusMonths(months - 1L);
         }
-        YearMonth last = YearMonth.now();
-        YearMonth first = last.minusMonths(months - 1L);
         LocalDateTime from = first.atDay(1).atStartOfDay();
         LocalDateTime to = last.plusMonths(1).atDay(1).atStartOfDay();
 
