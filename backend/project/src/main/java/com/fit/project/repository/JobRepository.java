@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -26,6 +27,31 @@ public interface JobRepository extends JpaRepository<Job, Integer> {
     Page<Job> searchAll(@Param("kw") String keywordPattern,
                         @Param("status") JobStatus status,
                         Pageable pageable);
+
+    @EntityGraph(attributePaths = "company")
+    @Query("""
+            select j from Job j
+            where j.status = :status
+              and (:kw is null or lower(j.title) like :kw or lower(j.company.name) like :kw)
+              and (:location is null or lower(j.location) like :location)
+              and (:jobType is null or lower(j.jobType) = lower(:jobType))
+              and (:level is null or lower(j.level) = lower(:level))
+              and (:minSalary is null or j.salaryMax is null or j.salaryMax >= :minSalary)
+              and (:maxSalary is null or j.salaryMin is null or j.salaryMin <= :maxSalary)
+            """)
+    Page<Job> searchPublicJobs(
+            @Param("kw") String keywordPattern,
+            @Param("location") String locationPattern,
+            @Param("jobType") String jobType,
+            @Param("level") String level,
+            @Param("minSalary") BigDecimal minSalary,
+            @Param("maxSalary") BigDecimal maxSalary,
+            @Param("status") JobStatus status,
+            Pageable pageable
+    );
+
+    @EntityGraph(attributePaths = "company")
+    Optional<Job> findByIdAndStatus(Integer id, JobStatus status);
 
     @EntityGraph(attributePaths = "company")
     @Query("""

@@ -5,6 +5,7 @@ import { AuthPage } from '../pages/AuthPage';
 import { EmailVerificationPage } from '../pages/EmailVerificationPage';
 
 // Candidate Imports
+import { JobsPage } from '../pages/candidate/JobsPage';
 import { JobDetailPage } from '../pages/candidate/JobDetailPage';
 import { SavedJobsPage } from '../pages/candidate/SavedJobsPage';
 import { ApplyPage } from '../pages/candidate/ApplyPage';
@@ -45,6 +46,7 @@ export const AppRoutes = () => {
         <Route path="/xac-thuc-email" element={<EmailVerificationPage />} />
         <Route element={<MainLayout />}>
           <Route path="/" element={<HomePage />} />
+          <Route path="/viec-lam" element={<JobsPage />} />
           <Route path="/viec-lam/:id" element={<JobDetailPage />} />
           <Route path="/viec-lam/:id/ung-tuyen" element={<ApplyPage />} />
           <Route path="/viec-lam-da-luu" element={<SavedJobsPage />} />
