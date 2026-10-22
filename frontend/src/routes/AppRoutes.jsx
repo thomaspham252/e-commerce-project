@@ -21,6 +21,7 @@ import { CandidateWalletPage } from '../pages/candidate/CandidateWalletPage';
 import { AdminLayout } from '../layouts/AdminLayout';
 import { AdminDashboard } from '../pages/admin/AdminDashboard';
 import { AdminUsers } from '../pages/admin/AdminUsers';
+import { AdminCvs } from '../pages/admin/AdminCvs';
 import { AdminJobs } from '../pages/admin/AdminJobs';
 import { AdminCompanies } from '../pages/admin/AdminCompanies';
 import { AdminPayments } from '../pages/admin/AdminPayments';
@@ -37,6 +38,7 @@ import { EmployerApplications } from '../pages/employer/EmployerApplications';
 import { EmployerPricingPage } from '../pages/employer/EmployerPricingPage.jsx';
 import { EmployerSubscriptionPage } from '../pages/employer/EmployerSubscriptionPage.jsx';
 import { EmployerMessagesPage } from '../pages/employer/EmployerMessagesPage.jsx';
+import { EmployerCompanyPage } from '../pages/employer/EmployerCompanyPage.jsx';
 
 export const AppRoutes = () => {
   return (
@@ -67,6 +69,7 @@ export const AppRoutes = () => {
           <Route path="/admin/payments" element={<AdminPayments />} />
           <Route path="/admin/transactions" element={<AdminPayments />} />
           <Route path="/admin/users" element={<AdminUsers />} />
+          <Route path="/admin/cvs" element={<AdminCvs />} />
           <Route path="/admin/jobs" element={<AdminJobs />} />
           <Route path="/admin/companies" element={<AdminCompanies />} />
         </Route>
@@ -78,6 +81,8 @@ export const AppRoutes = () => {
           <Route path="/employer/subscription" element={<EmployerSubscriptionPage />} />
           <Route path="/employer/jobs" element={<EmployerJobs />} />
           <Route path="/employer/jobs/create" element={<EmployerCreateJob />} />
+          <Route path="/employer/jobs/:id/edit" element={<EmployerCreateJob />} />
+          <Route path="/employer/company" element={<EmployerCompanyPage />} />
           <Route path="/employer/applications" element={<EmployerApplications />} />
           <Route path="/employer/messages" element={<EmployerMessagesPage />} />
         </Route>

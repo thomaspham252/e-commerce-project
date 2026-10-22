@@ -59,7 +59,27 @@ export const AdminJobs = () => {
     },
   ];
 
+  const takeDown = async () => {
+    if (!reason.trim()) {
+      toast.error('Vui lòng nhập lý do gỡ tin');
+      return;
+    }
+    if (!window.confirm(`Gỡ tin "${selected.title}"? Tin sẽ bị đóng và NTD sẽ thấy lý do.`)) return;
+    setSaving(true);
+    try {
+      await adminService.takeDownJob(selected.id, reason.trim());
+      toast.success('Đã gỡ tin tuyển dụng');
+      setSelected(null);
+      reload();
+    } catch (err) {
+      toast.error(getErrorMessage(err));
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const pending = selected?.status === 'PENDING_REVIEW';
+  const showing = selected?.status === 'OPEN';
 
   return (
     <>
@@ -92,7 +112,7 @@ export const AdminJobs = () => {
         width={680}
         onClose={() => setSelected(null)}
         footer={
-          pending && (
+          pending ? (
             <>
               <button className="btn btn-outline mgmt-btn-danger" disabled={saving} onClick={() => review(false)}>
                 Từ chối
@@ -101,6 +121,10 @@ export const AdminJobs = () => {
                 Duyệt tin
               </button>
             </>
+          ) : showing && (
+            <button className="btn btn-outline mgmt-btn-danger" disabled={saving} onClick={takeDown}>
+              Gỡ tin vi phạm
+            </button>
           )
         }
       >
@@ -117,13 +141,20 @@ export const AdminJobs = () => {
               <dt>Hạn nộp</dt><dd>{formatDate(selected.deadline)}</dd>
               <dt>Mô tả</dt><dd style={{ whiteSpace: 'pre-line' }}>{selected.description || '—'}</dd>
               <dt>Yêu cầu</dt><dd style={{ whiteSpace: 'pre-line' }}>{selected.requirements || '—'}</dd>
-              {selected.rejectionReason && (<><dt>Lý do từ chối</dt><dd>{selected.rejectionReason}</dd></>)}
+              {selected.rejectionReason && (<><dt>Lý do từ chối / gỡ</dt><dd>{selected.rejectionReason}</dd></>)}
             </dl>
             {pending && (
               <div className="mgmt-field">
                 <label htmlFor="reject-reason">Lý do từ chối (bắt buộc khi từ chối)</label>
                 <textarea id="reject-reason" rows={3} value={reason} onChange={(e) => setReason(e.target.value)}
                   placeholder="VD: Mô tả công việc chưa rõ ràng..." />
+              </div>
+            )}
+            {showing && (
+              <div className="mgmt-field">
+                <label htmlFor="takedown-reason">Lý do gỡ tin (bắt buộc khi gỡ)</label>
+                <textarea id="takedown-reason" rows={3} value={reason} onChange={(e) => setReason(e.target.value)}
+                  placeholder="VD: Tin có nội dung lừa đảo, thu phí ứng viên..." />
               </div>
             )}
           </>

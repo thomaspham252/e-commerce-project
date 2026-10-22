@@ -1,4 +1,7 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { employerService } from '../../services/employerService';
+import { APPLICATION_STATUS } from '../../utils/statusLabels';
+import { formatDate } from '../../utils/formatDate';
 import { Link } from 'react-router-dom';
 import { DataTable } from '../../components/common/DataTable';
 import { StatusBadge } from '../../components/common/StatusBadge';
@@ -8,25 +11,26 @@ import { FiPlusCircle, FiBox, FiArrowRight, FiMessageSquare } from 'react-icons/
 
 export const EmployerDashboard = () => {
   const { subscription } = useEmployerPackage();
+  const [recentApps, setRecentApps] = useState([]);
+  const [loadingApps, setLoadingApps] = useState(true);
 
-  const recentApps = [
-    { id: 1, applicantName: 'Nguyễn Văn A', jobTitle: 'Frontend Developer', date: '08/10/2026', status: 'Đang xem xét' },
-    { id: 2, applicantName: 'Trần Thị B', jobTitle: 'Frontend Developer', date: '07/10/2026', status: 'Phỏng vấn' },
-    { id: 3, applicantName: 'Lê Văn C', jobTitle: 'Backend Node.js', date: '06/10/2026', status: 'Đã ứng tuyển' },
-    { id: 4, applicantName: 'Phạm Minh D', jobTitle: 'UI/UX Designer', date: '05/10/2026', status: 'Trúng tuyển' },
-  ];
+  useEffect(() => {
+    employerService.getApplications({ size: 5 })
+      .then((res) => setRecentApps(res.content))
+      .catch(() => setRecentApps([]))
+      .finally(() => setLoadingApps(false));
+  }, []);
 
   const columns = [
-    { header: 'Ứng viên', accessor: 'applicantName' },
+    { header: 'Ứng viên', accessor: 'candidateName' },
     { header: 'Vị trí', accessor: 'jobTitle' },
-    { header: 'Trạng thái', accessor: 'status', render: (row) => <StatusBadge status={row.status} /> },
-    { header: 'Ngày ứng tuyển', accessor: 'date' },
+    { header: 'Trạng thái', render: (row) => <StatusBadge status={APPLICATION_STATUS[row.status]?.label} /> },
+    { header: 'Ngày ứng tuyển', render: (row) => formatDate(row.appliedAt) },
     {
       header: 'Thao tác',
-      accessor: 'actions',
       render: (row) => (
         <Link
-          to={`/employer/messages?candidateId=${row.id}`}
+          to={`/employer/messages?candidateId=${row.candidateId}`}
           className="btn btn-outline"
           style={{
             display: 'inline-flex',
@@ -39,7 +43,7 @@ export const EmployerDashboard = () => {
             borderColor: 'var(--color-primary)',
             textDecoration: 'none'
           }}
-          title={`Nhắn tin với ${row.applicantName}`}
+          title={`Nhắn tin với ${row.candidateName}`}
         >
           <FiMessageSquare size={13} />
           <span>Nhắn tin</span>
@@ -80,7 +84,7 @@ export const EmployerDashboard = () => {
 
       {/* Component Biểu đồ và Thống kê Tuyển dụng (US4) */}
       <div style={{ marginBottom: '32px' }}>
-        <EmployerAnalyticsCharts employerId="EMP-001" />
+        <EmployerAnalyticsCharts />
       </div>
 
       {/* Bảng hồ sơ ứng tuyển mới nhất */}
@@ -91,7 +95,8 @@ export const EmployerDashboard = () => {
             Xem tất cả hồ sơ <FiArrowRight size={14} />
           </Link>
         </div>
-        <DataTable columns={columns} data={recentApps} searchable={false} />
+        <DataTable columns={columns} data={recentApps} loading={loadingApps} searchable={false}
+          emptyText="Chưa có hồ sơ ứng tuyển nào" />
       </div>
     </>
   );

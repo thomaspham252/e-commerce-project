@@ -1,55 +1,31 @@
 /**
  * Tầng dịch vụ Thống kê & Phân tích (Analytics Service).
  * Tuân thủ hợp đồng tại specs/004-employer-packages-dashboard/contracts/employer-service-contract.md.
- * Thao tác in-memory, giả lập lọc dữ liệu theo khoảng thời gian thực tế.
+ * Thống kê tuyển dụng NTD gọi backend; báo cáo doanh thu Admin vẫn dùng mock (thuộc module thanh toán).
  */
 
-import {
-  initialRecruitmentTimeline,
-  initialCvStatusDistribution,
-  initialRevenueTimeline,
-} from './analyticsMockData.js';
+import { initialRevenueTimeline } from './analyticsMockData.js';
+import { employerService } from './employerService.js';
+import { APPLICATION_STATUS } from '../utils/statusLabels.js';
 
 const simulateDelay = (ms = 100) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
- * 1. Lấy dữ liệu thống kê tuyển dụng của Nhà tuyển dụng theo khoảng ngày.
+ * 1. Lấy dữ liệu thống kê tuyển dụng của Nhà tuyển dụng theo khoảng ngày (dữ liệu thật từ backend).
+ * Ngày trống: backend mặc định 1 năm gần nhất. Khoảng > 62 ngày sẽ gom cột theo tháng.
+ * NTD được xác định qua tài khoản đang đăng nhập nên không cần truyền employerId.
  */
-export const getRecruitmentAnalytics = async (
-  _employerId = 'EMP-001',
-  { startDate = '', endDate = '' } = {}
-) => {
-  await simulateDelay();
-
-  let timeline = [...initialRecruitmentTimeline];
-
-  if (startDate) {
-    const start = new Date(startDate).setHours(0, 0, 0, 0);
-    timeline = timeline.filter((item) => new Date(item.date).getTime() >= start);
-  }
-
-  if (endDate) {
-    const end = new Date(endDate).setHours(23, 59, 59, 999);
-    timeline = timeline.filter((item) => new Date(item.date).getTime() <= end);
-  }
-
-  const totalApplications = timeline.reduce((acc, item) => acc + item.applications, 0);
-
-  // Điều chỉnh phân bổ CV tương ứng tỷ lệ với tổng số ứng tuyển
-  const statusDistribution = initialCvStatusDistribution.map((item) => ({
-    ...item,
-    count: Math.round((item.count / 86) * Math.max(1, totalApplications)),
-  }));
-
+export const getRecruitmentAnalytics = async (_employerId, { startDate = '', endDate = '' } = {}) => {
+  const res = await employerService.getStats({ from: startDate, to: endDate });
   return {
-    timeline,
-    statusDistribution: totalApplications > 0 ? statusDistribution : [],
-    summary: {
-      totalApplications,
-      activeJobs: 3,
-      reviewingCount: Math.round(totalApplications * 0.4),
-      newApplicationsThisWeek: Math.round(totalApplications * 0.35),
-    },
+    timeline: res.timeline,
+    statusDistribution: res.statusDistribution.map((item) => ({
+      status: item.key,
+      name: APPLICATION_STATUS[item.key]?.label || item.key,
+      color: APPLICATION_STATUS[item.key]?.color,
+      count: item.count,
+    })),
+    summary: res.summary,
   };
 };
 

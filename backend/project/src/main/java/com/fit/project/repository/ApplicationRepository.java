@@ -51,6 +51,23 @@ public interface ApplicationRepository extends JpaRepository<Application, Intege
 
     boolean existsByJobId(Integer jobId);
 
+    boolean existsByCvId(Integer cvId);
+
+    long countByCandidateUserId(Integer candidateId);
+
+    @Query("select a.cv.id, count(a) from Application a where a.cv.id in :cvIds group by a.cv.id")
+    List<Object[]> countGroupByCv(@Param("cvIds") Collection<Integer> cvIds);
+
+    /** Số đơn đã nộp bằng từng CV: cvId → count (CV chưa dùng sẽ không có trong map). */
+    default Map<Integer, Long> countByCvIds(Collection<Integer> cvIds) {
+        if (cvIds.isEmpty()) return Map.of();
+        Map<Integer, Long> result = new HashMap<>();
+        for (Object[] row : countGroupByCv(cvIds)) {
+            result.put((Integer) row[0], ((Number) row[1]).longValue());
+        }
+        return result;
+    }
+
     @Query("""
             select a.appliedAt from Application a
             where a.job.company.owner.id = :ownerId

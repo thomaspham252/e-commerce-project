@@ -8,6 +8,7 @@ import {
   TrendingUp,
   Package,
   Coins,
+  FileText,
 } from 'lucide-react';
 
 const adminSidebarItems = [
@@ -17,6 +18,7 @@ const adminSidebarItems = [
   { path: '/admin/token-config', label: 'Cấu hình Token', icon: <Coins size={20} /> },
   { path: '/admin/payments', label: 'Quản lý giao dịch', icon: <CreditCard size={20} /> },
   { path: '/admin/users', label: 'Người dùng', icon: <Users size={20} /> },
+  { path: '/admin/cvs', label: 'Hồ sơ ứng viên', icon: <FileText size={20} /> },
   { path: '/admin/jobs', label: 'Tin tuyển dụng', icon: <Briefcase size={20} /> },
   { path: '/admin/companies', label: 'Doanh nghiệp', icon: <Building2 size={20} /> },
 ];

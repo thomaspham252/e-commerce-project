@@ -12,8 +12,10 @@ import com.fit.project.service.CurrentUserService;
 import com.fit.project.service.StatisticsService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.YearMonth;
 import java.util.List;
 
 @RestController
@@ -43,6 +45,39 @@ public class AdminController {
                                  @PathVariable Integer id,
                                  @Valid @RequestBody UpdateUserStatusRequest req) {
         adminService.updateUserStatus(admin(userId), id, req.status());
+    }
+
+    @GetMapping("/users/{id}")
+    public AdminUserDetailResponse getUser(@RequestHeader(CurrentUserService.HEADER) Integer userId,
+                                           @PathVariable Integer id) {
+        admin(userId);
+        return adminService.getUser(id);
+    }
+
+    @PatchMapping("/users/{id}/searchable")
+    public void updateSearchable(@RequestHeader(CurrentUserService.HEADER) Integer userId,
+                                 @PathVariable Integer id,
+                                 @Valid @RequestBody UpdateSearchableRequest req) {
+        admin(userId);
+        adminService.updateCandidateSearchable(id, req.searchable());
+    }
+
+    // ===== Hồ sơ (CV) =====
+
+    @GetMapping("/cvs")
+    public PageResponse<AdminCvResponse> listCvs(@RequestHeader(CurrentUserService.HEADER) Integer userId,
+                                                 @RequestParam(required = false) String keyword,
+                                                 @RequestParam(defaultValue = "0") int page,
+                                                 @RequestParam(defaultValue = "10") int size) {
+        admin(userId);
+        return adminService.listCvs(keyword, page, size);
+    }
+
+    @DeleteMapping("/cvs/{id}")
+    public void deleteCv(@RequestHeader(CurrentUserService.HEADER) Integer userId,
+                         @PathVariable Integer id) {
+        admin(userId);
+        adminService.deleteCv(id);
     }
 
     // ===== Doanh nghiệp =====
@@ -83,6 +118,13 @@ public class AdminController {
         return adminService.reviewJob(admin(userId), id, req);
     }
 
+    @PatchMapping("/jobs/{id}/take-down")
+    public JobResponse takeDownJob(@RequestHeader(CurrentUserService.HEADER) Integer userId,
+                                   @PathVariable Integer id,
+                                   @Valid @RequestBody TakeDownJobRequest req) {
+        return adminService.takeDownJob(admin(userId), id, req.reason());
+    }
+
     // ===== Thống kê =====
 
     @GetMapping("/stats/overview")
@@ -93,9 +135,11 @@ public class AdminController {
 
     @GetMapping("/stats/monthly")
     public List<MonthlyStat> monthly(@RequestHeader(CurrentUserService.HEADER) Integer userId,
-                                     @RequestParam(defaultValue = "6") int months) {
+                                     @RequestParam(defaultValue = "6") int months,
+                                     @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM") YearMonth from,
+                                     @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM") YearMonth to) {
         admin(userId);
-        return statisticsService.adminMonthly(months);
+        return statisticsService.adminMonthly(from, to, months);
     }
 
     @GetMapping("/stats/job-status")
