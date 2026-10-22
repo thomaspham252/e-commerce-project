@@ -1,19 +1,41 @@
 import axios from 'axios';
 
-/**
- * Axios dùng chung cho backend Spring Boot. Vite proxy /api → backend (xem vite.config.js).
- *
- * TẠM THỜI: chưa có module đăng nhập nên danh tính gửi qua header X-User-Id.
- * Khi có JWT, chỉ cần thay `asUser` bằng interceptor gắn Authorization.
- */
+/** Axios dùng chung cho backend Spring Boot. Vite proxy /api → backend (xem vite.config.js). */
 export const apiClient = axios.create({ baseURL: '/api' });
+
+const AUTH_SESSION_KEY = 'jobviet.authSession';
 
 export const DEV_USER_IDS = {
   admin: import.meta.env.VITE_DEV_ADMIN_ID || '1',
   employer: import.meta.env.VITE_DEV_EMPLOYER_ID || '2',
 };
 
-export const asUser = (userId) => ({ headers: { 'X-User-Id': userId } });
+export const getAuthSession = () => {
+  try {
+    const savedSession = localStorage.getItem(AUTH_SESSION_KEY) || sessionStorage.getItem(AUTH_SESSION_KEY);
+    return savedSession ? JSON.parse(savedSession) : null;
+  } catch {
+    return null;
+  }
+};
+
+export const saveAuthSession = (user, remember) => {
+  const storage = remember ? localStorage : sessionStorage;
+  const otherStorage = remember ? sessionStorage : localStorage;
+  otherStorage.removeItem(AUTH_SESSION_KEY);
+  storage.setItem(AUTH_SESSION_KEY, JSON.stringify(user));
+  window.dispatchEvent(new Event('auth-session-changed'));
+};
+
+export const clearAuthSession = () => {
+  localStorage.removeItem(AUTH_SESSION_KEY);
+  sessionStorage.removeItem(AUTH_SESSION_KEY);
+  window.dispatchEvent(new Event('auth-session-changed'));
+};
+
+export const asUser = (userId) => ({
+  headers: { 'X-User-Id': getAuthSession()?.id ?? userId },
+});
 
 /** Lấy thông báo lỗi tiếng Việt từ backend ({ message, errors }). */
 export const getErrorMessage = (error) => {

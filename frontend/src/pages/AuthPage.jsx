@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { getErrorMessage, saveAuthSession } from '../services/apiClient';
+import { authService } from '../services/authService';
 import './AuthPage.css';
 
 export const AuthPage = () => {
@@ -7,19 +9,38 @@ export const AuthPage = () => {
   const navigate = useNavigate();
   const [mode, setMode] = useState(location.state?.mode === 'register' ? 'register' : 'login');
   const [notice, setNotice] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const isLogin = mode === 'login';
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    if (!isLogin) {
-      const formData = new FormData(event.currentTarget);
-      navigate('/xac-thuc-email', {
-        state: { email: formData.get('email'), purpose: 'signup' },
-      });
-      return;
-    }
+    const formData = new FormData(event.currentTarget);
+    setIsSubmitting(true);
+    setNotice('');
 
-    setNotice('Tính năng tài khoản chưa được kết nối. Vui lòng quay lại sau.');
+    try {
+      const user = isLogin
+        ? await authService.login({
+            email: formData.get('email'),
+            password: formData.get('password'),
+          })
+        : await authService.register({
+            name: formData.get('name'),
+            email: formData.get('email'),
+            password: formData.get('password'),
+          });
+      saveAuthSession(user, formData.get('remember') === 'on');
+      const destination = {
+        ADMIN: '/admin',
+        EMPLOYER: '/employer',
+        CANDIDATE: '/',
+      }[user.role] || '/';
+      navigate(destination, { replace: true });
+    } catch (error) {
+      setNotice(getErrorMessage(error));
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleGoogleLogin = () => {
@@ -105,8 +126,8 @@ export const AuthPage = () => {
                 autoComplete={isLogin ? 'current-password' : 'new-password'}
                 name="password"
                 type="password"
-                placeholder="Ít nhất 8 ký tự"
-                minLength={8}
+                placeholder={isLogin ? 'Nhập mật khẩu của bạn' : 'Ít nhất 8 ký tự'}
+                minLength={isLogin ? undefined : 8}
                 required
               />
             </label>
@@ -123,8 +144,8 @@ export const AuthPage = () => {
               </label>
             )}
 
-            <button className="auth-submit" type="submit">
-              {isLogin ? 'Đăng nhập' : 'Tạo tài khoản'}
+            <button className="auth-submit" type="submit" disabled={isSubmitting}>
+              {isSubmitting ? 'Đang xử lý...' : isLogin ? 'Đăng nhập' : 'Tạo tài khoản'}
               <span aria-hidden="true">→</span>
             </button>
             {notice && <p className="auth-notice" role="status">{notice}</p>}

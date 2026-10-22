@@ -161,6 +161,172 @@
   transform: translateY(-1px);
 }
 
+/* User Menu & Dropdown */
+.header-user-menu {
+  position: relative;
+}
+
+.header-user-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  padding: 4px 12px 4px 5px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.header-user-btn:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.header-user-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--color-primary, #0284c7);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.header-user-summary {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+}
+
+.header-user-email {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #1e293b;
+  max-width: 140px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.header-role-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  line-height: 1.2;
+}
+
+.role-badge-admin {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.role-badge-employer {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.role-badge-candidate {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.header-chevron {
+  color: #64748b;
+  transition: transform 0.2s ease;
+}
+
+.header-chevron.open {
+  transform: rotate(180deg);
+}
+
+.header-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 230px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  padding: 6px;
+  z-index: 100;
+  animation: dropdownFadeIn 0.15s ease-out;
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.header-dropdown-header {
+  padding: 8px 12px;
+}
+
+.dropdown-signed-in {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.dropdown-email {
+  margin: 2px 0 0 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #0f172a;
+  word-break: break-all;
+}
+
+.header-dropdown-divider {
+  height: 1px;
+  background: #f1f5f9;
+  margin: 4px 0;
+}
+
+.header-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 12px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #334155;
+  text-decoration: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s, color 0.15s;
+}
+
+.header-dropdown-item:hover {
+  background: #f8fafc;
+  color: var(--color-primary, #0284c7);
+}
+
+.header-logout-item {
+  color: #dc2626;
+}
+
+.header-logout-item:hover {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
 @media (max-width: 768px) {
   .main-nav {
     display: none;
