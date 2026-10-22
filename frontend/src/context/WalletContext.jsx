@@ -1,7 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import {
   getWallet,
-  depositTokens as serviceDeposit,
   consumeTokens as serviceConsume,
 } from '../services/walletService.js';
 
@@ -9,14 +8,14 @@ const WalletContext = createContext(null);
 
 /**
  * Provider quản lý trạng thái Ví Token toàn cục cho ứng dụng.
- * Đồng bộ số dư token tức thì giữa Header, Trang Ví, và các Modal trừ token.
+ * Đồng bộ số dư token tức thì giữa Header, Trang Ví, và các Modal trừ token với Database MySQL.
  */
 export const WalletProvider = ({ children }) => {
   const [wallet, setWallet] = useState({
-    userId: 'USR-UV-01',
-    balance: 150,
-    totalDeposited: 250,
-    totalConsumed: 100,
+    userId: null,
+    balance: 0,
+    totalDeposited: 0,
+    totalConsumed: 0,
   });
   const [loading, setLoading] = useState(true);
 
@@ -34,30 +33,35 @@ export const WalletProvider = ({ children }) => {
 
   useEffect(() => {
     fetchWalletData();
-  }, [fetchWalletData]);
 
-  // Hành động nạp token
-  const deposit = useCallback(async (packageId, orderId = null) => {
-    const res = await serviceDeposit('USR-UV-01', packageId, orderId);
-    setWallet(res.wallet);
-    return res;
-  }, []);
+    // Lắng nghe thay đổi phiên đăng nhập để tải lại ví của user tương ứng
+    const handleAuthChange = () => {
+      fetchWalletData();
+    };
+    window.addEventListener('auth-session-changed', handleAuthChange);
+    return () => {
+      window.removeEventListener('auth-session-changed', handleAuthChange);
+    };
+  }, [fetchWalletData]);
 
   // Hành động tiêu token
   const consume = useCallback(async (featureKey) => {
-    const res = await serviceConsume('USR-UV-01', featureKey);
+    const res = await serviceConsume(wallet?.userId, featureKey);
     if (res.success && res.wallet) {
-      setWallet(res.wallet);
+      setWallet((prev) => ({
+        ...prev,
+        balance: res.wallet.balance,
+        totalConsumed: (prev.totalConsumed || 0) + (res.transaction ? Math.abs(res.transaction.amount) : 0),
+      }));
     }
     return res;
-  }, []);
+  }, [wallet?.userId]);
 
   const value = {
     wallet,
     balance: wallet?.balance ?? 0,
     loading,
     refreshWallet: fetchWalletData,
-    deposit,
     consume,
   };
 
@@ -71,11 +75,10 @@ export const useWallet = () => {
   const context = useContext(WalletContext);
   if (!context) {
     return {
-      wallet: { userId: 'USR-UV-01', balance: 0, totalDeposited: 0, totalConsumed: 0 },
+      wallet: { userId: null, balance: 0, totalDeposited: 0, totalConsumed: 0 },
       balance: 0,
       loading: false,
       refreshWallet: () => {},
-      deposit: async () => ({ success: false }),
       consume: async () => ({ success: false }),
     };
   }

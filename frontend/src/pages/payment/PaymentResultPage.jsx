@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { getPaymentOrder, createPaymentOrder } from '../../services/paymentService';
+import { getAuthSession } from '../../services/apiClient';
+import { useWallet } from '../../context/WalletContext.jsx';
 import { formatCurrencyVND } from '../../utils/formatCurrency';
 import { StatusBadge } from '../../components/common/StatusBadge';
 import {
@@ -27,6 +29,7 @@ import './PaymentResultPage.css';
 export const PaymentResultPage = () => {
   const { orderId } = useParams();
   const navigate = useNavigate();
+  const { refreshWallet } = useWallet();
 
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -50,6 +53,13 @@ export const PaymentResultPage = () => {
       fetchOrder();
     }
   }, [orderId]);
+
+  // Khi đơn hàng thanh toán thành công, tự động làm mới số dư ví token
+  useEffect(() => {
+    if (order?.status === 'SUCCESS') {
+      refreshWallet();
+    }
+  }, [order?.status, refreshWallet]);
 
   // Xử lý tạo lại đơn thanh toán mới khi đơn cũ hết hạn
   const handleRecreateOrder = async () => {
@@ -95,16 +105,17 @@ export const PaymentResultPage = () => {
     );
   }
 
+  const session = getAuthSession();
+  const isAdmin = session?.role === 'ADMIN';
+
   const isSuccess = order.status === 'SUCCESS';
   const isWrongAmount = order.status === 'WRONG_AMOUNT';
   const isExpired = order.status === 'EXPIRED';
   const isCancelled = order.status === 'CANCELLED';
 
-  const returnPath = order.orderType === 'EMPLOYER_PACKAGE' ? '/employer/jobs' : '/';
-  const returnLabel =
-    order.orderType === 'EMPLOYER_PACKAGE'
-      ? 'Về trang quản lý tuyển dụng'
-      : 'Về ví token / Trang chủ';
+  const isEmployerOrder = order.orderType === 'EMPLOYER_PACKAGE' || order.orderType === 'SUBSCRIPTION';
+  const returnPath = isEmployerOrder ? '/nha-tuyen-dung/tin-tuyen-dung' : '/ung-vien/vi-token';
+  const returnLabel = isEmployerOrder ? 'Về trang Quản lý tuyển dụng' : 'Về Ví Token của tôi';
 
   return (
     <div className="payment-result-page">
@@ -151,9 +162,15 @@ export const PaymentResultPage = () => {
               <Link to={returnPath} className="btn-action primary">
                 {returnLabel}
               </Link>
-              <Link to="/admin/payments" className="btn-action secondary">
-                Xem trong Quản lý Giao dịch (Admin)
-              </Link>
+              {isAdmin ? (
+                <Link to="/admin/payments" className="btn-action secondary">
+                  Xem trong Quản lý Giao dịch (Admin)
+                </Link>
+              ) : (
+                <Link to="/" className="btn-action secondary">
+                  Về trang chủ
+                </Link>
+              )}
             </div>
           </div>
         )}

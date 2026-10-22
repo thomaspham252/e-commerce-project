@@ -1,6 +1,7 @@
 package com.fit.project.config;
 
 import com.fit.project.entity.*;
+import com.fit.project.entity.Package;
 import com.fit.project.enums.*;
 import com.fit.project.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,9 @@ import java.util.Random;
  * Tắt bằng app.seed.enabled=false.
  * Thứ tự tạo cố định → id: admin = 1, NTD = 2..4, ứng viên = 5..12.
  */
+import com.fit.project.entity.ServiceFee;
+import com.fit.project.repository.ServiceFeeRepository;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -39,6 +43,9 @@ public class DataSeeder implements CommandLineRunner {
     private final JobRepository jobRepository;
     private final ApplicationRepository applicationRepository;
     private final ApplicationStatusHistoryRepository historyRepository;
+    private final PackageRepository packageRepository;
+    private final TokenPackageRepository tokenPackageRepository;
+    private final ServiceFeeRepository serviceFeeRepository;
 
     private final Random random = new Random(42);
     private final LocalDateTime now = LocalDateTime.now();
@@ -46,6 +53,8 @@ public class DataSeeder implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) {
+        seedPackagesIfEmpty();
+
         if (userRepository.count() > 0) return;
 
         user("admin@jobportal.vn", UserRole.ADMIN, 200);
@@ -138,5 +147,63 @@ public class DataSeeder implements CommandLineRunner {
                 .rejectionReason(status == JobStatus.REJECTED ? "Mức lương và mô tả chưa rõ ràng" : null)
                 .reviewedAt(status == JobStatus.OPEN || status == JobStatus.REJECTED ? createdAt.plusDays(1) : null)
                 .createdAt(createdAt).updatedAt(createdAt).build());
+    }
+
+    private void seedPackagesIfEmpty() {
+        if (packageRepository.count() == 0) {
+            packageRepository.save(Package.builder().name("Gói Khởi nghiệp (Basic)")
+                    .price(BigDecimal.valueOf(500_000)).durationDays(30).jobPostLimit(5).cvViewLimit(20)
+                    .includedTokens(20).canHighlightJobs(false).canPrioritizeJobs(false)
+                    .canSearchCandidates(true).canDirectContact(true).isActive(true).build());
+
+            packageRepository.save(Package.builder().name("Gói Chuyên nghiệp (Pro)")
+                    .price(BigDecimal.valueOf(1_500_000)).durationDays(30).jobPostLimit(20).cvViewLimit(100)
+                    .includedTokens(100).canHighlightJobs(true).canPrioritizeJobs(true)
+                    .canSearchCandidates(true).canDirectContact(true).isActive(true).build());
+
+            packageRepository.save(Package.builder().name("Gói Doanh nghiệp (Enterprise)")
+                    .price(BigDecimal.valueOf(4_000_000)).durationDays(90).jobPostLimit(100).cvViewLimit(500)
+                    .includedTokens(300).canHighlightJobs(true).canPrioritizeJobs(true)
+                    .canSearchCandidates(true).canDirectContact(true).isActive(true).build());
+            log.info("Đã tạo dữ liệu mẫu cho danh mục packages.");
+        }
+
+        if (tokenPackageRepository.count() == 0) {
+            tokenPackageRepository.save(TokenPackage.builder().tokens(50).price(BigDecimal.valueOf(50_000)).isActive(true).build());
+            tokenPackageRepository.save(TokenPackage.builder().tokens(120).price(BigDecimal.valueOf(100_000)).isActive(true).build());
+            tokenPackageRepository.save(TokenPackage.builder().tokens(300).price(BigDecimal.valueOf(200_000)).isActive(true).build());
+            tokenPackageRepository.save(TokenPackage.builder().tokens(1000).price(BigDecimal.valueOf(500_000)).isActive(true).build());
+            log.info("Đã tạo dữ liệu mẫu cho danh mục token_packages.");
+        }
+
+        if (serviceFeeRepository.count() == 0) {
+            serviceFeeRepository.save(ServiceFee.builder()
+                    .featureKey("UNLOCK_CONTACT")
+                    .featureName("Mở khóa liên hệ trực tiếp NTD")
+                    .tokenCost(30)
+                    .badge("Phổ biến")
+                    .description("Xem trực tiếp số điện thoại và email riêng của người phụ trách tuyển dụng")
+                    .isActive(true)
+                    .build());
+
+            serviceFeeRepository.save(ServiceFee.builder()
+                    .featureKey("BOOST_CV")
+                    .featureName("Đẩy hồ sơ CV lên đầu danh sách")
+                    .tokenCost(20)
+                    .badge("Hiệu quả")
+                    .description("Giữ vị trí ưu tiên cao trong kết quả tìm kiếm ứng viên của NTD trong 72 giờ")
+                    .isActive(true)
+                    .build());
+
+            serviceFeeRepository.save(ServiceFee.builder()
+                    .featureKey("URGENT_APPLY")
+                    .featureName("Gắn huy hiệu Ứng tuyển nổi bật")
+                    .tokenCost(25)
+                    .badge("Ưu tiên")
+                    .description("Hồ sơ được đánh dấu sao nổi bật trong hòm thư tuyển dụng của nhà tuyển dụng")
+                    .isActive(true)
+                    .build());
+            log.info("Đã tạo dữ liệu mẫu cho danh mục service_fees.");
+        }
     }
 }

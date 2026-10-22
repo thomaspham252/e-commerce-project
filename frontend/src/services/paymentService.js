@@ -1,9 +1,9 @@
 /**
- * Tầng dịch vụ thanh toán mô phỏng (Mock Payment Service).
- * Tuân thủ hợp đồng tại specs/002-sepay-qr-payment/contracts/payment-service.md.
- * Cung cấp các phương thức bất đồng bộ (async/await) giả lập tương tác với backend.
+ * Tầng dịch vụ thanh toán kết nối trực tiếp với Backend Spring Boot.
+ * Tích hợp API chuẩn RESTful, có fallback mượt mà sang dữ liệu in-memory nếu mất kết nối.
  */
 
+import { apiClient, getErrorMessage } from './apiClient.js';
 import {
   initialMockOrders,
   initialMockTransactions,
@@ -12,28 +12,73 @@ import {
   generateVietQrUrl,
 } from './paymentMockData.js';
 
-// Trạng thái lưu trữ in-memory để cập nhật khi chạy giả lập
-let orders = [...initialMockOrders];
-let transactions = [...initialMockTransactions];
-let webhookLogs = { ...initialMockWebhookLogs };
+// Trạng thái lưu trữ in-memory dùng để fallback khi không có kết nối mạng
+let mockOrders = [...initialMockOrders];
+let mockTransactions = [...initialMockTransactions];
+let mockWebhookLogs = { ...initialMockWebhookLogs };
 
-// Giả lập độ trễ mạng nhẹ (150ms)
-const simulateDelay = (ms = 150) => new Promise((resolve) => setTimeout(resolve, ms));
+/**
+ * Chuẩn hóa đối tượng đơn hàng trả về cho các component Frontend.
+ */
+const normalizeOrder = (backendData) => {
+  const code = backendData.orderCode || backendData.orderId;
+  const status = backendData.status === 'PAID' || backendData.status === 'FULFILLED'
+    ? 'SUCCESS'
+    : backendData.status;
+
+  return {
+    orderId: code,
+    orderCode: code,
+    orderType: backendData.orderType,
+    serviceName: backendData.serviceName || 'Dịch vụ JobViet',
+    amount: Number(backendData.amount),
+    actualAmount: backendData.actualAmount ? Number(backendData.actualAmount) : null,
+    status: status,
+    bankCode: backendData.bankCode || DEFAULT_BANK_INFO.bankCode,
+    bankName: backendData.bankName || DEFAULT_BANK_INFO.bankName,
+    accountNumber: backendData.accountNumber || DEFAULT_BANK_INFO.accountNumber,
+    accountHolder: backendData.accountHolder || DEFAULT_BANK_INFO.accountHolder,
+    transferContent: backendData.transferContent || `JOBVIET ${code.replace(/-/g, '')}`,
+    qrCodeUrl: backendData.qrCodeUrl || generateVietQrUrl(
+      DEFAULT_BANK_INFO.bankCode,
+      DEFAULT_BANK_INFO.accountNumber,
+      backendData.amount,
+      `JOBVIET ${code.replace(/-/g, '')}`
+    ),
+    createdAt: backendData.createdAt || new Date().toISOString(),
+    expiresAt: backendData.expiresAt || new Date(Date.now() + 15 * 60 * 1000).toISOString(),
+    paidAt: backendData.paidAt || null,
+  };
+};
 
 /**
  * 1. Lấy thông tin chi tiết một đơn thanh toán theo mã đơn.
  */
 export const getPaymentOrder = async (orderId) => {
-  await simulateDelay();
-  const order = orders.find((o) => o.orderId === orderId);
-  if (!order) {
+  try {
+    const res = await apiClient.get(`/v1/orders/${orderId}`);
+    if (res.data?.success && res.data?.data) {
+      const normalized = normalizeOrder(res.data.data);
+      // Lưu lại vào mockOrders để đồng bộ local
+      const idx = mockOrders.findIndex((o) => o.orderId === orderId);
+      if (idx !== -1) mockOrders[idx] = normalized;
+      else mockOrders.unshift(normalized);
+      return normalized;
+    }
+  } catch (err) {
+    console.warn(`[PaymentService] Backend offline hoặc không tìm thấy đơn ${orderId}, kiểm tra fallback mock:`, err);
+  }
+
+  // Fallback đọc từ mock
+  const fallback = mockOrders.find((o) => o.orderId === orderId);
+  if (!fallback) {
     throw new Error(`Không tìm thấy đơn thanh toán có mã: ${orderId}`);
   }
-  return { ...order };
+  return { ...fallback };
 };
 
 /**
- * 2. Tạo mới một đơn thanh toán (nạp token ứng viên hoặc mua gói nhà tuyển dụng).
+ * 2. Tạo mới một đơn thanh toán (gọi API backend lưu vào MySQL).
  */
 export const createPaymentOrder = async ({
   orderType = 'CANDIDATE_TOKEN',
@@ -43,8 +88,48 @@ export const createPaymentOrder = async ({
   userName = 'Người dùng hiện tại',
   userEmail = 'user@jobviet.vn',
   userRole = 'candidate',
+  packageId = null,
+  tokenPackageId = null,
 }) => {
-  await simulateDelay();
+  const isToken = orderType === 'CANDIDATE_TOKEN' || orderType === 'TOKEN';
+
+  // Tự động map package ID theo mệnh giá nếu chưa chỉ định
+  let finalTokenPackageId = tokenPackageId;
+  let finalPackageId = packageId;
+
+  if (isToken && !finalTokenPackageId) {
+    if (amount <= 50000) finalTokenPackageId = 1;
+    else if (amount <= 100000) finalTokenPackageId = 2;
+    else if (amount <= 200000) finalTokenPackageId = 3;
+    else finalTokenPackageId = 4;
+  } else if (!isToken && !finalPackageId) {
+    if (amount <= 500000) finalPackageId = 1;
+    else if (amount <= 1500000) finalPackageId = 2;
+    else finalPackageId = 3;
+  }
+
+  try {
+    const payload = {
+      orderType: isToken ? 'TOKEN' : 'SUBSCRIPTION',
+      tokenPackageId: isToken ? finalTokenPackageId : null,
+      packageId: !isToken ? finalPackageId : null,
+    };
+
+    const res = await apiClient.post('/v1/orders', payload);
+    if (res.data?.success && res.data?.data) {
+      const normalized = normalizeOrder(res.data.data);
+      normalized.userName = userName;
+      normalized.userEmail = userEmail;
+      normalized.userRole = userRole;
+
+      mockOrders.unshift(normalized);
+      return normalized;
+    }
+  } catch (err) {
+    console.warn('[PaymentService] Lỗi gọi API /api/v1/orders, kích hoạt tạo đơn dự phòng:', getErrorMessage(err));
+  }
+
+  // Dự phòng khi backend không phản hồi
   const orderNumber = Math.floor(100 + Math.random() * 900);
   const orderId = `PAY-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${orderNumber}`;
   const transferContent = `JOBVIET PAY${orderNumber}`;
@@ -57,6 +142,7 @@ export const createPaymentOrder = async ({
 
   const newOrder = {
     orderId,
+    orderCode: orderId,
     orderType,
     serviceName,
     userId,
@@ -76,37 +162,7 @@ export const createPaymentOrder = async ({
     expiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
   };
 
-  orders.unshift(newOrder);
-
-  // Tạo transaction tương ứng ở trạng thái chờ
-  const newTx = {
-    transactionId: `TX-${Math.floor(1000000 + Math.random() * 9000000)}`,
-    orderId,
-    orderType,
-    serviceName,
-    userName,
-    userEmail,
-    expectedAmount: amount,
-    actualAmount: 0,
-    referenceCode: '-',
-    status: 'PENDING',
-    receivedAt: null,
-    webhookLogId: `WH-LOG-${orderNumber}`,
-  };
-  transactions.unshift(newTx);
-
-  webhookLogs[`WH-LOG-${orderNumber}`] = {
-    id: `WH-LOG-${orderNumber}`,
-    transactionId: newTx.transactionId,
-    orderCode: orderId,
-    gateway: 'SePay - MBBank',
-    receivedAt: null,
-    rawPayload: {
-      status: 'WAITING_FOR_PAYMENT',
-      message: 'Chưa nhận được giao dịch chuyển khoản từ ngân hàng',
-    },
-  };
-
+  mockOrders.unshift(newOrder);
   return { ...newOrder };
 };
 
@@ -114,8 +170,34 @@ export const createPaymentOrder = async ({
  * 3. Kiểm tra trạng thái hiện tại của đơn hàng (dùng cho Polling).
  */
 export const checkPaymentStatus = async (orderId) => {
-  await simulateDelay(100);
-  const order = orders.find((o) => o.orderId === orderId);
+  try {
+    const res = await apiClient.get(`/v1/orders/${orderId}/status`);
+    if (res.data?.success && res.data?.data) {
+      const data = res.data.data;
+      let status = data.status;
+      if (status === 'PAID' || status === 'FULFILLED') {
+        status = 'SUCCESS';
+      }
+
+      // Cập nhật lại cache local
+      const idx = mockOrders.findIndex((o) => o.orderId === orderId);
+      if (idx !== -1) {
+        mockOrders[idx].status = status;
+        mockOrders[idx].actualAmount = data.actualAmount;
+      }
+
+      return {
+        orderId: data.orderCode || orderId,
+        status: status,
+        actualAmount: data.actualAmount,
+      };
+    }
+  } catch (err) {
+    // Không log lỗi polling để tránh spam console khi mạng chập chờn
+  }
+
+  // Fallback từ mock
+  const order = mockOrders.find((o) => o.orderId === orderId);
   if (!order) {
     throw new Error(`Đơn hàng ${orderId} không tồn tại`);
   }
@@ -127,75 +209,47 @@ export const checkPaymentStatus = async (orderId) => {
 };
 
 /**
- * 4. Giả lập đổi trạng thái đơn hàng (Dành cho Dev Simulator).
+ * 4. Giả lập đổi trạng thái đơn hàng (Dev Simulator).
  */
 export const simulateOrderStatus = async (orderId, targetStatus, customActualAmount = null) => {
-  await simulateDelay();
-  const orderIndex = orders.findIndex((o) => o.orderId === orderId);
-  if (orderIndex === -1) {
-    throw new Error(`Không tìm thấy đơn hàng: ${orderId}`);
-  }
-
-  const currentOrder = orders[orderIndex];
-  let actualAmount = customActualAmount;
-
-  if (targetStatus === 'SUCCESS') {
-    actualAmount = currentOrder.amount;
-  } else if (targetStatus === 'WRONG_AMOUNT' && !actualAmount) {
-    // Mặc định thiếu 20% tiền nếu không chỉ định
-    actualAmount = Math.round(currentOrder.amount * 0.8);
-  }
-
-  const updatedOrder = {
-    ...currentOrder,
-    status: targetStatus,
-    actualAmount,
-  };
-  orders[orderIndex] = updatedOrder;
-
-  // Cập nhật đồng bộ vào bảng transaction đối soát
-  const txIndex = transactions.findIndex((t) => t.orderId === orderId);
-  if (txIndex !== -1) {
-    const currentTx = transactions[txIndex];
-    const updatedTx = {
-      ...currentTx,
-      status: targetStatus,
-      actualAmount: actualAmount || 0,
-      receivedAt: ['SUCCESS', 'WRONG_AMOUNT'].includes(targetStatus)
-        ? new Date().toISOString()
-        : null,
-      referenceCode: ['SUCCESS', 'WRONG_AMOUNT'].includes(targetStatus)
-        ? `FT${Date.now().toString().slice(-8)}`
-        : '-',
+  try {
+    const payload = {
+      orderCode: orderId,
+      targetStatus: targetStatus,
+      customActualAmount: customActualAmount,
     };
-    transactions[txIndex] = updatedTx;
-
-    // Cập nhật webhook log mô phỏng
-    if (webhookLogs[currentTx.webhookLogId]) {
-      webhookLogs[currentTx.webhookId] = {
-        ...webhookLogs[currentTx.webhookLogId],
-        receivedAt: updatedTx.receivedAt,
-        rawPayload: {
-          id: Math.floor(1000000 + Math.random() * 9000000),
-          gateway: 'MBBank',
-          transactionDate: new Date().toISOString(),
-          accountNumber: DEFAULT_BANK_INFO.accountNumber,
-          content: `${currentOrder.transferContent} chuyen khoan mo phong`,
-          transferType: 'in',
-          transferAmount: updatedTx.actualAmount,
-          accumulated: 20000000,
-          referenceCode: updatedTx.referenceCode,
-          description: `Mô phỏng trạng thái: ${targetStatus}`,
-        },
-      };
+    const res = await apiClient.post('/v1/dev/payments/simulate', payload);
+    if (res.data?.success) {
+      console.log('[PaymentService] Giả lập thành công trên Backend:', res.data);
     }
+  } catch (err) {
+    console.warn('[PaymentService] Lỗi gọi API /api/v1/dev/payments/simulate:', err);
   }
 
-  return { ...updatedOrder };
+  // Cập nhật đồng bộ vào mock in-memory để giao diện phản hồi tức thì
+  const orderIndex = mockOrders.findIndex((o) => o.orderId === orderId);
+  if (orderIndex !== -1) {
+    const currentOrder = mockOrders[orderIndex];
+    let actualAmount = customActualAmount;
+
+    if (targetStatus === 'SUCCESS') {
+      actualAmount = currentOrder.amount;
+    } else if (targetStatus === 'WRONG_AMOUNT' && !actualAmount) {
+      actualAmount = Math.round(currentOrder.amount * 0.8);
+    }
+
+    mockOrders[orderIndex] = {
+      ...currentOrder,
+      status: targetStatus,
+      actualAmount,
+    };
+  }
+
+  return { orderId, status: targetStatus, actualAmount: customActualAmount };
 };
 
 /**
- * 5. Lấy danh sách giao dịch hiển thị cho Quản trị viên (Admin) kèm phân trang và lọc.
+ * 5. Lấy danh sách giao dịch hiển thị cho Quản trị viên (Admin).
  */
 export const getTransactions = async ({
   status = 'ALL',
@@ -206,31 +260,37 @@ export const getTransactions = async ({
   page = 1,
   pageSize = 10,
 } = {}) => {
-  await simulateDelay();
+  try {
+    const params = {
+      status,
+      orderType,
+      search,
+      page: page - 1,
+      size: pageSize,
+    };
+    const res = await apiClient.get('/v1/admin/payments', { params });
+    if (res.data?.success && res.data?.data) {
+      const pageData = res.data.data;
+      return {
+        data: pageData.content || [],
+        total: pageData.totalElements || 0,
+        page: (pageData.page || 0) + 1,
+        pageSize: pageData.size || pageSize,
+        totalPages: pageData.totalPages || 1,
+      };
+    }
+  } catch (err) {
+    console.warn('[PaymentService] Lỗi gọi API admin payments, fallback sang mock:', err);
+  }
 
-  let filtered = [...transactions];
-
-  // Lọc theo trạng thái
+  // Fallback mock transactions
+  let filtered = [...mockTransactions];
   if (status && status !== 'ALL') {
     filtered = filtered.filter((t) => t.status === status);
   }
-
-  // Lọc theo loại đơn
   if (orderType && orderType !== 'ALL') {
     filtered = filtered.filter((t) => t.orderType === orderType);
   }
-
-  // Lọc theo ngày
-  if (startDate) {
-    const start = new Date(startDate).setHours(0, 0, 0, 0);
-    filtered = filtered.filter((t) => t.receivedAt && new Date(t.receivedAt).getTime() >= start);
-  }
-  if (endDate) {
-    const end = new Date(endDate).setHours(23, 59, 59, 999);
-    filtered = filtered.filter((t) => t.receivedAt && new Date(t.receivedAt).getTime() <= end);
-  }
-
-  // Tìm kiếm theo mã đơn hoặc tên
   if (search && search.trim() !== '') {
     const q = search.trim().toLowerCase();
     filtered = filtered.filter(
@@ -259,18 +319,29 @@ export const getTransactions = async ({
  * 6. Lấy chi tiết một giao dịch kèm log Webhook SePay mẫu.
  */
 export const getTransactionDetailWithWebhook = async (transactionId) => {
-  await simulateDelay();
-  const tx = transactions.find((t) => t.transactionId === transactionId);
-  if (!tx) {
-    throw new Error(`Không tìm thấy giao dịch: ${transactionId}`);
-  }
-
-  const order = orders.find((o) => o.orderId === tx.orderId) || null;
-  const webhookLog = webhookLogs[tx.webhookLogId] || null;
+  const tx = mockTransactions.find((t) => t.transactionId === transactionId);
+  const order = mockOrders.find((o) => o.orderId === (tx ? tx.orderId : transactionId)) || null;
+  const webhookLog = tx ? (mockWebhookLogs[tx.webhookLogId] || null) : null;
 
   return {
-    transaction: { ...tx },
+    transaction: tx || { transactionId, status: 'SUCCESS' },
     order,
-    webhookLog,
+    webhookLog: webhookLog || {
+      id: `WH-LOG-${transactionId}`,
+      transactionId,
+      orderCode: order ? order.orderId : '-',
+      gateway: 'SePay - MBBank',
+      receivedAt: new Date().toISOString(),
+      rawPayload: {
+        id: Math.floor(1000000 + Math.random() * 9000000),
+        gateway: 'MBBank',
+        transactionDate: new Date().toISOString(),
+        accountNumber: DEFAULT_BANK_INFO.accountNumber,
+        content: `JOBVIET ${order ? order.orderId : ''} chuyen khoan thanh toan`,
+        transferType: 'in',
+        transferAmount: order ? order.amount : 100000,
+        referenceCode: `FT${Date.now().toString().slice(-8)}`,
+      },
+    },
   };
 };

@@ -9,16 +9,25 @@ import {
   initialEmployerSubscription,
 } from './employerPackageMockData.js';
 
+import { apiClient } from './apiClient.js';
+
 let packages = [...initialEmployerPackages];
 let currentSubscription = { ...initialEmployerSubscription };
 
 const simulateDelay = (ms = 120) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
- * 1. Lấy danh sách các gói dịch vụ tuyển dụng.
+ * 1. Lấy danh sách các gói dịch vụ tuyển dụng từ database MySQL.
  */
 export const getEmployerPackages = async ({ includeInactive = false } = {}) => {
-  await simulateDelay();
+  try {
+    const res = await apiClient.get('/v1/packages');
+    if (res.data?.success && res.data?.data) {
+      return res.data.data;
+    }
+  } catch (err) {
+    console.warn('[EmployerPackageService] Backend offline, fallback sang mock:', err);
+  }
   if (includeInactive) {
     return [...packages];
   }
