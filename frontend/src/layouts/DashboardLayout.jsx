@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
+import { ToastContainer } from 'react-toastify';
 import { Menu, Bell, User } from 'lucide-react';
 import { Sidebar } from '../components/common/Sidebar';
 import './DashboardLayout.css';
@@ -44,6 +45,7 @@ export const DashboardLayout = ({ title, sidebarItems }) => {
         <main className="dashboard-content">
           <div className="container-fluid">
             <Outlet />
+            <ToastContainer position="top-right" autoClose={3000} newestOnTop />
           </div>
         </main>
       </div>
