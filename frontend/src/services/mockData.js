@@ -11,7 +11,7 @@ export const JOBS = [
     title: "Frontend Developer (ReactJS)",
     companyName: "VNG Corporation",
     companyInitials: "VNG",
-    companyLogo: null, // Prop sẵn sàng nhận ảnh logo thật khi được cung cấp
+    companyLogo: "/images/companies/vng.png",
     salary: "15 - 25 Triệu",
     location: "Hà Nội",
     isSaved: false,
@@ -24,7 +24,7 @@ export const JOBS = [
     title: "Backend Engineer (Java/Spring)",
     companyName: "FPT Software",
     companyInitials: "FPT",
-    companyLogo: null,
+    companyLogo: "/images/companies/fpt.png",
     salary: "20 - 35 Triệu",
     location: "Hồ Chí Minh",
     isSaved: false,
@@ -37,7 +37,7 @@ export const JOBS = [
     title: "UI/UX Designer",
     companyName: "MoMo",
     companyInitials: "MM",
-    companyLogo: null,
+    companyLogo: "/images/companies/momo.png",
     salary: "15 - 20 Triệu",
     location: "Đà Nẵng",
     isSaved: false,
@@ -50,7 +50,7 @@ export const JOBS = [
     title: "Fullstack Web Developer",
     companyName: "Shopee Vietnam",
     companyInitials: "SP",
-    companyLogo: null,
+    companyLogo: "/images/companies/shoppe.png",
     salary: "30 - 50 Triệu",
     location: "Hà Nội",
     isSaved: false,
@@ -63,7 +63,7 @@ export const JOBS = [
     title: "Data Analyst",
     companyName: "Tiki",
     companyInitials: "TK",
-    companyLogo: null,
+    companyLogo: "/images/companies/tiki.png",
     salary: "18 - 30 Triệu",
     location: "Hồ Chí Minh",
     isSaved: false,
@@ -76,7 +76,7 @@ export const JOBS = [
     title: "System Admin",
     companyName: "Viettel",
     companyInitials: "VT",
-    companyLogo: null,
+    companyLogo: "/images/companies/viettel.png",
     salary: "12 - 20 Triệu",
     location: "Hà Nội",
     isSaved: false,
@@ -94,10 +94,10 @@ export const CATEGORIES = [
 ];
 
 export const EMPLOYERS = [
-  { id: "emp-1", name: "VNG Corporation", initials: "VNG", logoUrl: null },
-  { id: "emp-2", name: "FPT Software", initials: "FPT", logoUrl: null },
-  { id: "emp-3", name: "Viettel", initials: "VT", logoUrl: null },
-  { id: "emp-4", name: "MoMo", initials: "MM", logoUrl: null },
-  { id: "emp-5", name: "Shopee Vietnam", initials: "SP", logoUrl: null },
-  { id: "emp-6", name: "Tiki", initials: "TK", logoUrl: null }
+  { id: "emp-1", name: "VNG Corporation", initials: "VNG", logoUrl: "/images/companies/vng.png" },
+  { id: "emp-2", name: "FPT Software", initials: "FPT", logoUrl: "/images/companies/fpt.png" },
+  { id: "emp-3", name: "Viettel", initials: "VT", logoUrl: "/images/companies/viettel.png" },
+  { id: "emp-4", name: "MoMo", initials: "MM", logoUrl: "/images/companies/momo.png" },
+  { id: "emp-5", name: "Shopee Vietnam", initials: "SP", logoUrl: "/images/companies/shoppe.png" },
+  { id: "emp-6", name: "Tiki", initials: "TK", logoUrl: "/images/companies/tiki.png" }
 ];

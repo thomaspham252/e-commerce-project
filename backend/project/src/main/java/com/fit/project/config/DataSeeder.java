@@ -17,6 +17,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 
 /**
@@ -46,6 +47,8 @@ public class DataSeeder implements CommandLineRunner {
     private final PackageRepository packageRepository;
     private final TokenPackageRepository tokenPackageRepository;
     private final ServiceFeeRepository serviceFeeRepository;
+    private final ConversationRepository conversationRepository;
+    private final ChatMessageRepository chatMessageRepository;
 
     private final Random random = new Random(42);
     private final LocalDateTime now = LocalDateTime.now();
@@ -54,6 +57,7 @@ public class DataSeeder implements CommandLineRunner {
     @Transactional
     public void run(String... args) {
         seedPackagesIfEmpty();
+        seedChatIfEmpty();
 
         if (userRepository.count() > 0) return;
 
@@ -204,6 +208,69 @@ public class DataSeeder implements CommandLineRunner {
                     .isActive(true)
                     .build());
             log.info("Đã tạo dữ liệu mẫu cho danh mục service_fees.");
+        }
+    }
+
+    private void seedChatIfEmpty() {
+        if (conversationRepository.count() == 0) {
+            Optional<User> candidateOpt = userRepository.findByEmailIgnoreCase("ungvien1@gmail.com");
+            Optional<Company> companyOpt = companyRepository.findFirstByOwnerIdOrderByIdAsc(2);
+            if (candidateOpt.isEmpty() || companyOpt.isEmpty()) {
+                return;
+            }
+
+            User candidate = candidateOpt.get();
+            Company company = companyOpt.get();
+            Job job = jobRepository.findAll().stream().findFirst().orElse(null);
+
+            LocalDateTime msgTime1 = LocalDateTime.now().minusMinutes(25);
+            LocalDateTime msgTime2 = LocalDateTime.now().minusMinutes(15);
+            LocalDateTime msgTime3 = LocalDateTime.now().minusMinutes(5);
+
+            Conversation conv = Conversation.builder()
+                    .candidate(candidate)
+                    .company(company)
+                    .job(job)
+                    .lastMessage("Dạ em đã làm việc với React hơn 1 năm, sử dụng Redux Toolkit và TailwindCSS trong nhiều dự án thực tế ạ.")
+                    .lastMessageAt(msgTime3)
+                    .candidateUnreadCount(0)
+                    .employerUnreadCount(1)
+                    .createdAt(msgTime1)
+                    .updatedAt(msgTime3)
+                    .build();
+            conv = conversationRepository.save(conv);
+
+            chatMessageRepository.save(ChatMessage.builder()
+                    .conversation(conv)
+                    .sender(candidate)
+                    .senderType("CANDIDATE")
+                    .content("Chào anh/chị, em thấy công ty đang tuyển vị trí " + (job != null ? job.getTitle() : "này") + ". Em đã gửi hồ sơ và rất mong có cơ hội trao đổi thêm ạ!")
+                    .attachmentUrl(null)
+                    .isRead(true)
+                    .createdAt(msgTime1)
+                    .build());
+
+            chatMessageRepository.save(ChatMessage.builder()
+                    .conversation(conv)
+                    .sender(company.getOwner())
+                    .senderType("EMPLOYER")
+                    .content("Chào bạn, cảm ơn bạn đã quan tâm. Bạn có thể chia sẻ thêm về kinh nghiệm làm việc thực tế với React không?")
+                    .attachmentUrl(null)
+                    .isRead(true)
+                    .createdAt(msgTime2)
+                    .build());
+
+            chatMessageRepository.save(ChatMessage.builder()
+                    .conversation(conv)
+                    .sender(candidate)
+                    .senderType("CANDIDATE")
+                    .content("Dạ em đã làm việc với React hơn 1 năm, sử dụng Redux Toolkit và TailwindCSS trong nhiều dự án thực tế ạ.")
+                    .attachmentUrl(null)
+                    .isRead(false)
+                    .createdAt(msgTime3)
+                    .build());
+
+            log.info("Đã tạo dữ liệu mẫu cuộc hội thoại và tin nhắn chat giữa {} và {}.", candidate.getEmail(), company.getName());
         }
     }
 }

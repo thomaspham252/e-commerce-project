@@ -34,6 +34,13 @@ build/
 .env
 .env.*
 !.env.example
+*.properties
+!*.properties.example
+!gradle.properties
+!.mvn/wrapper/maven-wrapper.properties
+!maven-wrapper.properties
+application.properties
+application-*.properties
 
 # ========================
 # IDE & Editor Folders
