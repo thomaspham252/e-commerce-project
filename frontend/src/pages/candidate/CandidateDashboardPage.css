@@ -1,0 +1,3219 @@
+/* ==========================================================================
+   ITVIEC CANDIDATE DASHBOARD & PROFILE
+   ========================================================================== */
+
+.itv-dash-page {
+  background-color: #F7F8FA;
+  min-height: calc(100vh - 72px);
+  padding: 28px 0 64px;
+  color: #1E293B;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.itv-dash-container {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+/* ==========================================================================
+   CỘT TRÁI: SIDEBAR THÔNG TIN VÀ ĐIỀU HƯỚNG (GIỮ NGUYÊN)
+   ========================================================================== */
+
+.itv-dash-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: sticky;
+  top: 86px;
+}
+
+/* Card trạng thái tìm kiếm CV */
+.itv-user-status-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 18px 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.itv-status-greeting {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.itv-wave-hand {
+  font-size: 15px;
+}
+
+.itv-greeting-label {
+  font-size: 12px;
+  color: #64748B;
+  font-weight: 500;
+}
+
+.itv-status-username {
+  font-size: 16.5px;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.itv-status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #F8FAFC;
+  border: 1px solid #EDF2F7;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.itv-status-row:last-child {
+  margin-bottom: 0;
+}
+
+.itv-row-text {
+  font-size: 12.5px;
+  color: #334155;
+  font-weight: 500;
+}
+
+.itv-toggle-switch-btn {
+  background: #94A3B8;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 9999px;
+  padding: 3px 12px;
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.itv-toggle-switch-btn.is-active {
+  background: #2563EB;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.35);
+}
+
+.itv-views-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 9999px;
+  background: #DCFCE7;
+  color: #15803D;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+/* Card danh sách menu điều hướng */
+.itv-sidebar-nav-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.itv-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 11px 14px;
+  border-radius: 8px;
+  border: none;
+  background: none;
+  color: #334155;
+  font-size: 14.5px;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.itv-nav-icon {
+  color: #475569;
+  flex-shrink: 0;
+  transition: color 0.15s ease;
+}
+
+.itv-nav-item:hover {
+  background: #F8FAFC;
+  color: #0F172A;
+}
+
+.itv-nav-item:hover .itv-nav-icon {
+  color: #0F172A;
+}
+
+.itv-nav-item.is-active {
+  background: #FEF2F2;
+  color: #EA1E30;
+  font-weight: 700;
+}
+
+.itv-nav-item.is-active .itv-nav-icon {
+  color: #EA1E30;
+}
+
+.itv-nav-item-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex: 1;
+}
+
+.itv-pill-count {
+  font-size: 11px;
+  font-weight: 700;
+  background: #0284C7;
+  color: #FFFFFF;
+  padding: 1px 7px;
+  border-radius: 9999px;
+}
+
+/* ==========================================================================
+   CỘT PHẢI CHUNG: KHUNG THẺ NỘI DUNG
+   ========================================================================== */
+
+.itv-dash-main {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
+.itv-dash-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 22px 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  position: relative;
+}
+
+.itv-section-heading {
+  font-size: 17.5px;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0 0 18px 0;
+  letter-spacing: -0.3px;
+}
+
+/* ==========================================================================
+   GIAO DIỆN HỒ SƠ CỦA TÔI (MY PROFILE - THEO ẢNH MẪU)
+   ========================================================================== */
+
+/* 1. Thẻ Quản lý CV */
+.itv-cv-manage-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.itv-notice-purple-banner {
+  background: #F5F3FF;
+  border: 1px solid #DDD6FE;
+  border-radius: 8px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.itv-purple-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #7C3AED;
+  color: #FFFFFF;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.itv-purple-text {
+  font-size: 13.5px;
+  color: #5B21B6;
+  line-height: 1.45;
+}
+
+.itv-your-cv-box {
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  padding: 20px;
+  background: #FFFFFF;
+}
+
+.itv-your-cv-heading {
+  font-size: 15.5px;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0 0 14px 0;
+}
+
+.itv-profile-resume-box {
+  background: #F8FAFC;
+  border: 1px solid #EDF2F7;
+  margin-bottom: 16px;
+}
+
+.itv-upload-cv-action-row {
+  margin-bottom: 18px;
+}
+
+.itv-upload-outline-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 18px;
+  border: 1.5px solid #EA1E30;
+  background: #FFFFFF;
+  color: #EA1E30;
+  font-size: 14px;
+  font-weight: 700;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 8px;
+}
+
+.itv-upload-outline-btn:hover {
+  background: #FEF2F2;
+  box-shadow: 0 2px 6px rgba(234, 30, 48, 0.15);
+}
+
+.itv-upload-hint-text {
+  font-size: 12.5px;
+  color: #64748B;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.itv-cv-status-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 14px;
+  border-top: 1px dashed #E2E8F0;
+}
+
+.itv-status-badge-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.itv-status-title {
+  font-size: 13.5px;
+  color: #0F172A;
+  font-weight: 600;
+}
+
+.itv-pill-fresher {
+  background: #2563EB;
+  color: #FFFFFF;
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 2px 10px;
+  border-radius: 9999px;
+  letter-spacing: 0.2px;
+}
+
+.itv-fresher-note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #475569;
+  margin: 0;
+  line-height: 1.45;
+}
+
+.itv-fresher-info-icon {
+  color: #64748B;
+  flex-shrink: 0;
+}
+
+.itv-text-link {
+  color: #2563EB;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.itv-cv-audit-help-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 14px;
+}
+
+.itv-audit-help-link {
+  font-size: 13px;
+  color: #475569;
+  text-decoration: underline;
+  transition: color 0.15s ease;
+}
+
+.itv-audit-help-link:hover {
+  color: #EA1E30;
+}
+
+/* 2. Thẻ Thông tin cơ bản & Thông tin chung */
+.itv-info-section-card {
+  padding: 22px 24px;
+}
+
+.itv-card-header-with-action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.itv-card-header-with-action .itv-section-heading {
+  margin-bottom: 0;
+}
+
+.itv-card-edit-btn {
+  background: none;
+  border: none;
+  color: #EA1E30;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: background 0.15s ease;
+}
+
+.itv-card-edit-btn:hover {
+  background: #FEF2F2;
+}
+
+.itv-detail-fields-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.itv-detail-field-row {
+  display: flex;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px dashed #F1F5F9;
+}
+
+.itv-detail-field-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.itv-df-label {
+  width: 220px;
+  flex-shrink: 0;
+  font-size: 14px;
+  color: #64748B;
+  font-weight: 500;
+}
+
+.itv-df-value {
+  font-size: 14.5px;
+  color: #0F172A;
+  font-weight: 700;
+  flex: 1;
+}
+
+.itv-df-salary {
+  font-size: 15px;
+}
+
+.itv-missing-info-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #D97706;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.itv-missing-info-btn:hover {
+  text-decoration: underline;
+}
+
+.itv-text-placeholder-btn {
+  font-size: 13.5px;
+  color: #94A3B8;
+  cursor: pointer;
+}
+
+.itv-text-placeholder-btn:hover {
+  color: #2563EB;
+  text-decoration: underline;
+}
+
+/* 3. Thẻ Thư xin việc (Cover Letter) */
+.itv-cover-letter-card {
+  padding: 22px 24px;
+}
+
+.itv-cover-letter-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.itv-cover-letter-head .itv-section-heading {
+  margin-bottom: 0;
+}
+
+.itv-cl-actions-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.itv-letter-icon-graphic {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #FFF1F2;
+  color: #EA1E30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.itv-cover-letter-body {
+  padding-top: 4px;
+}
+
+.itv-cl-placeholder-text {
+  font-size: 14px;
+  color: #64748B;
+  margin: 0;
+  cursor: pointer;
+}
+
+.itv-cl-placeholder-text:hover {
+  color: #0F172A;
+}
+
+.itv-cl-content-active {
+  font-size: 14.5px;
+  line-height: 1.65;
+  color: #334155;
+  margin: 0;
+  background: #F8FAFC;
+  padding: 14px 18px;
+  border-radius: 8px;
+  border: 1px solid #E2E8F0;
+}
+
+/* ==========================================================================
+   GIAO DIỆN TỔNG QUAN (OVERVIEW - TỪ YÊU CẦU TRƯỚC)
+   ========================================================================== */
+
+/* Profile Header */
+.itv-profile-header-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.itv-profile-head-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.itv-dash-avatar-circle {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #EA4335 0%, #D93025 100%);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 800;
+  flex-shrink: 0;
+  box-shadow: 0 4px 10px rgba(234, 67, 53, 0.35);
+}
+
+.itv-dash-user-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.itv-dash-fullname {
+  font-size: 22px;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0;
+  line-height: 1.25;
+}
+
+.itv-dash-email-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13.5px;
+  color: #64748B;
+}
+
+.itv-update-profile-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #2563EB;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  padding: 6px 10px;
+  border-radius: 6px;
+}
+
+.itv-update-profile-btn:hover {
+  background: #EFF6FF;
+  color: #1D4ED8;
+}
+
+/* Card Nhà tuyển dụng xem CV */
+.itv-employer-views-card {
+  border-color: #86EFAC;
+  background: linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 18px 24px;
+}
+
+.itv-card-tag-new {
+  position: absolute;
+  top: 14px;
+  right: 18px;
+  font-size: 11px;
+  font-weight: 800;
+  color: #16A34A;
+  background: #DCFCE7;
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(22, 163, 74, 0.3);
+  letter-spacing: 0.5px;
+}
+
+.itv-views-metric-box {
+  background: #FFFFFF;
+  border: 1px solid #86EFAC;
+  border-radius: 10px;
+  padding: 10px 18px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 80px;
+  box-shadow: 0 2px 6px rgba(22, 163, 74, 0.1);
+  flex-shrink: 0;
+}
+
+.itv-metric-number {
+  font-size: 26px;
+  font-weight: 800;
+  color: #16A34A;
+  line-height: 1;
+}
+
+.itv-metric-sub {
+  font-size: 11px;
+  color: #15803D;
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+.itv-views-desc-block {
+  flex: 1;
+  padding-right: 48px;
+}
+
+.itv-views-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0 0 4px 0;
+}
+
+.itv-views-text {
+  font-size: 13.5px;
+  color: #475569;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Card Hồ sơ đính kèm */
+.itv-resume-file-box {
+  background: #F8FAFC;
+  border: 1px solid #EDF2F7;
+  border-radius: 10px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.itv-resume-icon-wrap {
+  flex-shrink: 0;
+}
+
+.itv-pdf-icon-graphic {
+  width: 44px;
+  height: 54px;
+  background: #FFFFFF;
+  border: 2px solid #FCA5A5;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+.itv-pdf-icon-header {
+  background: #EF4444;
+  height: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.itv-pdf-user-mini {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #FFFFFF;
+}
+
+.itv-pdf-icon-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px;
+}
+
+.itv-pdf-icon-lines span {
+  height: 3px;
+  background: #CBD5E1;
+  border-radius: 2px;
+  display: block;
+}
+
+.itv-pdf-icon-lines span:nth-child(1) { width: 90%; }
+.itv-pdf-icon-lines span:nth-child(2) { width: 75%; }
+.itv-pdf-icon-lines span:nth-child(3) { width: 85%; }
+
+.itv-resume-file-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.itv-resume-file-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1E293B;
+  text-decoration: underline;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.itv-resume-file-name:hover {
+  color: #2563EB;
+}
+
+.itv-resume-updated-time {
+  font-size: 12.5px;
+  color: #64748B;
+  margin: 0 0 4px 0;
+}
+
+.itv-resume-upload-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #2563EB;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+}
+
+.itv-resume-upload-action:hover {
+  text-decoration: underline;
+}
+
+/* Card Tạo CV */
+.itv-create-cv-layout {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.itv-progress-meter-wrap {
+  width: 130px;
+  height: 75px;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.itv-half-gauge {
+  width: 130px;
+  height: 65px;
+  position: relative;
+  overflow: hidden;
+}
+
+.itv-gauge-track {
+  width: 130px;
+  height: 130px;
+  border: 10px solid #FEE2E2;
+  border-radius: 50%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  box-sizing: border-box;
+}
+
+.itv-gauge-fill {
+  width: 130px;
+  height: 130px;
+  border: 10px solid #EA1E30;
+  border-radius: 50%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-bottom-color: transparent;
+  border-left-color: transparent;
+  transform: rotate(-171deg);
+  transition: transform 0.6s ease;
+  box-sizing: border-box;
+}
+
+.itv-gauge-center {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.itv-gauge-percent {
+  font-size: 20px;
+  font-weight: 800;
+  color: #0F172A;
+  line-height: 1;
+}
+
+.itv-gauge-label {
+  font-size: 11px;
+  color: #64748B;
+  font-weight: 500;
+  margin-top: 2px;
+}
+
+.itv-progress-desc {
+  flex: 1;
+  min-width: 220px;
+}
+
+.itv-progress-desc p {
+  font-size: 14px;
+  color: #334155;
+  line-height: 1.55;
+  margin: 0 0 8px 0;
+}
+
+.itv-upgrade-link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #2563EB;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.itv-upgrade-link-btn:hover {
+  text-decoration: underline;
+}
+
+.itv-cv-templates-gallery {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.itv-cv-preview-card {
+  width: 80px;
+  height: 110px;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
+}
+
+.itv-cv-preview-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.itv-cv-mock-header {
+  height: 22px;
+  border-radius: 4px;
+  padding: 3px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.itv-cv-mock-header.red-theme {
+  background: #FEE2E2;
+}
+
+.itv-cv-mock-header.dark-theme {
+  background: #1E293B;
+}
+
+.itv-cv-mock-avatar {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #CBD5E1;
+}
+
+.itv-cv-mock-name-block {
+  flex: 1;
+  height: 6px;
+  background: #94A3B8;
+  border-radius: 2px;
+}
+
+.itv-cv-mock-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.itv-cv-mock-line {
+  height: 3px;
+  background: #E2E8F0;
+  border-radius: 2px;
+}
+
+.itv-cv-explore-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed #FCA5A5;
+  background: #FFFDFD;
+  text-align: center;
+  padding: 8px 6px;
+}
+
+.itv-explore-circle-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid #EA1E30;
+  color: #EA1E30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 6px;
+}
+
+.itv-explore-text {
+  font-size: 11px;
+  font-weight: 700;
+  color: #EA1E30;
+  line-height: 1.25;
+}
+
+/* Card Hoạt động */
+.itv-activity-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.itv-activity-box {
+  padding: 22px 24px;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+  overflow: hidden;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.itv-activity-box:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+}
+
+.itv-act-title {
+  font-size: 13.5px;
+  font-weight: 600;
+  position: relative;
+  z-index: 2;
+}
+
+.itv-act-num {
+  font-size: 34px;
+  font-weight: 800;
+  line-height: 1;
+  position: relative;
+  z-index: 2;
+  letter-spacing: -0.5px;
+}
+
+.itv-act-bg-graphic {
+  position: absolute;
+  right: 12px;
+  bottom: 8px;
+  opacity: 0.18;
+  pointer-events: none;
+  transition: transform 0.3s ease;
+}
+
+.itv-activity-box:hover .itv-act-bg-graphic {
+  transform: scale(1.12);
+}
+
+.itv-box-applied {
+  background: #EFF6FF;
+  border: 1px solid #BFDBFE;
+  color: #2563EB;
+}
+
+.itv-box-applied .itv-act-title {
+  color: #1E40AF;
+}
+
+.itv-box-saved {
+  background: #FFF1F2;
+  border: 1px solid #FECDD3;
+  color: #EA1E30;
+}
+
+.itv-box-saved .itv-act-title {
+  color: #9F1239;
+}
+
+.itv-box-invitations {
+  background: #F0FDF4;
+  border: 1px solid #BBF7D0;
+  color: #16A34A;
+}
+
+.itv-box-invitations .itv-act-title {
+  color: #166534;
+}
+
+/* ==========================================================================
+   MODAL CHỈNH SỬA
+   ========================================================================== */
+
+.itv-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: itvModalFade 0.2s ease-out;
+}
+
+@keyframes itvModalFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.itv-modal-box {
+  background: #FFFFFF;
+  border-radius: 12px;
+  max-width: 500px;
+  width: 100%;
+  box-shadow: 0 20px 40px -8px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+}
+
+.itv-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 24px;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.itv-modal-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.itv-modal-title-icon {
+  color: #EA1E30;
+}
+
+.itv-modal-header h3 {
+  font-size: 17px;
+  font-weight: 700;
+  color: #0F172A;
+  margin: 0;
+}
+
+.itv-modal-close {
+  background: none;
+  border: none;
+  color: #64748B;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+}
+
+.itv-modal-close:hover {
+  background: #F1F5F9;
+  color: #0F172A;
+}
+
+.itv-modal-form {
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.itv-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.itv-form-group label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+}
+
+.itv-form-group input,
+.itv-textarea-custom {
+  padding: 10px 14px;
+  border: 1px solid #CBD5E1;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #0F172A;
+  outline: none;
+  transition: border-color 0.15s ease;
+  font-family: inherit;
+}
+
+.itv-textarea-custom {
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.itv-form-group input:focus,
+.itv-textarea-custom:focus {
+  border-color: #EA1E30;
+  box-shadow: 0 0 0 3px rgba(234, 30, 48, 0.12);
+}
+
+.itv-modal-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.itv-btn-cancel {
+  padding: 10px 18px;
+  border: 1px solid #CBD5E1;
+  background: #FFFFFF;
+  color: #475569;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.itv-btn-cancel:hover {
+  background: #F8FAFC;
+}
+
+.itv-btn-save {
+  padding: 10px 22px;
+  border: none;
+  background: #EA1E30;
+  color: #FFFFFF;
+  font-size: 14px;
+  font-weight: 700;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(234, 30, 48, 0.35);
+}
+
+.itv-btn-save:hover {
+  background: #D31526;
+}
+
+/* TOAST NOTIFICATION */
+.itv-toast-notify {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: #0F172A;
+  color: #FFFFFF;
+  padding: 12px 20px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  font-weight: 600;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  z-index: 2000;
+  animation: itvToastSlide 0.25s ease-out;
+}
+
+@keyframes itvToastSlide {
+  from { transform: translateY(12px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* ==========================================================================
+   TAB: TẠO CV (KHỚP ẢNH 1)
+   ========================================================================== */
+
+.itv-cv-builder-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 20px;
+  align-items: start;
+}
+
+.itv-cv-builder-left {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.itv-cv-head-card {
+  padding: 22px 24px;
+}
+
+.itv-cv-head-top {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 16px;
+}
+
+.itv-cv-avatar-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.itv-bump-badge {
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #DCFCE7;
+  color: #16A34A;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 1px 7px;
+  border-radius: 9999px;
+  white-space: nowrap;
+  box-shadow: 0 1px 3px rgba(22, 163, 74, 0.2);
+  z-index: 2;
+}
+
+.itv-cv-head-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.itv-cv-name-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.itv-cv-job-title-prompt {
+  font-size: 14px;
+  color: #94A3B8;
+  cursor: pointer;
+  font-weight: 500;
+  transition: color 0.15s ease;
+}
+
+.itv-cv-job-title-prompt:hover {
+  color: #2563EB;
+  text-decoration: underline;
+}
+
+.itv-cv-required-warning {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #FFFBEB;
+  border: 1px solid #FDE68A;
+  color: #D97706;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.itv-cv-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px 24px;
+  border-top: 1px dashed #E2E8F0;
+  padding-top: 16px;
+}
+
+.itv-cv-meta-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  color: #475569;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.itv-cv-meta-cell.is-empty {
+  color: #94A3B8;
+  cursor: pointer;
+}
+
+.itv-cv-meta-cell.is-empty:hover {
+  color: #2563EB;
+  text-decoration: underline;
+}
+
+.itv-cv-sections-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.itv-cv-section-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 20px;
+  border-radius: 12px;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.itv-cv-section-item:hover {
+  border-color: #CBD5E1;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transform: translateY(-1px);
+}
+
+.itv-cv-sec-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.itv-cv-sec-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.itv-cv-sec-title {
+  font-size: 15.5px;
+  font-weight: 800;
+  color: #0F172A;
+}
+
+.itv-bump-pill {
+  background: #DCFCE7;
+  color: #15803D;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 1px 7px;
+  border-radius: 9999px;
+}
+
+.itv-cv-sec-desc {
+  font-size: 13px;
+  color: #64748B;
+  margin: 0;
+}
+
+.itv-cv-add-btn {
+  color: #EA1E30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.itv-cv-section-item:hover .itv-cv-add-btn {
+  transform: scale(1.1);
+}
+
+.itv-cv-builder-right {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: sticky;
+  top: 86px;
+}
+
+.itv-cv-completion-card {
+  padding: 20px;
+}
+
+.itv-completion-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.itv-completion-header h3 {
+  font-size: 15px;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0;
+}
+
+.itv-completion-number {
+  font-size: 22px;
+  font-weight: 900;
+  color: #EA1E30;
+}
+
+.itv-completion-bar-track {
+  height: 6px;
+  background: #F1F5F9;
+  border-radius: 9999px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.itv-completion-bar-fill {
+  height: 100%;
+  background: #EA1E30;
+  border-radius: 9999px;
+  transition: width 0.4s ease;
+}
+
+.itv-completion-hint {
+  font-size: 12.5px;
+  color: #475569;
+  line-height: 1.45;
+  margin: 0 0 16px 0;
+}
+
+.itv-completion-steps {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-top: 1px dashed #E2E8F0;
+  padding-top: 12px;
+}
+
+.itv-completion-steps li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #334155;
+  font-weight: 600;
+}
+
+.itv-cs-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #475569;
+}
+
+.itv-cs-label svg {
+  color: #94A3B8;
+}
+
+.itv-cv-autofill-card {
+  padding: 20px;
+  background: #FFFFFF;
+}
+
+.itv-autofill-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.itv-autofill-header h3 {
+  font-size: 14.5px;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0;
+}
+
+.itv-tag-new-green {
+  font-size: 10.5px;
+  font-weight: 800;
+  background: #16A34A;
+  color: #FFFFFF;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+}
+
+.itv-autofill-desc {
+  font-size: 12.5px;
+  color: #64748B;
+  margin: 0 0 16px 0;
+  line-height: 1.45;
+}
+
+.itv-autofill-btn {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid #EA1E30;
+  background: #FFFFFF;
+  color: #EA1E30;
+  font-size: 13.5px;
+  font-weight: 700;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.itv-autofill-btn:hover {
+  background: #FEF2F2;
+  box-shadow: 0 2px 8px rgba(234, 30, 48, 0.15);
+}
+
+/* ==========================================================================
+   TAB: VIỆC LÀM CỦA TÔI (KHỚP ẢNH 2)
+   ========================================================================== */
+
+.itv-my-jobs-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.itv-my-jobs-card {
+  padding: 24px;
+}
+
+.itv-subtabs-row {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  border-bottom: 2px solid #F1F5F9;
+  margin-bottom: 16px;
+  overflow-x: auto;
+}
+
+.itv-subtab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 0;
+  border: none;
+  background: none;
+  font-size: 15px;
+  font-weight: 700;
+  color: #475569;
+  cursor: pointer;
+  position: relative;
+  transition: color 0.15s ease;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  white-space: nowrap;
+}
+
+.itv-subtab-btn:hover {
+  color: #0F172A;
+}
+
+.itv-subtab-btn.is-active {
+  color: #EA1E30;
+  border-bottom-color: #EA1E30;
+}
+
+.itv-subtab-counter {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 9999px;
+  background: #E2E8F0;
+  color: #475569;
+  font-size: 11.5px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.itv-subtab-counter.itv-counter-red {
+  background: #EA1E30;
+  color: #FFFFFF;
+}
+
+.itv-jobs-filter-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0 16px;
+  font-size: 13px;
+  color: #64748B;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.itv-jfl-note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.itv-jfl-sort {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  color: #334155;
+  font-size: 13px;
+}
+
+.itv-recent-jobs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.itv-recent-job-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 20px;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  background: #FFFFFF;
+  transition: all 0.2s ease;
+}
+
+.itv-recent-job-item:hover {
+  border-color: #CBD5E1;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.itv-rji-logo-wrap {
+  width: 68px;
+  height: 68px;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  background: #FAFAFA;
+  flex-shrink: 0;
+}
+
+.itv-company-badge-name {
+  font-size: 12px;
+  font-weight: 900;
+  color: #0F172A;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  word-break: break-word;
+}
+
+.itv-rji-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.itv-rji-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #0F172A;
+  text-decoration: none;
+  line-height: 1.35;
+  transition: color 0.15s ease;
+}
+
+.itv-rji-title:hover {
+  color: #EA1E30;
+}
+
+.itv-rji-company {
+  font-size: 13.5px;
+  color: #475569;
+  font-weight: 500;
+  margin: 0;
+}
+
+.itv-rji-location {
+  font-size: 13px;
+  color: #64748B;
+  margin: 0;
+}
+
+.itv-rji-perk,
+.itv-rji-salary {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #16A34A;
+  margin-top: 4px;
+}
+
+.itv-dollar-icon {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  border: 1.5px solid #16A34A;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9.5px;
+  font-weight: 800;
+}
+
+.itv-rji-actions-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.itv-rji-time {
+  font-size: 12px;
+  color: #94A3B8;
+  font-weight: 500;
+}
+
+.itv-rji-btns-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.itv-rji-apply-btn {
+  padding: 8px 20px;
+  border: 1.5px solid #EA1E30;
+  background: #FFFFFF;
+  color: #EA1E30;
+  border-radius: 6px;
+  font-size: 13.5px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.itv-rji-apply-btn:hover {
+  background: #EA1E30;
+  color: #FFFFFF;
+  box-shadow: 0 2px 8px rgba(234, 30, 48, 0.25);
+}
+
+.itv-rji-save-btn {
+  width: 36px;
+  height: 36px;
+  border: 1px solid #E2E8F0;
+  border-radius: 6px;
+  background: #FFFFFF;
+  color: #94A3B8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.itv-rji-save-btn:hover {
+  border-color: #FECDD3;
+  color: #EA1E30;
+  background: #FFF1F2;
+}
+
+.itv-rji-save-btn.is-saved {
+  color: #EA1E30;
+  border-color: #FECDD3;
+  background: #FFF1F2;
+}
+
+/* ==========================================================================
+   TAB: LỜI MỜI CÔNG VIỆC (KHỚP ẢNH 3)
+   ========================================================================== */
+
+.itv-invitations-card {
+  padding: 24px;
+}
+
+.itv-invitations-sub {
+  font-size: 13.5px;
+  color: #475569;
+  line-height: 1.5;
+  margin: -6px 0 18px 0;
+}
+
+.itv-invitations-notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #F8FAFC;
+  border: 1px solid #EDF2F7;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #475569;
+  margin-top: 14px;
+  margin-bottom: 24px;
+}
+
+.itv-empty-robot-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 56px 20px;
+  text-align: center;
+}
+
+.itv-robot-box-graphic {
+  width: 54px;
+  height: 54px;
+  background: #64748B;
+  border-radius: 10px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 12px rgba(100, 116, 139, 0.25);
+}
+
+.itv-robot-antennae {
+  width: 8px;
+  height: 6px;
+  background: #475569;
+  border-radius: 3px 3px 0 0;
+  position: absolute;
+  top: -6px;
+}
+
+.itv-robot-face {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.itv-rf-eye {
+  font-size: 9px;
+  font-weight: 900;
+  color: #FFFFFF;
+  margin: 0 3px;
+  display: inline-block;
+}
+
+.itv-rf-mouth {
+  width: 16px;
+  height: 3px;
+  background: #FFFFFF;
+  border-radius: 2px;
+}
+
+.itv-empty-text {
+  font-size: 14px;
+  color: #64748B;
+  margin: 0;
+  font-weight: 500;
+}
+
+/* ==========================================================================
+   TAB: ĐĂNG KÝ NHẬN EMAIL (KHỚP ẢNH 4)
+   ========================================================================== */
+
+.itv-email-subs-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.itv-email-card {
+  padding: 24px;
+}
+
+.itv-email-sub {
+  font-size: 13.5px;
+  color: #475569;
+  margin: -6px 0 18px 0;
+}
+
+.itv-email-register-form {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.itv-input-text {
+  flex: 1;
+  padding: 10px 14px;
+  border: 1px solid #CBD5E1;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #0F172A;
+  outline: none;
+  transition: border-color 0.15s ease;
+  font-family: inherit;
+}
+
+.itv-input-text:focus {
+  border-color: #EA1E30;
+  box-shadow: 0 0 0 3px rgba(234, 30, 48, 0.12);
+}
+
+.itv-select-custom {
+  padding: 10px 14px;
+  border: 1px solid #CBD5E1;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #0F172A;
+  outline: none;
+  background: #FFFFFF;
+  font-family: inherit;
+  cursor: pointer;
+  min-width: 160px;
+}
+
+.itv-select-custom:focus {
+  border-color: #EA1E30;
+  box-shadow: 0 0 0 3px rgba(234, 30, 48, 0.12);
+}
+
+.itv-btn-red-fill {
+  padding: 10px 24px;
+  background: #EA1E30;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  white-space: nowrap;
+}
+
+.itv-btn-red-fill:hover {
+  background: #D31526;
+  box-shadow: 0 2px 8px rgba(234, 30, 48, 0.3);
+}
+
+.itv-registered-alerts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-top: 1px dashed #E2E8F0;
+  padding-top: 16px;
+}
+
+.itv-alert-item-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: #F8FAFC;
+  border: 1px solid #EDF2F7;
+  border-radius: 8px;
+}
+
+.itv-alert-text {
+  font-size: 14px;
+  color: #1E293B;
+  font-weight: 500;
+}
+
+.itv-alert-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.itv-badge-registered {
+  font-size: 13px;
+  font-weight: 700;
+  color: #16A34A;
+}
+
+.itv-badge-registered.is-paused {
+  color: #94A3B8;
+}
+
+.itv-alert-icon-btn {
+  background: none;
+  border: none;
+  color: #64748B;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+}
+
+.itv-alert-icon-btn:hover {
+  color: #EA1E30;
+  background: #FEE2E2;
+}
+
+.itv-mail-empty-graphic {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: #F1F5F9;
+  color: #94A3B8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.itv-empty-bell-icon {
+  color: #94A3B8;
+  margin-bottom: 12px;
+}
+
+/* ==========================================================================
+   TAB: CÀI ĐẶT (KHỚP ẢNH 5)
+   ========================================================================== */
+
+.itv-settings-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.itv-setting-section-card {
+  padding: 24px;
+}
+
+.itv-df-col {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.itv-setting-sub-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  color: #64748B;
+  margin-top: 4px;
+}
+
+.itv-settings-text-link {
+  background: none;
+  border: none;
+  color: #2563EB;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+  margin-top: 8px;
+  transition: color 0.15s ease;
+}
+
+.itv-settings-text-link:hover {
+  text-decoration: underline;
+  color: #1D4ED8;
+}
+
+.itv-setting-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.itv-setting-learn-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #2563EB;
+  text-decoration: none;
+}
+
+.itv-setting-learn-link:hover {
+  text-decoration: underline;
+}
+
+.itv-setting-switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px dashed #E2E8F0;
+}
+
+.itv-setting-switch-desc {
+  font-size: 14px;
+  color: #334155;
+  line-height: 1.5;
+  margin: 0;
+  flex: 1;
+}
+
+.itv-red-switch-btn {
+  width: 66px;
+  height: 30px;
+  border-radius: 9999px;
+  background: #CBD5E1;
+  border: none;
+  cursor: pointer;
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 3px;
+  transition: background 0.2s ease;
+  flex-shrink: 0;
+}
+
+.itv-red-switch-btn.is-active {
+  background: #EA1E30;
+}
+
+.itv-switch-knob {
+  width: 24px;
+  height: 24px;
+  background: #FFFFFF;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: translateX(0);
+  z-index: 2;
+}
+
+.itv-red-switch-btn.is-active .itv-switch-knob {
+  transform: translateX(36px);
+}
+
+.itv-switch-label {
+  position: absolute;
+  font-size: 11px;
+  font-weight: 800;
+  color: #FFFFFF;
+}
+
+.itv-red-switch-btn.is-active .itv-switch-label {
+  left: 10px;
+}
+
+.itv-red-switch-btn:not(.is-active) .itv-switch-label {
+  right: 10px;
+  color: #64748B;
+}
+
+.itv-block-companies-block {
+  margin-top: 18px;
+}
+
+.itv-bc-title {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #0F172A;
+  margin: 0 0 2px 0;
+}
+
+.itv-bc-sub {
+  font-size: 12.5px;
+  color: #64748B;
+}
+
+.itv-bc-dropdown-box {
+  margin-top: 10px;
+  padding: 11px 16px;
+  border: 1px solid #CBD5E1;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #64748B;
+  font-size: 14px;
+  cursor: pointer;
+  background: #FFFFFF;
+  max-width: 480px;
+}
+
+.itv-bc-empty-notice {
+  font-size: 13px;
+  color: #64748B;
+  margin: 10px 0 0 0;
+}
+
+.itv-delete-acc-warning {
+  font-size: 13.5px;
+  color: #475569;
+  line-height: 1.55;
+  margin: 0 0 16px 0;
+}
+
+.itv-btn-delete-account {
+  padding: 9px 22px;
+  border: 1.5px solid #EA1E30;
+  background: #FFFFFF;
+  color: #EA1E30;
+  font-size: 14px;
+  font-weight: 700;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.itv-btn-delete-account:hover {
+  background: #FEF2F2;
+  box-shadow: 0 2px 6px rgba(234, 30, 48, 0.15);
+}
+
+/* ==========================================================================
+   TAB: TIN NHẮN VỚI NHÀ TUYỂN DỤNG (CANDIDATE EMPLOYER CHAT)
+   ========================================================================== */
+
+.itv-candidate-chat-card {
+  padding: 0 !important;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #FFFFFF;
+  height: 720px;
+  max-height: calc(100vh - 120px);
+  min-height: 580px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05);
+  border: 1px solid #E2E8F0;
+}
+
+.itv-candidate-chat-container {
+  display: grid;
+  grid-template-columns: 320px minmax(0, 1fr);
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* CỘT TRÁI: SIDEBAR DOANH NGHIỆP */
+.itv-chat-sidebar-col {
+  border-right: 1px solid #E2E8F0;
+  display: flex;
+  flex-direction: column;
+  background: #FFFFFF;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+.itv-chat-sidebar-header {
+  padding: 16px 18px;
+  border-bottom: 1px solid #E2E8F0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: #FAFAFA;
+  flex-shrink: 0;
+}
+
+.itv-chat-sidebar-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.itv-chat-title-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.itv-chat-title-icon {
+  color: #EA1E30;
+}
+
+.itv-chat-main-title {
+  font-size: 16.5px;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0;
+  letter-spacing: -0.3px;
+}
+
+.itv-chat-unread-badge {
+  font-size: 11px;
+  font-weight: 800;
+  color: #FFFFFF;
+  background: #EA1E30;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  box-shadow: 0 2px 4px rgba(234, 30, 48, 0.3);
+}
+
+.itv-chat-search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.itv-chat-search-icon {
+  position: absolute;
+  left: 10px;
+  color: #94A3B8;
+  pointer-events: none;
+}
+
+.itv-chat-search-input {
+  width: 100%;
+  padding: 8px 10px 8px 32px;
+  font-size: 13px;
+  border: 1px solid #CBD5E1;
+  border-radius: 8px;
+  outline: none;
+  background: #FFFFFF;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.itv-chat-search-input:focus {
+  border-color: #EA1E30;
+  box-shadow: 0 0 0 3px rgba(234, 30, 48, 0.12);
+}
+
+.itv-chat-filters-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.itv-chat-filter-btn {
+  padding: 4px 12px;
+  border-radius: 9999px;
+  border: 1px solid #E2E8F0;
+  background: #FFFFFF;
+  color: #64748B;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.itv-chat-filter-btn:hover {
+  border-color: #CBD5E1;
+  color: #0F172A;
+}
+
+.itv-chat-filter-btn.is-active {
+  background: #FEF2F2;
+  color: #EA1E30;
+  border-color: #FECDD3;
+  font-weight: 700;
+}
+
+.itv-chat-convs-list {
+  flex: 1 1 0%;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+}
+
+.itv-chat-convs-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 16px;
+  color: #94A3B8;
+  text-align: center;
+  gap: 8px;
+}
+
+.itv-chat-conv-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 13px 16px;
+  border: none;
+  border-bottom: 1px solid #F1F5F9;
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  position: relative;
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
+}
+
+.itv-chat-conv-item:hover {
+  background: #F8FAFC;
+}
+
+.itv-chat-conv-item.is-active {
+  background: #FFF5F5;
+  border-left: 3.5px solid #EA1E30;
+}
+
+.itv-conv-avatar-box {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: #F1F5F9;
+  border: 1px solid #E2E8F0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  flex-shrink: 0;
+  font-weight: 800;
+  color: #1E293B;
+  font-size: 14px;
+}
+
+.itv-chat-conv-item.is-active .itv-conv-avatar-box {
+  background: #FEE2E2;
+  color: #EA1E30;
+  border-color: #FCA5A5;
+}
+
+.itv-conv-online-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #16A34A;
+  border: 2px solid #FFFFFF;
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+}
+
+.itv-conv-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.itv-conv-top-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.itv-conv-company {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #0F172A;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.itv-conv-time {
+  font-size: 11px;
+  color: #94A3B8;
+  flex-shrink: 0;
+}
+
+.itv-conv-job-tag {
+  font-size: 11.5px;
+  color: #475569;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.itv-conv-snippet {
+  font-size: 12.5px;
+  color: #64748B;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.4;
+}
+
+.itv-chat-conv-item.is-unread .itv-conv-company {
+  color: #EA1E30;
+  font-weight: 800;
+}
+
+.itv-chat-conv-item.is-unread .itv-conv-snippet {
+  color: #0F172A;
+  font-weight: 700;
+}
+
+.itv-conv-unread-pill {
+  min-width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+  background: #EA1E30;
+  color: #FFFFFF;
+  font-size: 10px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 5px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* CỘT PHẢI: KHUNG TRÒ CHUYỆN CHÍNH */
+.itv-chat-main-pane {
+  display: flex;
+  flex-direction: column;
+  background: #FFFFFF;
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.itv-chat-header-pane {
+  padding: 14px 20px 12px;
+  border-bottom: 1px solid #E2E8F0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: #FFFFFF;
+  flex-shrink: 0;
+}
+
+.itv-chp-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.itv-chp-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.itv-chp-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: #FFF1F2;
+  border: 1.5px solid #FECDD3;
+  color: #EA1E30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 14px;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.itv-chp-online-indicator {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #16A34A;
+  border: 2px solid #FFFFFF;
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+}
+
+.itv-chp-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.itv-chp-company-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.itv-chp-company-name {
+  font-size: 15.5px;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0;
+  letter-spacing: -0.2px;
+}
+
+.itv-chp-verified-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #16A34A;
+  background: #DCFCE7;
+  padding: 1px 7px;
+  border-radius: 4px;
+}
+
+.itv-chp-recruiter-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #64748B;
+}
+
+.itv-chp-recruiter {
+  font-weight: 600;
+  color: #334155;
+}
+
+.itv-chp-dot {
+  color: #CBD5E1;
+}
+
+.itv-chp-response-hint {
+  color: #059669;
+  font-weight: 600;
+}
+
+.itv-chp-actions {
+  flex-shrink: 0;
+}
+
+.itv-chp-view-job-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #2563EB;
+  text-decoration: none;
+  padding: 6px 14px;
+  border-radius: 6px;
+  background: #EFF6FF;
+  border: 1px solid #BFDBFE;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.itv-chp-view-job-link:hover {
+  background: #DBEAFE;
+  color: #1D4ED8;
+}
+
+/* Hàng ngữ cảnh việc làm (Job Context Bar) */
+.itv-chp-job-context-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.itv-chp-job-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #F1F5F9;
+  color: #334155;
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  max-width: 480px;
+}
+
+.itv-job-icon {
+  color: #64748B;
+  flex-shrink: 0;
+}
+
+.itv-job-prefix {
+  color: #64748B;
+  font-weight: 500;
+}
+
+.itv-job-name {
+  color: #0F172A;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.itv-chp-tag-pill {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  color: #475569;
+}
+
+.itv-tag-salary {
+  color: #15803D;
+  background: #F0FDF4;
+  border-color: #DCFCE7;
+  font-weight: 700;
+}
+
+.itv-tag-location {
+  color: #475569;
+}
+
+.itv-chat-safety-notice {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #EFF6FF;
+  border-bottom: 1px solid #BFDBFE;
+  color: #1E40AF;
+  padding: 8px 20px;
+  font-size: 12px;
+  font-weight: 500;
+  margin: 0;
+}
+
+.itv-safety-shield-icon {
+  color: #2563EB;
+  flex-shrink: 0;
+}
+
+.itv-chat-timeline-pane {
+  flex: 1 1 0%;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 18px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: #FAFAFA;
+  overscroll-behavior: contain;
+}
+
+.itv-chat-bubble-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.itv-chat-bubble-row.is-candidate {
+  justify-content: flex-end;
+}
+
+.itv-bubble-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: #E2E8F0;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.itv-bubble-content-col {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 72%;
+}
+
+.itv-chat-bubble-row.is-candidate .itv-bubble-content-col {
+  align-items: flex-end;
+}
+
+.itv-bubble-sender-name {
+  font-size: 11.5px;
+  color: #64748B;
+  font-weight: 600;
+  padding: 0 4px;
+}
+
+.itv-bubble-box {
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 13.5px;
+  line-height: 1.55;
+  word-break: break-word;
+}
+
+.itv-chat-bubble-row.is-employer .itv-bubble-box {
+  background: #FFFFFF;
+  color: #0F172A;
+  border: 1px solid #E2E8F0;
+  border-bottom-left-radius: 2px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.itv-chat-bubble-row.is-candidate .itv-bubble-box {
+  background: #EA1E30;
+  color: #FFFFFF;
+  border-bottom-right-radius: 2px;
+  box-shadow: 0 2px 8px rgba(234, 30, 48, 0.25);
+}
+
+.itv-bubble-text {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.itv-bubble-attachment-box {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.itv-chat-bubble-row.is-employer .itv-bubble-attachment-box {
+  background: #F1F5F9;
+  color: #334155;
+}
+
+.itv-chat-bubble-row.is-candidate .itv-bubble-attachment-box {
+  background: rgba(255, 255, 255, 0.2);
+  color: #FFFFFF;
+}
+
+.itv-bubble-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: #94A3B8;
+  padding: 0 4px;
+}
+
+.itv-bubble-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: #2563EB;
+  font-weight: 600;
+}
+
+.itv-check-icon {
+  color: #2563EB;
+}
+
+.itv-chat-quick-questions-bar {
+  padding: 8px 14px;
+  background: #FFFFFF;
+  border-top: 1px solid #F1F5F9;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  min-width: 0;
+}
+
+.itv-qq-arrow-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid #E2E8F0;
+  background: #FFFFFF;
+  color: #64748B;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.itv-qq-arrow-btn:hover {
+  border-color: #EA1E30;
+  color: #EA1E30;
+  background: #FEF2F2;
+}
+
+.itv-qq-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #D97706;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.itv-qq-chips-list {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  min-width: 0;
+}
+
+.itv-qq-chips-list::-webkit-scrollbar {
+  display: none;
+}
+
+.itv-qq-chip {
+  padding: 5px 12px;
+  border-radius: 9999px;
+  border: 1px solid #E2E8F0;
+  background: #F8FAFC;
+  color: #334155;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.itv-qq-chip:hover {
+  border-color: #EA1E30;
+  color: #EA1E30;
+  background: #FEF2F2;
+}
+
+.itv-chat-input-bar {
+  padding: 12px 18px;
+  border-top: 1px solid #E2E8F0;
+  background: #FFFFFF;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.itv-chat-attach-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  border: 1px solid #E2E8F0;
+  background: #F8FAFC;
+  color: #64748B;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.itv-chat-attach-btn:hover {
+  background: #F1F5F9;
+  color: #0F172A;
+  border-color: #CBD5E1;
+}
+
+.itv-chat-text-input {
+  flex: 1;
+  padding: 10px 14px;
+  border: 1px solid #CBD5E1;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #0F172A;
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.15s ease;
+}
+
+.itv-chat-text-input:focus {
+  border-color: #EA1E30;
+  box-shadow: 0 0 0 3px rgba(234, 30, 48, 0.12);
+}
+
+.itv-chat-send-btn {
+  padding: 10px 20px;
+  border: none;
+  background: #EA1E30;
+  color: #FFFFFF;
+  font-size: 14px;
+  font-weight: 700;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.15s ease;
+  flex-shrink: 0;
+}
+
+.itv-chat-send-btn:hover:not(:disabled) {
+  background: #D31526;
+  box-shadow: 0 2px 8px rgba(234, 30, 48, 0.3);
+}
+
+.itv-chat-send-btn:disabled {
+  background: #FCA5A5;
+  cursor: not-allowed;
+}
+
+.itv-chat-no-selection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: #94A3B8;
+  text-align: center;
+  height: 100%;
+}
+
+.itv-chat-no-selection h3 {
+  font-size: 18px;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 12px 0 6px 0;
+}
+
+.itv-chat-no-selection p {
+  font-size: 14px;
+  color: #64748B;
+  margin: 0;
+  max-width: 360px;
+}
+
+/* ==========================================================================
+   RESPONSIVE DESIGN (TABLET & MOBILE)
+   ========================================================================== */
+
+@media (max-width: 960px) {
+  .itv-dash-container {
+    grid-template-columns: 1fr;
+  }
+
+  .itv-dash-sidebar {
+    position: static;
+  }
+
+  .itv-candidate-chat-container {
+    grid-template-columns: 280px minmax(0, 1fr);
+  }
+
+  .itv-cv-builder-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .itv-cv-builder-right {
+    position: static;
+  }
+
+  .itv-activity-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .itv-detail-field-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .itv-df-label {
+    width: 100%;
+  }
+
+  .itv-recent-job-item {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .itv-rji-actions-col {
+    align-items: flex-start;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed #F1F5F9;
+    width: 100%;
+  }
+
+  .itv-rji-btns-row {
+    width: 100%;
+  }
+
+  .itv-rji-apply-btn {
+    flex: 1;
+    text-align: center;
+  }
+}
+
+@media (max-width: 640px) {
+  .itv-candidate-chat-container {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+
+  .itv-chat-sidebar-col {
+    border-right: none;
+    border-bottom: 1px solid #E2E8F0;
+    max-height: 240px;
+  }
+
+  .itv-chat-header-pane {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .itv-profile-header-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .itv-create-cv-layout {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .itv-cv-meta-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .itv-email-register-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .itv-setting-switch-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .itv-activity-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .itv-employer-views-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .itv-views-desc-block {
+    padding-right: 0;
+  }
+
+  .itv-notice-purple-banner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+

@@ -4,6 +4,14 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
+### Application Config & Secrets ###
+*.properties
+!*.properties.example
+!gradle.properties
+!.mvn/wrapper/maven-wrapper.properties
+application.properties
+application-*.properties
+
 ### STS ###
 .apt_generated
 .classpath

@@ -16,6 +16,7 @@ import { PaymentResultPage } from '../pages/payment/PaymentResultPage';
 
 // Candidate Imports (Ví Token)
 import { CandidateWalletPage } from '../pages/candidate/CandidateWalletPage';
+import { CandidateDashboardPage } from '../pages/candidate/CandidateDashboardPage';
 
 // Admin Imports
 import { AdminLayout } from '../layouts/AdminLayout';
@@ -53,6 +54,20 @@ export const AppRoutes = () => {
           <Route path="/viec-lam/:id/ung-tuyen" element={<ApplyPage />} />
           <Route path="/viec-lam-da-luu" element={<SavedJobsPage />} />
           <Route path="/lich-su-ung-tuyen" element={<ApplicationHistoryPage />} />
+          <Route path="/ung-vien" element={<CandidateDashboardPage />} />
+          <Route path="/ung-vien/tong-quan" element={<CandidateDashboardPage />} />
+          <Route path="/ung-vien/ho-so" element={<CandidateDashboardPage />} />
+          <Route path="/ung-vien/tao-cv" element={<CandidateDashboardPage />} />
+          <Route path="/ung-vien/cv" element={<CandidateDashboardPage />} />
+          <Route path="/ung-vien/viec-lam" element={<CandidateDashboardPage />} />
+          <Route path="/ung-vien/viec-lam-cua-toi" element={<CandidateDashboardPage />} />
+          <Route path="/ung-vien/loi-moi" element={<CandidateDashboardPage />} />
+          <Route path="/ung-vien/tin-nhan" element={<CandidateDashboardPage />} />
+          <Route path="/ung-vien/chat" element={<CandidateDashboardPage />} />
+          <Route path="/ung-vien/dang-ky-email" element={<CandidateDashboardPage />} />
+          <Route path="/ung-vien/thong-bao" element={<CandidateDashboardPage />} />
+          <Route path="/ung-vien/cai-dat" element={<CandidateDashboardPage />} />
+          <Route path="/candidate/dashboard" element={<CandidateDashboardPage />} />
           <Route path="/thanh-toan" element={<PaymentPage />} />
           <Route path="/thanh-toan/:orderId" element={<PaymentPage />} />
           <Route path="/thanh-toan/ket-qua/:orderId" element={<PaymentResultPage />} />
