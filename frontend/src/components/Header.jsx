@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import { useSavedJobs } from '../context/SavedJobsContext';
 import { useWallet } from '../context/WalletContext.jsx';
-import { getAuthSession, clearAuthSession } from '../services/apiClient';
+import { getAuthSession, clearAuthSession, apiClient } from '../services/apiClient';
 
 /**
  * Thanh điều hướng chính (Header) của JobViet.
@@ -32,8 +32,27 @@ export const Header = () => {
   const { balance = 0, loading = false } = useWallet();
   const [currentUser, setCurrentUser] = useState(() => getAuthSession());
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [chatUnreadCount, setChatUnreadCount] = useState(0);
   const dropdownRef = useRef(null);
   const hoverTimeoutRef = useRef(null);
+
+  useEffect(() => {
+    const fetchUnread = async () => {
+      try {
+        const res = await apiClient.get('/v1/chat/unread-count');
+        setChatUnreadCount(res.data?.totalUnread ?? 0);
+      } catch {
+        // ignore
+      }
+    };
+
+    fetchUnread();
+    const interval = setInterval(() => {
+      if (!document.hidden) fetchUnread();
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, [currentUser]);
 
   useEffect(() => {
     const handleAuthChange = () => {
@@ -176,7 +195,11 @@ export const Header = () => {
             id="header-chat-messages-btn"
           >
             <MessageSquare size={17} strokeWidth={1.8} />
-            <span className="header-chat-unread-dot" title="2 tin nhắn mới">2</span>
+            {chatUnreadCount > 0 && (
+              <span className="header-chat-unread-dot" title={`${chatUnreadCount} tin nhắn mới`}>
+                {chatUnreadCount > 99 ? '99+' : chatUnreadCount}
+              </span>
+            )}
           </Link>
 
           {currentUser ? (
@@ -270,7 +293,9 @@ export const Header = () => {
                       <MessageSquare size={18} className="dropdown-item-icon" />
                       <div className="header-dropdown-badge-row">
                         <span>Tin nhắn với NTD</span>
-                        <span className="itv-pill-count">2</span>
+                        {chatUnreadCount > 0 && (
+                          <span className="itv-pill-count">{chatUnreadCount}</span>
+                        )}
                       </div>
                     </Link>
 

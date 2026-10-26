@@ -278,11 +278,12 @@ export const JobDetailPage = () => {
                   <button
                     className="itv-btn itv-btn-chat-employer"
                     type="button"
-                    onClick={() =>
+                    onClick={() => {
+                      const cid = company.id || job.companyId || '';
                       navigate(
-                        `/ung-vien/tin-nhan?company=${encodeURIComponent(companyName)}&jobTitle=${encodeURIComponent(job.title)}`
-                      )
-                    }
+                        `/ung-vien/tin-nhan?company=${encodeURIComponent(companyName)}&companyId=${cid}&jobId=${job.id}&jobTitle=${encodeURIComponent(job.title)}`
+                      );
+                    }}
                     title="Nhắn tin trực tiếp với Nhà tuyển dụng"
                   >
                     <MessageSquare size={17} />

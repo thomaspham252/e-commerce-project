@@ -158,20 +158,27 @@ export const CandidateDashboardPage = () => {
   const refreshConversations = async () => {
     const list = await getCandidateConversations({ search: chatSearch, filter: chatFilter });
     setConversations(list);
-    setTotalUnreadChat(getCandidateTotalUnread());
+    const unread = await getCandidateTotalUnread();
+    setTotalUnreadChat(unread);
     return list;
   };
 
   useEffect(() => {
     refreshConversations().then(async (list) => {
       const companyParam = searchParams.get('company');
+      const companyIdParam = searchParams.get('companyId');
+      const jobIdParam = searchParams.get('jobId');
       const jobParam = searchParams.get('jobTitle');
-      if (companyParam) {
+      if (companyParam || companyIdParam) {
         const targetConv = await getOrCreateCandidateConversation({
-          companyName: companyParam,
+          companyId: companyIdParam ? parseInt(companyIdParam, 10) : undefined,
+          jobId: jobIdParam ? parseInt(jobIdParam, 10) : undefined,
+          companyName: companyParam || 'Doanh nghiệp tuyển dụng',
           jobTitle: jobParam || 'Vị trí tuyển dụng'
         });
-        setActiveConvId(targetConv.id);
+        if (targetConv && targetConv.id) {
+          setActiveConvId(targetConv.id);
+        }
         const updated = await refreshConversations();
         setConversations(updated);
       } else if (!activeConvId && list.length > 0) {
@@ -184,12 +191,29 @@ export const CandidateDashboardPage = () => {
     if (activeConvId) {
       getCandidateMessages(activeConvId).then((msgs) => {
         setChatMessages(msgs);
-        markCandidateConversationRead(activeConvId).then(() => {
-          setTotalUnreadChat(getCandidateTotalUnread());
+        markCandidateConversationRead(activeConvId).then(async () => {
+          const unread = await getCandidateTotalUnread();
+          setTotalUnreadChat(unread);
         });
       });
     }
   }, [activeConvId]);
+
+  // Adaptive Polling 3.5s khi đang mở tab tin nhắn
+  useEffect(() => {
+    if (activeTab !== 'messages') return;
+
+    const intervalId = setInterval(async () => {
+      if (document.hidden) return;
+      await refreshConversations();
+      if (activeConvId) {
+        const msgs = await getCandidateMessages(activeConvId);
+        setChatMessages(msgs);
+      }
+    }, 3500);
+
+    return () => clearInterval(intervalId);
+  }, [activeTab, activeConvId]);
 
   // Đảm bảo khi đổi tab hoặc URL, trang luôn giữ ở đầu trang, không bị giật xuống footer
   useEffect(() => {
