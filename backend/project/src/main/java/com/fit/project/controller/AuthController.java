@@ -3,6 +3,7 @@ package com.fit.project.controller;
 import com.fit.project.dto.auth.LoginRequest;
 import com.fit.project.dto.auth.LoginResponse;
 import com.fit.project.dto.auth.RegisterRequest;
+import com.fit.project.dto.auth.GoogleLoginRequest;
 import com.fit.project.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,11 @@ public class AuthController {
     @PostMapping("/login")
     public LoginResponse login(@Valid @RequestBody LoginRequest request) {
         return authService.login(request);
+    }
+
+    @PostMapping("/google")
+    public LoginResponse loginWithGoogle(@Valid @RequestBody GoogleLoginRequest request) {
+        return authService.loginWithGoogle(request.credential());
     }
 
     @PostMapping("/register")

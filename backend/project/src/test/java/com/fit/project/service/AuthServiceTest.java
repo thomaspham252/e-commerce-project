@@ -29,7 +29,9 @@ class AuthServiceTest {
     private final UserRepository userRepository = mock(UserRepository.class);
     private final CandidateProfileRepository candidateProfileRepository = mock(CandidateProfileRepository.class);
     private final PasswordEncoder passwordEncoder = mock(PasswordEncoder.class);
-    private final AuthService authService = new AuthService(userRepository, candidateProfileRepository, passwordEncoder);
+    private final GoogleIdentityService googleIdentityService = mock(GoogleIdentityService.class);
+    private final AuthService authService = new AuthService(
+            userRepository, candidateProfileRepository, passwordEncoder, googleIdentityService);
 
     @Test
     void registerCreatesCandidateAccountAndProfile() {
@@ -105,5 +107,44 @@ class AuthServiceTest {
                 () -> authService.login(new LoginRequest("candidate@example.com", "password")));
 
         assertEquals(HttpStatus.FORBIDDEN, exception.getStatus());
+    }
+
+    @Test
+    void googleLoginCreatesCandidateForVerifiedIdentity() {
+        User user = User.builder()
+                .id(18)
+                .email("candidate@example.com")
+                .role(UserRole.CANDIDATE)
+                .status(UserStatus.ACTIVE)
+                .build();
+        when(googleIdentityService.verify("valid-google-credential"))
+                .thenReturn(new GoogleIdentityService.GoogleIdentity("Candidate@example.com", "Candidate Name"));
+        when(userRepository.findByEmailIgnoreCase("candidate@example.com")).thenReturn(Optional.empty());
+        when(passwordEncoder.encode(any(String.class))).thenReturn("{bcrypt}random");
+        when(userRepository.save(any(User.class))).thenReturn(user);
+
+        LoginResponse response = authService.loginWithGoogle("valid-google-credential");
+
+        assertEquals(new LoginResponse(18, "candidate@example.com", UserRole.CANDIDATE), response);
+        verify(candidateProfileRepository).save(any(CandidateProfile.class));
+    }
+
+    @Test
+    void googleLoginReusesExistingAccount() {
+        User user = User.builder()
+                .id(17)
+                .email("candidate@example.com")
+                .role(UserRole.EMPLOYER)
+                .status(UserStatus.ACTIVE)
+                .build();
+        when(googleIdentityService.verify("valid-google-credential"))
+                .thenReturn(new GoogleIdentityService.GoogleIdentity("candidate@example.com", "Candidate Name"));
+        when(userRepository.findByEmailIgnoreCase("candidate@example.com")).thenReturn(Optional.of(user));
+
+        LoginResponse response = authService.loginWithGoogle("valid-google-credential");
+
+        assertEquals(new LoginResponse(17, "candidate@example.com", UserRole.EMPLOYER), response);
+        verify(userRepository, org.mockito.Mockito.never()).save(any(User.class));
+        verify(candidateProfileRepository, org.mockito.Mockito.never()).save(any(CandidateProfile.class));
     }
 }

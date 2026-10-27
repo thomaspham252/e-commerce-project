@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { getErrorMessage, saveAuthSession } from '../services/apiClient';
 import { authService } from '../services/authService';
+import { loadGoogleIdentity } from '../services/googleIdentity';
 import './AuthPage.css';
 
 export const AuthPage = () => {
@@ -9,7 +10,10 @@ export const AuthPage = () => {
   const navigate = useNavigate();
   const [mode, setMode] = useState(location.state?.mode === 'register' ? 'register' : 'login');
   const [notice, setNotice] = useState('');
+  const [googleLoadError, setGoogleLoadError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const googleButtonRef = useRef(null);
+  const rememberGoogleLogin = useRef(false);
   const isLogin = mode === 'login';
 
   const handleSubmit = async (event) => {
@@ -43,9 +47,69 @@ export const AuthPage = () => {
     }
   };
 
-  const handleGoogleLogin = () => {
-    setNotice('Đăng nhập với Google chưa được kết nối. Vui lòng quay lại sau.');
-  };
+  const handleGoogleCredential = useCallback(async (credential) => {
+    setIsSubmitting(true);
+    setNotice('');
+
+    try {
+      const user = await authService.loginWithGoogle(credential);
+      saveAuthSession(user, rememberGoogleLogin.current);
+      const destination = {
+        ADMIN: '/admin',
+        EMPLOYER: '/employer',
+        CANDIDATE: '/',
+      }[user.role] || '/';
+      navigate(destination, { replace: true });
+    } catch (error) {
+      setNotice(getErrorMessage(error));
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [navigate]);
+
+  useEffect(() => {
+    const googleButton = googleButtonRef.current;
+    if (!isLogin || !googleButton) return undefined;
+
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    if (!clientId) return undefined;
+
+    let isActive = true;
+    loadGoogleIdentity()
+      .then((google) => {
+        if (!isActive) return;
+
+        google.accounts.id.initialize({
+          client_id: clientId,
+          callback: ({ credential }) => {
+            if (credential) {
+              void handleGoogleCredential(credential);
+            } else {
+              setNotice('Google không trả về thông tin đăng nhập. Vui lòng thử lại.');
+            }
+          },
+        });
+        google.accounts.id.renderButton(googleButtonRef.current, {
+          theme: 'outline',
+          size: 'large',
+          text: 'signin_with',
+          shape: 'rect',
+          width: Math.floor(googleButton.getBoundingClientRect().width),
+          locale: 'vi',
+        });
+      }).catch(() => {
+        if (isActive) setGoogleLoadError('Không thể tải dịch vụ đăng nhập Google. Vui lòng thử lại.');
+      });
+
+    return () => {
+      isActive = false;
+      googleButton.replaceChildren();
+    };
+  }, [handleGoogleCredential, isLogin]);
+
+  const googleNotice = import.meta.env.VITE_GOOGLE_CLIENT_ID
+    ? googleLoadError
+    : 'Chưa cấu hình VITE_GOOGLE_CLIENT_ID cho đăng nhập Google.';
 
   const changeMode = (nextMode) => {
     setMode(nextMode);
@@ -134,7 +198,13 @@ export const AuthPage = () => {
 
             {isLogin ? (
               <label className="auth-remember">
-                <input type="checkbox" name="remember" />
+                <input
+                  type="checkbox"
+                  name="remember"
+                  onChange={(event) => {
+                    rememberGoogleLogin.current = event.target.checked;
+                  }}
+                />
                 <span>Ghi nhớ đăng nhập</span>
               </label>
             ) : (
@@ -154,15 +224,8 @@ export const AuthPage = () => {
           {isLogin && (
             <div className="auth-google-section">
               <div className="auth-divider"><span>hoặc tiếp tục với</span></div>
-              <button className="auth-google" type="button" onClick={handleGoogleLogin}>
-                <svg aria-hidden="true" viewBox="0 0 48 48">
-                  <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5Z" />
-                  <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.73 7.18l7.42 5.76c4.33-4 7.35-9.9 7.35-17.41Z" />
-                  <path fill="#FBBC05" d="M10.53 28.59A14.4 14.4 0 0 1 9.75 24c0-1.59.27-3.13.75-4.59l-7.98-6.19A23.87 23.87 0 0 0 0 24c0 3.87.93 7.55 2.56 10.78l7.97-6.19Z" />
-                  <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.9-5.79l-7.42-5.76c-2.06 1.38-4.7 2.2-8.48 2.2-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48Z" />
-                </svg>
-                Đăng nhập với Google
-              </button>
+              <div className="auth-google-button" ref={googleButtonRef} />
+              {googleNotice && <p className="auth-notice" role="status">{googleNotice}</p>}
             </div>
           )}
 

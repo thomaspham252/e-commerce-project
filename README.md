@@ -25,7 +25,7 @@
 ## Chức năng chính
 
 ### Tài khoản
-- Đăng ký (gửi email xác nhận), đăng nhập, đăng xuất
+- Đăng ký, đăng nhập, đăng xuất
 - Lấy lại mật khẩu
 - Đăng nhập bằng Google (OAuth)
 - Cập nhật hồ sơ cá nhân
@@ -91,10 +91,13 @@ npm run dev
 | Biến | Ý nghĩa |
 |---|---|
 | `DB_...` | Thông tin kết nối cơ sở dữ liệu |
-| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Đăng nhập bằng Google |
+| `GOOGLE_CLIENT_ID` | Google OAuth Web client ID (backend xác thực ID token) |
+| `VITE_GOOGLE_CLIENT_ID` | Cùng Google OAuth Web client ID, dùng bởi frontend |
 | `GEMINI_API_KEY` | Khóa API cho chatbot |
 
 | `MAIL_USER`, `MAIL_PASS` | Tài khoản gửi email xác nhận, lấy lại mật khẩu |
+
+Tạo OAuth Client ID loại **Web application** trong Google Cloud Console và cho phép frontend origin (ví dụ `http://localhost:5173`). Đặt cùng Client ID vào `backend/project/.env` dưới tên `GOOGLE_CLIENT_ID` và `frontend/.env` dưới tên `VITE_GOOGLE_CLIENT_ID`. File mẫu có trong từng thư mục.
 
 > Không đưa file `.env` lên GitHub. Hãy thêm `.env` vào `.gitignore`.
 
