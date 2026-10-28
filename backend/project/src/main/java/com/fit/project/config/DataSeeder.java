@@ -230,6 +230,7 @@ public class DataSeeder implements CommandLineRunner {
             Conversation conv = Conversation.builder()
                     .candidate(candidate)
                     .company(company)
+                    .employer(company.getOwner())
                     .job(job)
                     .lastMessage("Dạ em đã làm việc với React hơn 1 năm, sử dụng Redux Toolkit và TailwindCSS trong nhiều dự án thực tế ạ.")
                     .lastMessageAt(msgTime3)
