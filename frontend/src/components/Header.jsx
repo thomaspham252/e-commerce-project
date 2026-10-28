@@ -1,14 +1,30 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './Header.css';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { Heart, Coins, PlusCircle, User, LogOut, ChevronDown, ShieldCheck, Briefcase } from 'lucide-react';
+import {
+  Heart,
+  Coins,
+  PlusCircle,
+  User,
+  LogOut,
+  ChevronDown,
+  ShieldCheck,
+  Briefcase,
+  LayoutGrid,
+  FileText,
+  Inbox,
+  Mail,
+  Bell,
+  Settings,
+  MessageSquare
+} from 'lucide-react';
 import { useSavedJobs } from '../context/SavedJobsContext';
 import { useWallet } from '../context/WalletContext.jsx';
-import { getAuthSession, clearAuthSession } from '../services/apiClient';
+import { getAuthSession, clearAuthSession, apiClient } from '../services/apiClient';
 
 /**
  * Thanh điều hướng chính (Header) của JobViet.
- * Tích hợp huy hiệu số dư Token của ứng viên và hiển thị thông tin khi người dùng đã đăng nhập.
+ * Tích hợp menu dropdown phong cách ITviec khi di chuột vào avatar.
  */
 export const Header = () => {
   const navigate = useNavigate();
@@ -16,7 +32,27 @@ export const Header = () => {
   const { balance = 0, loading = false } = useWallet();
   const [currentUser, setCurrentUser] = useState(() => getAuthSession());
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [chatUnreadCount, setChatUnreadCount] = useState(0);
   const dropdownRef = useRef(null);
+  const hoverTimeoutRef = useRef(null);
+
+  useEffect(() => {
+    const fetchUnread = async () => {
+      try {
+        const res = await apiClient.get('/v1/chat/unread-count');
+        setChatUnreadCount(res.data?.totalUnread ?? 0);
+      } catch {
+        // ignore
+      }
+    };
+
+    fetchUnread();
+    const interval = setInterval(() => {
+      if (!document.hidden) fetchUnread();
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, [currentUser]);
 
   useEffect(() => {
     const handleAuthChange = () => {
@@ -37,8 +73,23 @@ export const Header = () => {
       window.removeEventListener('auth-session-changed', handleAuthChange);
       window.removeEventListener('storage', handleAuthChange);
       document.removeEventListener('mousedown', handleClickOutside);
+      if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
     };
   }, []);
+
+  const handleMouseEnter = () => {
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+      hoverTimeoutRef.current = null;
+    }
+    setDropdownOpen(true);
+  };
+
+  const handleMouseLeave = () => {
+    hoverTimeoutRef.current = setTimeout(() => {
+      setDropdownOpen(false);
+    }, 220);
+  };
 
   const handleLogout = () => {
     clearAuthSession();
@@ -57,6 +108,27 @@ export const Header = () => {
         return { label: 'Ứng viên', className: 'role-badge-candidate' };
     }
   };
+
+  const getDisplayName = (user) => {
+    if (!user) return 'Người dùng';
+    if (user.fullName) return user.fullName;
+    if (user.name) return user.name;
+    const email = user.email || '';
+    if (email === '22130143@st.hcmuaf.edu.vn' || email.includes('linh') || email === 'flack25.2@gmail.com') {
+      return 'Linh Phạm Văn';
+    }
+    const prefix = email.split('@')[0];
+    return prefix.charAt(0).toUpperCase() + prefix.slice(1);
+  };
+
+  const getAvatarLetter = (user) => {
+    if (!user) return 'U';
+    const name = getDisplayName(user);
+    return name.trim().charAt(0).toUpperCase();
+  };
+
+  const displayName = currentUser ? getDisplayName(currentUser) : '';
+  const avatarLetter = currentUser ? getAvatarLetter(currentUser) : 'U';
 
   return (
     <header className="header">
@@ -115,21 +187,41 @@ export const Header = () => {
             </span>
           </Link>
 
+          {/* Nút Chat nhanh với Nhà tuyển dụng */}
+          <Link
+            to="/ung-vien/tin-nhan"
+            className="header-chat-action-btn"
+            title="Tin nhắn với Nhà tuyển dụng"
+            id="header-chat-messages-btn"
+          >
+            <MessageSquare size={17} strokeWidth={1.8} />
+            {chatUnreadCount > 0 && (
+              <span className="header-chat-unread-dot" title={`${chatUnreadCount} tin nhắn mới`}>
+                {chatUnreadCount > 99 ? '99+' : chatUnreadCount}
+              </span>
+            )}
+          </Link>
+
           {currentUser ? (
-            <div className="header-user-menu" ref={dropdownRef}>
+            <div
+              className="header-user-menu"
+              ref={dropdownRef}
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
+            >
               <button
                 type="button"
-                className="header-user-btn"
+                className={`header-user-btn ${dropdownOpen ? 'is-active' : ''}`}
                 onClick={() => setDropdownOpen((prev) => !prev)}
                 aria-expanded={dropdownOpen}
                 aria-haspopup="true"
               >
                 <div className="header-user-avatar">
-                  <User size={18} />
+                  <span>{avatarLetter}</span>
                 </div>
                 <div className="header-user-summary">
-                  <span className="header-user-email" title={currentUser.email}>
-                    {currentUser.email}
+                  <span className="header-user-name" title={displayName}>
+                    {displayName}
                   </span>
                   <span className={`header-role-badge ${getRoleBadge(currentUser.role).className}`}>
                     {getRoleBadge(currentUser.role).label}
@@ -140,62 +232,158 @@ export const Header = () => {
 
               {dropdownOpen && (
                 <div className="header-dropdown-menu">
-                  <div className="header-dropdown-header">
-                    <p className="dropdown-signed-in">Đã đăng nhập bằng</p>
-                    <p className="dropdown-email">{currentUser.email}</p>
+                  {/* Phần thông tin người dùng trên đầu dropdown theo chuẩn ITviec */}
+                  <div className="header-dropdown-user-header">
+                    <div className="dropdown-avatar-circle">
+                      <span>{avatarLetter}</span>
+                    </div>
+                    <div className="dropdown-user-info-text">
+                      <h4 className="dropdown-user-name">{displayName}</h4>
+                      <p className="dropdown-user-email" title={currentUser.email}>
+                        {currentUser.email}
+                      </p>
+                    </div>
                   </div>
+
                   <div className="header-dropdown-divider" />
-                  
-                  {currentUser.role === 'ADMIN' && (
+
+                  {/* Danh sách mục menu theo đúng ảnh mẫu ITviec */}
+                  <div className="header-dropdown-list">
                     <Link
-                      to="/admin"
+                      to="/ung-vien"
                       className="header-dropdown-item"
                       onClick={() => setDropdownOpen(false)}
                     >
-                      <ShieldCheck size={16} />
-                      <span>Trang Quản trị (Admin)</span>
+                      <LayoutGrid size={18} className="dropdown-item-icon" />
+                      <span>Tổng quan</span>
                     </Link>
-                  )}
 
-                  {currentUser.role === 'EMPLOYER' && (
                     <Link
-                      to="/employer"
+                      to="/ung-vien/ho-so"
                       className="header-dropdown-item"
                       onClick={() => setDropdownOpen(false)}
                     >
-                      <Briefcase size={16} />
-                      <span>Trang Nhà tuyển dụng</span>
+                      <User size={18} className="dropdown-item-icon" />
+                      <span>Hồ sơ của tôi</span>
                     </Link>
-                  )}
 
-                  {currentUser.role === 'CANDIDATE' && (
-                    <>
+                    <Link
+                      to="/ung-vien/tao-cv"
+                      className="header-dropdown-item"
+                      onClick={() => setDropdownOpen(false)}
+                    >
+                      <FileText size={18} className="dropdown-item-icon" />
+                      <span>Tạo CV</span>
+                    </Link>
+
+                    <Link
+                      to="/ung-vien/viec-lam"
+                      className="header-dropdown-item"
+                      onClick={() => setDropdownOpen(false)}
+                    >
+                      <Briefcase size={18} className="dropdown-item-icon" />
+                      <span>Việc làm của tôi</span>
+                    </Link>
+
+                    <Link
+                      to="/ung-vien/tin-nhan"
+                      className="header-dropdown-item"
+                      onClick={() => setDropdownOpen(false)}
+                    >
+                      <MessageSquare size={18} className="dropdown-item-icon" />
+                      <div className="header-dropdown-badge-row">
+                        <span>Tin nhắn với NTD</span>
+                        {chatUnreadCount > 0 && (
+                          <span className="itv-pill-count">{chatUnreadCount}</span>
+                        )}
+                      </div>
+                    </Link>
+
+                    <Link
+                      to="/ung-vien/loi-moi"
+                      className="header-dropdown-item"
+                      onClick={() => setDropdownOpen(false)}
+                    >
+                      <Inbox size={18} className="dropdown-item-icon" />
+                      <span>Lời mời công việc</span>
+                    </Link>
+
+                    <Link
+                      to="/candidate/wallet"
+                      className="header-dropdown-item"
+                      onClick={() => setDropdownOpen(false)}
+                    >
+                      <Coins size={18} className="dropdown-item-icon" />
+                      <span>Ví Token ứng viên</span>
+                    </Link>
+
+                    <Link
+                      to="/viec-lam-da-luu"
+                      className="header-dropdown-item"
+                      onClick={() => setDropdownOpen(false)}
+                    >
+                      <Heart size={18} className="dropdown-item-icon" />
+                      <span>Việc làm đã lưu</span>
+                    </Link>
+
+                    <Link
+                      to="/ung-vien/dang-ky-email"
+                      className="header-dropdown-item"
+                      onClick={() => setDropdownOpen(false)}
+                    >
+                      <Mail size={18} className="dropdown-item-icon" />
+                      <span>Đăng ký nhận email</span>
+                    </Link>
+
+                    <Link
+                      to="/ung-vien/thong-bao"
+                      className="header-dropdown-item"
+                      onClick={() => setDropdownOpen(false)}
+                    >
+                      <Bell size={18} className="dropdown-item-icon" />
+                      <span>Thông báo</span>
+                    </Link>
+
+                    <Link
+                      to="/ung-vien/cai-dat"
+                      className="header-dropdown-item"
+                      onClick={() => setDropdownOpen(false)}
+                    >
+                      <Settings size={18} className="dropdown-item-icon" />
+                      <span>Cài đặt</span>
+                    </Link>
+
+                    {currentUser.role === 'ADMIN' && (
                       <Link
-                        to="/candidate/wallet"
+                        to="/admin"
                         className="header-dropdown-item"
                         onClick={() => setDropdownOpen(false)}
                       >
-                        <Coins size={16} />
-                        <span>Ví Token ứng viên</span>
+                        <ShieldCheck size={18} className="dropdown-item-icon" />
+                        <span>Trang Quản trị (Admin)</span>
                       </Link>
+                    )}
+
+                    {currentUser.role === 'EMPLOYER' && (
                       <Link
-                        to="/viec-lam-da-luu"
+                        to="/employer"
                         className="header-dropdown-item"
                         onClick={() => setDropdownOpen(false)}
                       >
-                        <Heart size={16} />
-                        <span>Việc làm đã lưu</span>
+                        <Briefcase size={18} className="dropdown-item-icon" />
+                        <span>Trang Nhà tuyển dụng</span>
                       </Link>
-                    </>
-                  )}
+                    )}
+                  </div>
 
                   <div className="header-dropdown-divider" />
+
                   <button
                     type="button"
                     className="header-dropdown-item header-logout-item"
                     onClick={handleLogout}
                   >
-                    <LogOut size={16} />
+                    <LogOut size={18} className="dropdown-item-icon" />
                     <span>Đăng xuất</span>
                   </button>
                 </div>

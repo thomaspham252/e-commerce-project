@@ -45,6 +45,20 @@ export const EmployerMessagesProvider = ({ children }) => {
     init();
   }, [fetchConversations]);
 
+  // Adaptive Polling 3.5s tự động làm mới danh sách hội thoại và tin nhắn
+  useEffect(() => {
+    const intervalId = setInterval(async () => {
+      if (document.hidden) return;
+      await fetchConversations();
+      if (activeConversationId) {
+        const msgs = await messagesService.getMessages(activeConversationId);
+        setMessages(msgs);
+      }
+    }, 3500);
+
+    return () => clearInterval(intervalId);
+  }, [fetchConversations, activeConversationId]);
+
   // Chọn một cuộc hội thoại cụ thể
   const selectConversation = useCallback(async (conversationId) => {
     if (!conversationId) {
