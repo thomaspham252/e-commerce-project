@@ -10,6 +10,15 @@ spring.datasource.username=${DB_USERNAME:root}
 spring.datasource.password=${DB_PASSWORD}
 spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
 
+# ===== Email verification (SMTP) =====
+spring.mail.host=${MAIL_HOST:}
+spring.mail.port=${MAIL_PORT:587}
+spring.mail.username=${MAIL_USERNAME:}
+spring.mail.password=${MAIL_PASSWORD:}
+spring.mail.properties.mail.smtp.auth=${MAIL_SMTP_AUTH:true}
+spring.mail.properties.mail.smtp.starttls.enable=${MAIL_SMTP_STARTTLS:true}
+app.mail.from=${MAIL_FROM:}
+
 # ===== JPA / Hibernate =====
 # validate: schema do file job_portal_db.sql quản lý, Hibernate chỉ kiểm tra entity có khớp không
 spring.jpa.hibernate.ddl-auto=update

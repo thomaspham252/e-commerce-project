@@ -95,7 +95,12 @@ npm run dev
 | `VITE_GOOGLE_CLIENT_ID` | Cùng Google OAuth Web client ID, dùng bởi frontend |
 | `GEMINI_API_KEY` | Khóa API cho chatbot |
 
-| `MAIL_USER`, `MAIL_PASS` | Tài khoản gửi email xác nhận, lấy lại mật khẩu |
+| `MAIL_HOST`, `MAIL_PORT` | SMTP server và cổng (thường là `587`) |
+| `MAIL_USERNAME`, `MAIL_PASSWORD` | Thông tin đăng nhập SMTP |
+| `MAIL_FROM` | Địa chỉ email dùng làm người gửi |
+| `MAIL_SMTP_AUTH`, `MAIL_SMTP_STARTTLS` | Bật xác thực SMTP và STARTTLS (mặc định `true`) |
+
+Đăng ký gửi mã xác minh 6 chữ số qua SMTP. Mã hết hạn sau 10 phút, tối đa 5 lần nhập sai và giới hạn gửi lại 1 lần mỗi phút. Cấu hình các biến `MAIL_*` trong `backend/project/.env` trước khi đăng ký tài khoản.
 
 Tạo OAuth Client ID loại **Web application** trong Google Cloud Console và cho phép frontend origin (ví dụ `http://localhost:5173`). Đặt cùng Client ID vào `backend/project/.env` dưới tên `GOOGLE_CLIENT_ID` và `frontend/.env` dưới tên `VITE_GOOGLE_CLIENT_ID`. File mẫu có trong từng thư mục.
 

@@ -27,6 +27,7 @@ public class AuthService {
     private final CandidateProfileRepository candidateProfileRepository;
     private final PasswordEncoder passwordEncoder;
     private final GoogleIdentityService googleIdentityService;
+    private final EmailVerificationService emailVerificationService;
 
     @Transactional
     public LoginResponse register(RegisterRequest request) {
@@ -40,11 +41,13 @@ public class AuthService {
                 .passwordHash(passwordEncoder.encode(request.password()))
                 .role(UserRole.CANDIDATE)
                 .status(UserStatus.ACTIVE)
+                .emailVerified(false)
                 .build());
         candidateProfileRepository.save(CandidateProfile.builder()
                 .user(user)
                 .fullName(request.name().trim())
                 .build());
+        emailVerificationService.sendVerificationCode(user);
 
         return new LoginResponse(user.getId(), user.getEmail(), user.getRole());
     }
@@ -58,6 +61,12 @@ public class AuthService {
 
         if (user.getStatus() == UserStatus.LOCKED) {
             throw ApiException.forbidden("Tài khoản đã bị khóa");
+        }
+
+        if (!user.isEmailVerified()) {
+            user.setEmailVerified(true);
+            userRepository.save(user);
+            emailVerificationService.deleteVerificationCode(user);
         }
 
         return new LoginResponse(user.getId(), user.getEmail(), user.getRole());
@@ -74,8 +83,20 @@ public class AuthService {
         if (user.getStatus() == UserStatus.LOCKED) {
             throw ApiException.forbidden("Tài khoản đã bị khóa");
         }
+        if (!user.isEmailVerified()) {
+            throw ApiException.forbidden("Vui lòng xác minh email trước khi đăng nhập");
+        }
 
         return new LoginResponse(user.getId(), user.getEmail(), user.getRole());
+    }
+
+    public LoginResponse verifyEmail(String email, String code) {
+        User user = emailVerificationService.verifyEmail(email, code);
+        return new LoginResponse(user.getId(), user.getEmail(), user.getRole());
+    }
+
+    public void resendVerificationCode(String email) {
+        emailVerificationService.resendVerificationCode(email);
     }
 
     private ApiException invalidCredentials() {
@@ -88,6 +109,7 @@ public class AuthService {
                 .passwordHash(passwordEncoder.encode(UUID.randomUUID().toString()))
                 .role(UserRole.CANDIDATE)
                 .status(UserStatus.ACTIVE)
+                .emailVerified(true)
                 .build());
         String fullName = name == null || name.isBlank()
                 ? email.substring(0, email.indexOf('@'))
