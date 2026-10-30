@@ -28,6 +28,20 @@ public interface CompanyRepository extends JpaRepository<Company, Integer> {
                          @Param("status") VerificationStatus status,
                          Pageable pageable);
 
+    @EntityGraph(attributePaths = "owner")
+    @Query("""
+            select c from Company c
+            where (:status is null or c.verificationStatus = :status)
+              and (:kw is null or lower(c.name) like :kw or lower(c.description) like :kw)
+              and (:industry is null or lower(c.industry) like :industry)
+              and (:location is null or lower(c.address) like :location)
+            """)
+    Page<Company> searchPublicCompanies(@Param("kw") String keywordPattern,
+                                        @Param("industry") String industryPattern,
+                                        @Param("location") String locationPattern,
+                                        @Param("status") VerificationStatus status,
+                                        Pageable pageable);
+
     /** Hiện tại mỗi NTD quản lý 1 DN (DN tạo sớm nhất). Xem [CHỐT] owner_id trong database.dbml. */
     Optional<Company> findFirstByOwnerIdOrderByIdAsc(Integer ownerId);
 
