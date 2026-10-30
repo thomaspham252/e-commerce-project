@@ -33,6 +33,13 @@ export const AuthPage = () => {
             email: formData.get('email'),
             password: formData.get('password'),
           });
+      if (!isLogin) {
+        navigate('/xac-thuc-email', {
+          replace: true,
+          state: { email: user.email },
+        });
+        return;
+      }
       saveAuthSession(user, formData.get('remember') === 'on');
       const destination = {
         ADMIN: '/admin',
