@@ -8,6 +8,7 @@ import com.fit.project.enums.SalaryUnit;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 public record JobResponse(
         Integer id,
@@ -21,6 +22,7 @@ public record JobResponse(
         String companySize,
         String description,
         String requirements,
+        String skills,
         BigDecimal salaryMin,
         BigDecimal salaryMax,
         SalaryUnit salaryUnit,
@@ -36,9 +38,11 @@ public record JobResponse(
         LocalDateTime reviewedAt,
         LocalDateTime createdAt,
         LocalDateTime updatedAt,
-        Long applicationCount
+        Long applicationCount,
+        Integer matchPercentage,
+        List<String> matchedSkills
 ) {
-    public static JobResponse of(Job j, Long applicationCount) {
+    public static JobResponse of(Job j, Long applicationCount, Integer matchPercentage, List<String> matchedSkills) {
         Company comp = j.getCompany();
         return new JobResponse(
                 j.getId(),
@@ -52,6 +56,7 @@ public record JobResponse(
                 comp != null ? comp.getSize() : null,
                 j.getDescription(),
                 j.getRequirements(),
+                j.getSkills(),
                 j.getSalaryMin(),
                 j.getSalaryMax(),
                 j.getSalaryUnit(),
@@ -67,11 +72,17 @@ public record JobResponse(
                 j.getReviewedAt(),
                 j.getCreatedAt(),
                 j.getUpdatedAt(),
-                applicationCount
+                applicationCount,
+                matchPercentage,
+                matchedSkills
         );
     }
 
+    public static JobResponse of(Job j, Long applicationCount) {
+        return of(j, applicationCount, null, null);
+    }
+
     public static JobResponse of(Job j) {
-        return of(j, null);
+        return of(j, null, null, null);
     }
 }

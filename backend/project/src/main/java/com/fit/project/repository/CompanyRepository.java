@@ -52,4 +52,6 @@ public interface CompanyRepository extends JpaRepository<Company, Integer> {
     boolean existsByTaxCodeAndIdNot(String taxCode, Integer id);
 
     boolean existsByTaxCode(String taxCode);
+
+    Optional<Company> findByTaxCode(String taxCode);
 }

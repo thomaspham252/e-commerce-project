@@ -2,11 +2,13 @@ package com.fit.project.controller;
 
 import com.fit.project.dto.JobResponse;
 import com.fit.project.dto.common.PageResponse;
+import com.fit.project.service.JobRecommendationService;
 import com.fit.project.service.JobService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/jobs")
@@ -14,6 +16,7 @@ import java.math.BigDecimal;
 public class JobController {
 
     private final JobService jobService;
+    private final JobRecommendationService jobRecommendationService;
 
     @GetMapping
     public PageResponse<JobResponse> listJobs(
@@ -43,5 +46,13 @@ public class JobController {
     @GetMapping("/{id}")
     public JobResponse getJob(@PathVariable Integer id) {
         return jobService.getJobDetail(id);
+    }
+
+    @GetMapping("/{id}/related")
+    public List<JobResponse> getRelatedJobs(
+            @PathVariable Integer id,
+            @RequestParam(defaultValue = "6") int limit
+    ) {
+        return jobRecommendationService.getRelatedJobs(id, limit);
     }
 }

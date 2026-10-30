@@ -149,7 +149,7 @@ export const Header = () => {
                 </NavLink>
               </li>
               <li><NavLink to="/cong-ty" className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>Công ty</NavLink></li>
-              <li><a href="#candidate-tools-section">Tạo CV</a></li>
+              <li><a href="http://localhost:5173/ung-vien/tao-cv">Tạo CV</a></li>
               <li><a href="#cam-nang-section">Cẩm nang</a></li>
               <li>
                 <NavLink
