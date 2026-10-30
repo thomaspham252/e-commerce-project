@@ -16,7 +16,8 @@ import {
   Mail,
   Bell,
   Settings,
-  MessageSquare
+  MessageSquare,
+  Star
 } from 'lucide-react';
 import { useSavedJobs } from '../context/SavedJobsContext';
 import { useWallet } from '../context/WalletContext.jsx';
@@ -147,7 +148,7 @@ export const Header = () => {
                   Việc làm
                 </NavLink>
               </li>
-              <li><a href="#companies-section">Công ty</a></li>
+              <li><NavLink to="/cong-ty" className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}>Công ty</NavLink></li>
               <li><a href="#candidate-tools-section">Tạo CV</a></li>
               <li><a href="#cam-nang-section">Cẩm nang</a></li>
               <li>
@@ -365,14 +366,24 @@ export const Header = () => {
                     )}
 
                     {currentUser.role === 'EMPLOYER' && (
-                      <Link
-                        to="/employer"
-                        className="header-dropdown-item"
-                        onClick={() => setDropdownOpen(false)}
-                      >
-                        <Briefcase size={18} className="dropdown-item-icon" />
-                        <span>Trang Nhà tuyển dụng</span>
-                      </Link>
+                      <>
+                        <Link
+                          to="/employer"
+                          className="header-dropdown-item"
+                          onClick={() => setDropdownOpen(false)}
+                        >
+                          <Briefcase size={18} className="dropdown-item-icon" />
+                          <span>K�nh Tuy?n d?ng</span>
+                        </Link>
+                        <Link
+                          to="/employer/reviews"
+                          className="header-dropdown-item"
+                          onClick={() => setDropdownOpen(false)}
+                        >
+                          <Star size={18} className="dropdown-item-icon" style={{ color: "#F59E0B" }} />
+                          <span>Qu?n l� ��nh gi�</span>
+                        </Link>
+                      </>
                     )}
                   </div>
 

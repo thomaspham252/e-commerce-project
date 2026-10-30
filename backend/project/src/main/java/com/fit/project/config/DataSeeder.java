@@ -27,6 +27,11 @@ import java.util.Random;
  */
 import com.fit.project.entity.ServiceFee;
 import com.fit.project.repository.ServiceFeeRepository;
+import com.fit.project.repository.CompanyReviewRepository;
+import com.fit.project.repository.ReviewReplyRepository;
+import com.fit.project.entity.CompanyReview;
+import com.fit.project.entity.ReviewReply;
+import com.fit.project.enums.ReviewStatus;
 
 @Slf4j
 @Component
@@ -49,6 +54,8 @@ public class DataSeeder implements CommandLineRunner {
     private final ServiceFeeRepository serviceFeeRepository;
     private final ConversationRepository conversationRepository;
     private final ChatMessageRepository chatMessageRepository;
+    private final CompanyReviewRepository reviewRepository;
+    private final ReviewReplyRepository replyRepository;
 
     private final Random random = new Random(42);
     private final LocalDateTime now = LocalDateTime.now();
@@ -58,6 +65,7 @@ public class DataSeeder implements CommandLineRunner {
     public void run(String... args) {
         seedPackagesIfEmpty();
         seedChatIfEmpty();
+        seedReviewsIfEmpty();
 
         if (userRepository.count() > 0) return;
 
@@ -273,5 +281,83 @@ public class DataSeeder implements CommandLineRunner {
 
             log.info("Đã tạo dữ liệu mẫu cuộc hội thoại và tin nhắn chat giữa {} và {}.", candidate.getEmail(), company.getName());
         }
+    }
+
+    private void seedReviewsIfEmpty() {
+        if (reviewRepository.count() > 0) return;
+
+        Optional<Company> techAsiaOpt = companyRepository.findFirstByOwnerIdOrderByIdAsc(2);
+        Optional<Company> fptOpt = companyRepository.findFirstByOwnerIdOrderByIdAsc(3);
+        List<CandidateProfile> candidates = candidateProfileRepository.findAll();
+
+        if (techAsiaOpt.isEmpty() || candidates.size() < 3) return;
+
+        Company techAsia = techAsiaOpt.get();
+        CompanyReview r1 = reviewRepository.save(CompanyReview.builder()
+                .company(techAsia)
+                .candidate(candidates.get(0))
+                .rating(5)
+                .content("Môi trường làm việc cực kỳ chuyên nghiệp, văn phòng hiện đại và đồng nghiệp thân thiện. Chế độ đãi ngộ rất tốt, văn hóa trao quyền và khuyến khích đổi mới sáng tạo.")
+                .status(ReviewStatus.visible)
+                .createdAt(now.minusDays(15))
+                .build());
+        replyRepository.save(ReviewReply.builder()
+                .review(r1)
+                .employer(techAsia.getOwner())
+                .content("Cảm ơn bạn đã luôn đồng hành và đóng góp tích cực cho sự phát triển của TechAsia!")
+                .createdAt(now.minusDays(14))
+                .build());
+
+        reviewRepository.save(CompanyReview.builder()
+                .company(techAsia)
+                .candidate(candidates.get(1))
+                .rating(5)
+                .content("Dự án quy mô lớn, công nghệ mới nhất. Quy trình phát triển Agile/Scrum bài bản, học hỏi được rất nhiều từ các anh chị Tech Lead.")
+                .status(ReviewStatus.visible)
+                .createdAt(now.minusDays(25))
+                .build());
+
+        CompanyReview r3 = reviewRepository.save(CompanyReview.builder()
+                .company(techAsia)
+                .candidate(candidates.get(2))
+                .rating(4)
+                .content("Quy trình phỏng vấn nhanh gọn và chuyên nghiệp. HR rất chu đáo và hỗ trợ nhiệt tình từ lúc nhận offer.")
+                .status(ReviewStatus.visible)
+                .createdAt(now.minusDays(35))
+                .build());
+        replyRepository.save(ReviewReply.builder()
+                .review(r3)
+                .employer(techAsia.getOwner())
+                .content("Cảm ơn bạn, TechAsia luôn lắng nghe để nâng cao trải nghiệm ứng viên tốt nhất!")
+                .createdAt(now.minusDays(34))
+                .build());
+
+        if (fptOpt.isPresent()) {
+            Company fpt = fptOpt.get();
+            CompanyReview fr1 = reviewRepository.save(CompanyReview.builder()
+                    .company(fpt)
+                    .candidate(candidates.size() > 3 ? candidates.get(3) : candidates.get(0))
+                    .rating(5)
+                    .content("FPT Software có môi trường quốc tế năng động, nhiều cơ hội onsite Nhật Bản, Mỹ, Châu Âu. Đào tạo nội bộ cực kỳ bài bản.")
+                    .status(ReviewStatus.visible)
+                    .createdAt(now.minusDays(20))
+                    .build());
+            replyRepository.save(ReviewReply.builder()
+                    .review(fr1)
+                    .employer(fpt.getOwner())
+                    .content("Cảm ơn bạn đã chia sẻ đánh giá tích cực về môi trường tại FPT Software!")
+                    .createdAt(now.minusDays(19))
+                    .build());
+
+            reviewRepository.save(CompanyReview.builder()
+                    .company(fpt)
+                    .candidate(candidates.size() > 4 ? candidates.get(4) : candidates.get(1))
+                    .rating(5)
+                    .content("Khuôn viên F-Town / F-Ville tuyệt đẹp, nhiều tiện ích thể thao, giải trí. Chế độ lương thưởng minh bạch và đúng hạn.")
+                    .status(ReviewStatus.visible)
+                    .createdAt(now.minusDays(40))
+                    .build());
+        }
+        log.info("Đã tạo dữ liệu mẫu đánh giá và phản hồi cho các doanh nghiệp.");
     }
 }

@@ -21,6 +21,11 @@ export const employerService = {
   updateApplicationStatus: (id, body) =>
     apiClient.patch(`/employer/applications/${id}/status`, body, cfg()).then((r) => r.data),
 
+  // Quản lý Đánh giá & Bình luận của ứng viên
+  getReviews: (params) => apiClient.get('/employer/reviews', cfg(params)).then((r) => r.data),
+  replyReview: (reviewId, data) => apiClient.post(`/employer/reviews/${reviewId}/reply`, data, cfg()).then((r) => r.data),
+  deleteReply: (reviewId) => apiClient.delete(`/employer/reviews/${reviewId}/reply`, cfg()).then((r) => r.data),
+
   // Thống kê ({ from, to } dạng yyyy-MM-dd, bỏ trống = mặc định của backend)
   getStats: ({ from, to } = {}) => apiClient.get('/employer/stats', cfg({ from, to })).then((r) => r.data),
 };

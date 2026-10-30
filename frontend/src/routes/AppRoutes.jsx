@@ -10,6 +10,9 @@ import { JobDetailPage } from '../pages/candidate/JobDetailPage';
 import { SavedJobsPage } from '../pages/candidate/SavedJobsPage';
 import { ApplyPage } from '../pages/candidate/ApplyPage';
 import { ApplicationHistoryPage } from '../pages/candidate/ApplicationHistoryPage';
+import { CompaniesPage } from '../pages/candidate/CompaniesPage';
+import { CompanyDetailPage } from '../pages/candidate/CompanyDetailPage';
+
 // Payment Imports (Shared VietQR SePay)
 import { PaymentPage } from '../pages/payment/PaymentPage';
 import { PaymentResultPage } from '../pages/payment/PaymentResultPage';
@@ -40,6 +43,7 @@ import { EmployerPricingPage } from '../pages/employer/EmployerPricingPage.jsx';
 import { EmployerSubscriptionPage } from '../pages/employer/EmployerSubscriptionPage.jsx';
 import { EmployerMessagesPage } from '../pages/employer/EmployerMessagesPage.jsx';
 import { EmployerCompanyPage } from '../pages/employer/EmployerCompanyPage.jsx';
+import { EmployerReviewsPage } from '../pages/employer/EmployerReviewsPage.jsx';
 
 export const AppRoutes = () => {
   return (
@@ -52,6 +56,8 @@ export const AppRoutes = () => {
           <Route path="/viec-lam" element={<JobsPage />} />
           <Route path="/viec-lam/:id" element={<JobDetailPage />} />
           <Route path="/viec-lam/:id/ung-tuyen" element={<ApplyPage />} />
+          <Route path="/cong-ty" element={<CompaniesPage />} />
+          <Route path="/cong-ty/:id" element={<CompanyDetailPage />} />
           <Route path="/viec-lam-da-luu" element={<SavedJobsPage />} />
           <Route path="/lich-su-ung-tuyen" element={<ApplicationHistoryPage />} />
           <Route path="/ung-vien" element={<CandidateDashboardPage />} />
@@ -98,6 +104,7 @@ export const AppRoutes = () => {
           <Route path="/employer/jobs/create" element={<EmployerCreateJob />} />
           <Route path="/employer/jobs/:id/edit" element={<EmployerCreateJob />} />
           <Route path="/employer/company" element={<EmployerCompanyPage />} />
+          <Route path="/employer/reviews" element={<EmployerReviewsPage />} />
           <Route path="/employer/applications" element={<EmployerApplications />} />
           <Route path="/employer/messages" element={<EmployerMessagesPage />} />
         </Route>

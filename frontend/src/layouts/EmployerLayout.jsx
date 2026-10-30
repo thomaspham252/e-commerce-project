@@ -8,7 +8,8 @@ import {
   MessageSquare,
   Package,
   CreditCard,
-  Building2
+  Building2,
+  Star
 } from 'lucide-react';
 import {
   EmployerMessagesProvider,
@@ -29,6 +30,7 @@ const EmployerLayoutContent = () => {
       icon: <MessageSquare size={20} />,
       badge: totalUnreadCount
     },
+    { path: '/employer/reviews', label: 'Đánh giá & Phản hồi', icon: <Star size={20} /> },
     { path: '/employer/company', label: 'Hồ sơ doanh nghiệp', icon: <Building2 size={20} /> },
     { path: '/employer/subscription', label: 'Gói dịch vụ của tôi', icon: <Package size={20} /> },
     { path: '/employer/pricing', label: 'Bảng giá dịch vụ', icon: <CreditCard size={20} /> },

@@ -1,0 +1,906 @@
+/* =====================================================================
+   COMPANY DETAIL PAGE STYLES (Đồng bộ tuyệt đối với JobDetailPage.css)
+   Chất lượng cao, typography chuẩn mực, chống đè text & icon tuyệt đối
+   ===================================================================== */
+
+.company-detail-page-wrapper {
+  background-color: #F8FAFC;
+  min-height: 100vh;
+}
+
+.company-detail-page-wrapper svg,
+.company-card svg,
+.company-job-card svg,
+.sidebar-stat-item svg,
+.stat-icon {
+  flex-shrink: 0 !important;
+}
+
+.company-hero-website-link {
+  color: #94A3B8;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  line-height: 1.4;
+  white-space: nowrap;
+  transition: color 0.15s ease;
+}
+
+.company-hero-website-link:hover {
+  color: #34D399;
+  text-decoration: underline;
+}
+
+/* Cluster danh hiệu TOP EMPLOYER 2024 */
+.itv-badge-text-cluster {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.itv-badge-text-cluster strong {
+  font-size: 12px;
+  font-weight: 800;
+  color: #FBBF24;
+  letter-spacing: 0.3px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.itv-badge-text-cluster span {
+  font-size: 11px;
+  color: #FEF3C7;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Typography văn bản giới thiệu */
+.itv-prose {
+  font-size: 14.5px;
+  line-height: 1.7;
+  color: #334155;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.itv-prose p {
+  margin: 0;
+}
+
+.itv-card-subtitle {
+  font-size: 13.5px;
+  color: #64748B;
+  margin: -12px 0 16px 0;
+  line-height: 1.4;
+}
+
+/* =====================================================================
+   GIẢI THƯỞNG DOANH NGHIỆP
+   ===================================================================== */
+.itv-awards-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.itv-award-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 18px;
+  background: #FFFDF7;
+  border: 1px solid #FDE68A;
+  border-radius: 10px;
+}
+
+.itv-award-badge-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  background: #FEF3C7;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.itv-award-ribbon {
+  color: #D97706;
+}
+
+.itv-award-year {
+  font-size: 10.5px;
+  font-weight: 800;
+  color: #B45309;
+  margin-top: 2px;
+  line-height: 1;
+}
+
+.itv-award-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.itv-award-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1E293B;
+  margin: 0 0 4px 0;
+  line-height: 1.35;
+}
+
+.itv-award-metrics {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: #64748B;
+  line-height: 1.3;
+}
+
+.itv-award-metrics strong {
+  color: #0F172A;
+}
+
+/* =====================================================================
+   KHÔNG GIAN LÀM VIỆC & PHOTOS
+   ===================================================================== */
+.itv-photos-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.itv-photo-card {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  border-radius: 10px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.itv-photo-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+  display: block;
+}
+
+.itv-photo-card:hover .itv-photo-thumb {
+  transform: scale(1.06);
+}
+
+.itv-photo-overlay {
+  position: absolute;
+  inset: auto 0 0 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, transparent 100%);
+  padding: 12px 10px 8px;
+  color: #FFFFFF;
+  font-size: 11.5px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+/* =====================================================================
+   DANH SÁCH VIỆC LÀM ĐANG TUYỂN DỤNG CỦA CÔNG TY
+   ===================================================================== */
+.company-jobs-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.company-jobs-hint {
+  font-size: 13px;
+  color: #64748B;
+}
+
+.company-jobs-empty {
+  text-align: center;
+  padding: 40px 20px;
+  background: #F8FAFC;
+  border-radius: 12px;
+  border: 1px dashed #CBD5E1;
+}
+
+.company-jobs-empty .empty-icon {
+  color: #94A3B8;
+  margin-bottom: 12px;
+}
+
+.company-jobs-empty p {
+  color: #64748B;
+  font-size: 0.95rem;
+  margin-bottom: 16px;
+}
+
+.company-jobs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.company-job-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+  gap: 16px;
+}
+
+.company-job-card:hover {
+  border-color: #CBD5E1;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+  transform: translateY(-1px);
+}
+
+.company-job-left {
+  flex: 1;
+  min-width: 0;
+}
+
+.company-job-badges {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.itv-pill-level {
+  background: #F1F5F9;
+  color: #475569;
+}
+
+.company-job-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0F172A;
+  text-decoration: none;
+  line-height: 1.4;
+  display: block;
+  margin-bottom: 8px;
+  word-break: break-word;
+  transition: color 0.15s ease;
+}
+
+.company-job-title:hover {
+  color: #EA1E30;
+}
+
+.company-job-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px 12px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  color: #64748B;
+  line-height: 1.4;
+}
+
+.job-salary-tag {
+  color: #DC2626;
+  font-weight: 700;
+  background: #FEF2F2;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.job-meta-divider {
+  color: #CBD5E1;
+  user-select: none;
+}
+
+.job-meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+
+.company-job-right {
+  flex-shrink: 0;
+}
+
+.btn-sm {
+  padding: 8px 14px !important;
+  font-size: 13.5px !important;
+}
+
+/* =====================================================================
+   ĐÁNH GIÁ & FORM BÌNH LUẬN VỀ CÔNG TY
+   ===================================================================== */
+.company-reviews-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+/* Form viết đánh giá */
+.company-write-review-box {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 28px;
+}
+
+.write-review-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #0F172A;
+  margin-bottom: 6px;
+  line-height: 1.35;
+}
+
+.write-review-subtitle {
+  font-size: 0.875rem;
+  color: #64748B;
+  margin-bottom: 18px;
+  line-height: 1.45;
+}
+
+.review-alert {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 16px;
+}
+
+.review-alert-success {
+  background: #ECFDF5;
+  color: #065F46;
+  border: 1px solid #A7F3D0;
+}
+
+.review-alert-error {
+  background: #FEF2F2;
+  color: #991B1B;
+  border: 1px solid #FECACA;
+}
+
+.rating-select-group {
+  margin-bottom: 18px;
+}
+
+.rating-select-label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 8px;
+}
+
+.rating-stars-interactive {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.star-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s ease;
+}
+
+.star-btn:hover {
+  transform: scale(1.15);
+}
+
+.rating-text-hint {
+  margin-left: 10px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #D97706;
+}
+
+.review-textarea-group {
+  margin-bottom: 18px;
+}
+
+.review-textarea-label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 8px;
+}
+
+.review-textarea {
+  width: 100%;
+  border: 1px solid #CBD5E1;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 0.925rem;
+  color: #1E293B;
+  background: #FFFFFF;
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.2s ease;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.review-textarea:focus {
+  border-color: #10B981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+}
+
+.review-form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+/* Bảng phân tích điểm tiêu chí */
+.itv-rating-bars-box {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px 24px;
+  margin-bottom: 24px;
+  background: #F8FAFC;
+  padding: 16px 20px;
+  border-radius: 10px;
+  border: 1px solid #EDF2F7;
+}
+
+/* Reviews Feed */
+.company-reviews-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.company-reviews-empty {
+  text-align: center;
+  padding: 36px 20px;
+  background: #F8FAFC;
+  border-radius: 12px;
+  border: 1px dashed #CBD5E1;
+}
+
+.company-reviews-empty .empty-icon {
+  color: #94A3B8;
+  margin-bottom: 10px;
+}
+
+.company-reviews-empty p {
+  color: #64748B;
+  font-size: 0.925rem;
+  margin-bottom: 14px;
+}
+
+.company-feed-review-card {
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 20px;
+  background: #FFFFFF;
+}
+
+.review-user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.review-user-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 9999px;
+  background: #10B981;
+  color: #FFFFFF;
+  font-weight: 700;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.review-user-name {
+  display: block;
+  font-size: 0.95rem;
+  color: #0F172A;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.review-user-sub {
+  display: block;
+  font-size: 0.775rem;
+  color: #64748B;
+  line-height: 1.3;
+}
+
+.review-stars-and-date {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.review-date-text {
+  font-size: 0.775rem;
+  color: #94A3B8;
+  line-height: 1.2;
+}
+
+.company-review-body {
+  font-size: 0.925rem;
+  color: #334155;
+  line-height: 1.6;
+  margin: 14px 0 0;
+}
+
+/* Phản hồi từ Nhà tuyển dụng */
+.company-review-reply-card {
+  margin-top: 14px;
+  padding: 14px 18px;
+  background: #F8FAFC;
+  border-left: 3px solid #10B981;
+  border-radius: 0 8px 8px 0;
+}
+
+.reply-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.reply-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #059669;
+  font-weight: 700;
+  font-size: 0.825rem;
+  line-height: 1.2;
+}
+
+.reply-date {
+  font-size: 0.75rem;
+  color: #94A3B8;
+  line-height: 1.2;
+}
+
+.reply-content {
+  font-size: 0.875rem;
+  color: #475569;
+  line-height: 1.55;
+  margin: 0;
+}
+
+/* =====================================================================
+   ĐỊA ĐIỂM & BẢN ĐỒ VĂN PHÒNG
+   ===================================================================== */
+.itv-offices-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.itv-office-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid #E2E8F0;
+  background: #F8FAFC;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  line-height: 1.3;
+  transition: all 0.2s ease;
+}
+
+.itv-office-tab:hover {
+  border-color: #EA1E30;
+  color: #EA1E30;
+}
+
+.itv-office-tab.is-active {
+  background: #FFFFFF;
+  border-color: #EA1E30;
+  color: #EA1E30;
+  box-shadow: 0 2px 4px rgba(234, 30, 48, 0.1);
+}
+
+.itv-primary-office-pill {
+  font-size: 10.5px;
+  font-weight: 700;
+  background: #FEE2E2;
+  color: #EA1E30;
+  padding: 1px 6px;
+  border-radius: 4px;
+  line-height: 1.2;
+}
+
+.itv-map-wrapper {
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.itv-map-placeholder {
+  height: 240px;
+  background: #F1F5F9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  background-image:
+    linear-gradient(to right, rgba(0, 0, 0, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.04) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.itv-map-card-info {
+  background: #FFFFFF;
+  padding: 18px 24px;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  max-width: 440px;
+  width: 90%;
+  box-sizing: border-box;
+}
+
+.itv-map-pin-pulse {
+  color: #EA1E30;
+}
+
+.itv-map-card-info h4 {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0F172A;
+  margin: 0;
+  line-height: 1.35;
+}
+
+.itv-map-card-info .itv-map-address-preview {
+  font-size: 13px;
+  color: #64748B;
+  line-height: 1.4;
+}
+
+/* =====================================================================
+   SIDEBAR STYLES: QUICK APPLY, TRUST CARD, RELATED COMPANIES
+   ===================================================================== */
+.itv-sidebar-sticky-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  position: sticky;
+  top: 68px;
+}
+
+.company-sidebar-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0F172A;
+  margin: 0 0 8px 0;
+  line-height: 1.35;
+}
+
+.company-sidebar-desc {
+  font-size: 13.5px;
+  color: #64748B;
+  line-height: 1.5;
+  margin: 0 0 16px 0;
+}
+
+.company-sidebar-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  background: #F8FAFC;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  border: 1px solid #EDF2F7;
+}
+
+.sidebar-stat-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13.5px;
+  color: #334155;
+  line-height: 1.4;
+}
+
+.sidebar-stat-item .stat-icon {
+  color: #10B981;
+  flex-shrink: 0;
+}
+
+.sidebar-stat-item strong {
+  color: #0F172A;
+}
+
+.btn-block {
+  width: 100% !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  margin-bottom: 10px !important;
+  padding: 11px 18px !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  border-radius: 8px !important;
+  box-sizing: border-box !important;
+  line-height: 1.3 !important;
+}
+
+/* Thẻ cam kết uy tín */
+.itv-trust-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 22px;
+  background: #F0FDF4;
+  border: 1px solid #BBF7D0;
+  border-radius: 12px;
+}
+
+.itv-trust-icon-box {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #DCFCE7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.itv-shield-icon {
+  color: #16A34A;
+  flex-shrink: 0;
+}
+
+.itv-trust-card h4 {
+  font-size: 15px;
+  font-weight: 700;
+  color: #14532D;
+  margin: 0 0 6px 0;
+  line-height: 1.35;
+}
+
+.itv-trust-card p {
+  font-size: 12.5px;
+  color: #166534;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Doanh nghiệp nổi bật khác */
+.itv-card-title-sm {
+  font-size: 15.5px;
+  font-weight: 700;
+  color: #0F172A;
+  margin: 0 0 16px 0;
+  line-height: 1.3;
+}
+
+.itv-related-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.company-related-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid #F1F5F9;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.15s ease;
+}
+
+.company-related-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.itv-rel-logo {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  border: 1px solid #E2E8F0;
+  background: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  flex-shrink: 0;
+}
+
+.itv-rel-details {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.itv-rel-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0F172A;
+  margin: 0;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.company-related-item:hover .itv-rel-title {
+  color: #EA1E30;
+}
+
+.itv-rel-salary {
+  font-size: 12px;
+  color: #64748B;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+}
+
+.itv-rel-loc {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11.5px;
+  color: #10B981;
+  font-weight: 600;
+  line-height: 1.3;
+}
