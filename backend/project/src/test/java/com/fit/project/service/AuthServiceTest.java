@@ -29,7 +29,11 @@ class AuthServiceTest {
     private final UserRepository userRepository = mock(UserRepository.class);
     private final CandidateProfileRepository candidateProfileRepository = mock(CandidateProfileRepository.class);
     private final PasswordEncoder passwordEncoder = mock(PasswordEncoder.class);
-    private final AuthService authService = new AuthService(userRepository, candidateProfileRepository, passwordEncoder);
+    private final GoogleIdentityService googleIdentityService = mock(GoogleIdentityService.class);
+    private final EmailVerificationService emailVerificationService = mock(EmailVerificationService.class);
+    private final AuthService authService = new AuthService(
+            userRepository, candidateProfileRepository, passwordEncoder, googleIdentityService,
+            emailVerificationService);
 
     @Test
     void registerCreatesCandidateAccountAndProfile() {
@@ -39,6 +43,7 @@ class AuthServiceTest {
                 .passwordHash("{bcrypt}encoded")
                 .role(UserRole.CANDIDATE)
                 .status(UserStatus.ACTIVE)
+                .emailVerified(false)
                 .build();
         when(userRepository.existsByEmailIgnoreCase("candidate@example.com")).thenReturn(false);
         when(passwordEncoder.encode("password123")).thenReturn("{bcrypt}encoded");
@@ -49,6 +54,7 @@ class AuthServiceTest {
 
         assertEquals(new LoginResponse(17, "candidate@example.com", UserRole.CANDIDATE), response);
         verify(candidateProfileRepository).save(any(CandidateProfile.class));
+        verify(emailVerificationService).sendVerificationCode(user);
         verify(passwordEncoder).encode(eq("password123"));
     }
 
@@ -70,6 +76,7 @@ class AuthServiceTest {
                 .passwordHash("{noop}password")
                 .role(UserRole.CANDIDATE)
                 .status(UserStatus.ACTIVE)
+                .emailVerified(true)
                 .build();
         when(userRepository.findByEmailIgnoreCase("candidate@example.com")).thenReturn(Optional.of(user));
         when(passwordEncoder.matches("password", "{noop}password")).thenReturn(true);
@@ -97,6 +104,7 @@ class AuthServiceTest {
                 .passwordHash("{noop}password")
                 .role(UserRole.CANDIDATE)
                 .status(UserStatus.LOCKED)
+                .emailVerified(true)
                 .build();
         when(userRepository.findByEmailIgnoreCase("candidate@example.com")).thenReturn(Optional.of(user));
         when(passwordEncoder.matches("password", "{noop}password")).thenReturn(true);
@@ -105,5 +113,78 @@ class AuthServiceTest {
                 () -> authService.login(new LoginRequest("candidate@example.com", "password")));
 
         assertEquals(HttpStatus.FORBIDDEN, exception.getStatus());
+    }
+
+    @Test
+    void loginRejectsUnverifiedEmail() {
+        User user = User.builder()
+                .id(17)
+                .email("candidate@example.com")
+                .passwordHash("{noop}password")
+                .role(UserRole.CANDIDATE)
+                .status(UserStatus.ACTIVE)
+                .emailVerified(false)
+                .build();
+        when(userRepository.findByEmailIgnoreCase("candidate@example.com")).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("password", "{noop}password")).thenReturn(true);
+
+        ApiException exception = assertThrows(ApiException.class,
+                () -> authService.login(new LoginRequest("candidate@example.com", "password")));
+
+        assertEquals(HttpStatus.FORBIDDEN, exception.getStatus());
+    }
+
+    @Test
+    void verifyEmailReturnsSessionDetailsForTheVerifiedUser() {
+        User user = User.builder()
+                .id(17)
+                .email("candidate@example.com")
+                .role(UserRole.CANDIDATE)
+                .emailVerified(true)
+                .build();
+        when(emailVerificationService.verifyEmail("candidate@example.com", "012345")).thenReturn(user);
+
+        LoginResponse response = authService.verifyEmail("candidate@example.com", "012345");
+
+        assertEquals(new LoginResponse(17, "candidate@example.com", UserRole.CANDIDATE), response);
+    }
+
+    @Test
+    void googleLoginCreatesCandidateForVerifiedIdentity() {
+        User user = User.builder()
+                .id(18)
+                .email("candidate@example.com")
+                .role(UserRole.CANDIDATE)
+                .status(UserStatus.ACTIVE)
+                .build();
+        when(googleIdentityService.verify("valid-google-credential"))
+                .thenReturn(new GoogleIdentityService.GoogleIdentity("Candidate@example.com", "Candidate Name"));
+        when(userRepository.findByEmailIgnoreCase("candidate@example.com")).thenReturn(Optional.empty());
+        when(passwordEncoder.encode(any(String.class))).thenReturn("{bcrypt}random");
+        when(userRepository.save(any(User.class))).thenReturn(user);
+
+        LoginResponse response = authService.loginWithGoogle("valid-google-credential");
+
+        assertEquals(new LoginResponse(18, "candidate@example.com", UserRole.CANDIDATE), response);
+        verify(candidateProfileRepository).save(any(CandidateProfile.class));
+    }
+
+    @Test
+    void googleLoginReusesExistingAccount() {
+        User user = User.builder()
+                .id(17)
+                .email("candidate@example.com")
+                .role(UserRole.EMPLOYER)
+                .status(UserStatus.ACTIVE)
+                .build();
+        when(googleIdentityService.verify("valid-google-credential"))
+                .thenReturn(new GoogleIdentityService.GoogleIdentity("candidate@example.com", "Candidate Name"));
+        when(userRepository.findByEmailIgnoreCase("candidate@example.com")).thenReturn(Optional.of(user));
+
+        LoginResponse response = authService.loginWithGoogle("valid-google-credential");
+
+        assertEquals(new LoginResponse(17, "candidate@example.com", UserRole.EMPLOYER), response);
+        verify(userRepository, org.mockito.Mockito.never()).save(any(User.class));
+        verify(candidateProfileRepository, org.mockito.Mockito.never()).save(any(CandidateProfile.class));
     }
 }

@@ -1,22 +1,49 @@
 import { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { getErrorMessage, saveAuthSession } from '../services/apiClient';
+import { authService } from '../services/authService';
 import './EmailVerificationPage.css';
 
 export const EmailVerificationPage = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const email = location.state?.email;
-  const purpose = location.state?.purpose;
   const [code, setCode] = useState('');
   const [notice, setNotice] = useState('');
-  const isNewDevice = purpose === 'new-device';
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isResending, setIsResending] = useState(false);
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    setNotice('Dịch vụ xác minh email chưa được kết nối. Vui lòng quay lại sau.');
+    setIsSubmitting(true);
+    setNotice('');
+    try {
+      const user = await authService.verifyEmail({ email, code });
+      saveAuthSession(user, false);
+      const destination = {
+        ADMIN: '/admin',
+        EMPLOYER: '/employer',
+        CANDIDATE: '/',
+      }[user.role] || '/';
+      navigate(destination, { replace: true });
+    } catch (error) {
+      setNotice(getErrorMessage(error));
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const handleResend = () => {
-    setNotice('Dịch vụ gửi email chưa được kết nối. Vui lòng quay lại sau.');
+  const handleResend = async () => {
+    setIsResending(true);
+    setNotice('');
+    try {
+      const result = await authService.resendVerification(email);
+      setNotice(result.message);
+    } catch (error) {
+      setNotice(getErrorMessage(error));
+    } finally {
+      setIsResending(false);
+    }
   };
 
   return (
@@ -40,14 +67,10 @@ export const EmailVerificationPage = () => {
         <div className="auth-card verification-card">
           <div className="auth-heading">
             <span className="auth-eyebrow">XÁC MINH TÀI KHOẢN</span>
-            <h2 id="verification-title">
-              {isNewDevice ? 'Xác nhận thiết bị mới' : 'Kiểm tra email của bạn'}
-            </h2>
+            <h2 id="verification-title">Kiểm tra email của bạn</h2>
             <p>
               {email
-                ? `Khi dịch vụ xác minh được kết nối, mã gồm 6 chữ số sẽ được gửi đến ${email} để ${
-                    isNewDevice ? 'xác nhận đăng nhập trên thiết bị mới' : 'hoàn tất tạo tài khoản'
-                  }.`
+                ? `Mã gồm 6 chữ số đã được gửi đến ${email} để hoàn tất tạo tài khoản. Mã có hiệu lực trong 10 phút.`
                 : 'Để tiếp tục, hãy quay lại trang đăng ký và nhập địa chỉ email của bạn.'}
             </p>
           </div>
@@ -76,8 +99,8 @@ export const EmailVerificationPage = () => {
                     value={code}
                   />
                 </label>
-                <button className="auth-submit" type="submit">
-                  Xác minh email
+                <button className="auth-submit" type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? 'Đang xác minh...' : 'Xác minh email'}
                   <span aria-hidden="true">→</span>
                 </button>
                 {notice && <p className="auth-notice" role="status">{notice}</p>}
@@ -85,7 +108,9 @@ export const EmailVerificationPage = () => {
 
               <p className="verification-resend">
                 Chưa nhận được mã?{' '}
-                <button type="button" onClick={handleResend}>Gửi lại mã</button>
+                <button type="button" disabled={isResending || isSubmitting} onClick={handleResend}>
+                  {isResending ? 'Đang gửi...' : 'Gửi lại mã'}
+                </button>
               </p>
             </>
           ) : (

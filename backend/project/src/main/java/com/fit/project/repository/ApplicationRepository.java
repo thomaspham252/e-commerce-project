@@ -49,6 +49,8 @@ public interface ApplicationRepository extends JpaRepository<Application, Intege
         return result;
     }
 
+    long countByJobId(Integer jobId);
+
     boolean existsByJobId(Integer jobId);
 
     boolean existsByCvId(Integer cvId);

@@ -1,0 +1,593 @@
+/* =====================================================================
+   EMPLOYER REVIEWS & RATINGS MANAGEMENT PAGE
+   Design System cao cấp, bố cục gọn gàng, tương tác phản hồi mượt mà
+   ===================================================================== */
+
+.emp-reviews-container {
+  padding-bottom: 48px;
+}
+
+/* 1. KPI STATS CARDS */
+.emp-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.emp-stat-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 18px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.emp-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.06);
+}
+
+.emp-stat-icon-wrap {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.emp-stat-icon-gold {
+  background: #FEF3C7;
+  color: #D97706;
+}
+
+.emp-stat-icon-blue {
+  background: #DBEAFE;
+  color: #2563EB;
+}
+
+.emp-stat-icon-orange {
+  background: #FFEDD5;
+  color: #EA580C;
+}
+
+.emp-stat-icon-green {
+  background: #DCFCE7;
+  color: #16A34A;
+}
+
+.emp-stat-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.emp-stat-label {
+  font-size: 13px;
+  color: #64748B;
+  font-weight: 500;
+  margin-bottom: 4px;
+  line-height: 1.3;
+}
+
+.emp-stat-value {
+  font-size: 22px;
+  font-weight: 800;
+  color: #0F172A;
+  line-height: 1.2;
+}
+
+.emp-stat-hint {
+  font-size: 11.5px;
+  color: #94A3B8;
+  margin-top: 2px;
+}
+
+/* 2. RATING PROGRESS BARS BOX */
+.emp-breakdown-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 20px 24px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.emp-score-overview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding-right: 32px;
+  border-right: 1px solid #E2E8F0;
+  min-width: 140px;
+}
+
+.emp-big-score {
+  font-size: 42px;
+  font-weight: 800;
+  color: #0F172A;
+  line-height: 1;
+  margin-bottom: 6px;
+}
+
+.emp-big-stars {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  margin-bottom: 6px;
+}
+
+.emp-score-count {
+  font-size: 12.5px;
+  color: #64748B;
+}
+
+.emp-breakdown-bars {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.emp-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+}
+
+.emp-bar-label {
+  width: 44px;
+  font-weight: 600;
+  color: #334155;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  flex-shrink: 0;
+}
+
+.emp-bar-track {
+  flex: 1;
+  height: 8px;
+  background: #F1F5F9;
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.emp-bar-fill {
+  height: 100%;
+  background: #F59E0B;
+  border-radius: 9999px;
+  transition: width 0.4s ease;
+}
+
+.emp-bar-count {
+  width: 32px;
+  text-align: right;
+  color: #64748B;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+/* 3. TOOLBAR & FILTERS */
+.emp-filter-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.emp-search-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #F8FAFC;
+  border: 1px solid #CBD5E1;
+  border-radius: 8px;
+  padding: 8px 14px;
+  flex: 1;
+  min-width: 240px;
+}
+
+.emp-search-box input {
+  border: none;
+  background: transparent;
+  outline: none;
+  width: 100%;
+  font-size: 14px;
+  color: #0F172A;
+}
+
+.emp-search-box input::placeholder {
+  color: #94A3B8;
+}
+
+.emp-filter-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.emp-select-filter {
+  border: 1px solid #CBD5E1;
+  border-radius: 8px;
+  background: #FFFFFF;
+  padding: 8px 12px;
+  font-size: 13.5px;
+  color: #334155;
+  outline: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.emp-select-filter:focus {
+  border-color: #10B981;
+}
+
+/* 4. REVIEWS LIST & ITEMS */
+.emp-reviews-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.emp-review-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 22px 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: border-color 0.15s ease;
+}
+
+.emp-review-card:hover {
+  border-color: #CBD5E1;
+}
+
+.emp-review-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.emp-review-author {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.emp-author-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #10B981;
+  color: #FFFFFF;
+  font-weight: 700;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.emp-author-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.emp-author-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0F172A;
+  line-height: 1.3;
+}
+
+.emp-review-date {
+  font-size: 12.5px;
+  color: #94A3B8;
+}
+
+.emp-review-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.emp-stars-row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.emp-badge-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.emp-badge-replied {
+  background: #DCFCE7;
+  color: #166534;
+  border: 1px solid #BBF7D0;
+}
+
+.emp-badge-unreplied {
+  background: #FEF3C7;
+  color: #B45309;
+  border: 1px solid #FDE68A;
+}
+
+.emp-review-body {
+  font-size: 14.5px;
+  line-height: 1.65;
+  color: #334155;
+  margin: 0 0 16px 0;
+  background: #F8FAFC;
+  padding: 14px 16px;
+  border-radius: 8px;
+  border: 1px solid #EDF2F7;
+}
+
+/* 5. EMPLOYER REPLY BOX */
+.emp-reply-box {
+  background: #F0FDF4;
+  border: 1px solid #BBF7D0;
+  border-left: 4px solid #10B981;
+  border-radius: 0 10px 10px 0;
+  padding: 16px 18px;
+  margin-top: 14px;
+}
+
+.emp-reply-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.emp-reply-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #166534;
+}
+
+.emp-reply-date {
+  font-size: 12px;
+  color: #64748B;
+}
+
+.emp-reply-content {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #14532D;
+  margin: 0 0 10px 0;
+}
+
+.emp-reply-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.emp-reply-action-btn {
+  background: transparent;
+  border: none;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+}
+
+.emp-btn-edit {
+  color: #2563EB;
+}
+
+.emp-btn-edit:hover {
+  background: rgba(37, 99, 235, 0.1);
+}
+
+.emp-btn-delete {
+  color: #DC2626;
+}
+
+.emp-btn-delete:hover {
+  background: rgba(220, 38, 38, 0.1);
+}
+
+/* 6. REPLY FORM (INLINE TEXTAREA & TEMPLATES) */
+.emp-reply-form-wrap {
+  margin-top: 16px;
+  padding: 18px 20px;
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+}
+
+.emp-templates-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.emp-templates-label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #64748B;
+}
+
+.emp-template-chip {
+  background: #F1F5F9;
+  border: 1px solid #E2E8F0;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.emp-template-chip:hover {
+  background: #E2E8F0;
+  color: #0F172A;
+  border-color: #CBD5E1;
+}
+
+.emp-reply-textarea {
+  width: 100%;
+  border: 1px solid #CBD5E1;
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-size: 14px;
+  font-family: inherit;
+  line-height: 1.5;
+  outline: none;
+  resize: vertical;
+  box-sizing: border-box;
+  color: #0F172A;
+}
+
+.emp-reply-textarea:focus {
+  border-color: #10B981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+}
+
+.emp-form-buttons {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.emp-action-bar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.emp-btn-reply-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #10B981;
+  color: #FFFFFF;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.emp-btn-reply-trigger:hover {
+  background: #059669;
+}
+
+/* 7. EMPTY & LOADING STATES */
+.emp-empty-box {
+  background: #FFFFFF;
+  border: 1px dashed #CBD5E1;
+  border-radius: 12px;
+  padding: 48px 24px;
+  text-align: center;
+}
+
+.emp-empty-icon {
+  color: #94A3B8;
+  margin-bottom: 12px;
+}
+
+.emp-empty-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0F172A;
+  margin: 0 0 6px 0;
+}
+
+.emp-empty-desc {
+  font-size: 13.5px;
+  color: #64748B;
+  margin: 0;
+}
+
+/* RESPONSIVE */
+@media (max-width: 1024px) {
+  .emp-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .emp-breakdown-card {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 20px;
+  }
+
+  .emp-score-overview {
+    border-right: none;
+    border-bottom: 1px solid #E2E8F0;
+    padding-right: 0;
+    padding-bottom: 20px;
+  }
+}
+
+@media (max-width: 640px) {
+  .emp-stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .emp-filter-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .emp-filter-group {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .emp-select-filter {
+    width: 100%;
+  }
+}
+

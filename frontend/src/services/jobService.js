@@ -7,6 +7,7 @@ import { JOB_DETAILS, COMPANY_PROFILES, CVS, APPLICATIONS } from './candidateDat
 export const mapBackendJob = (item) => ({
   id: item.id,
   title: item.title,
+  companyId: item.companyId,
   companyName: item.companyName,
   logoUrl: item.companyLogo || null,
   companyLogo: item.companyLogo || null,
@@ -44,6 +45,7 @@ export const mapBackendJob = (item) => ({
     'Cơ hội đào tạo chuyên sâu và lộ trình thăng tiến rõ ràng',
   ],
   company: {
+    id: item.companyId,
     name: item.companyName,
     logo: item.companyLogo || null,
     industry: item.companyIndustry || 'IT - Phần mềm',

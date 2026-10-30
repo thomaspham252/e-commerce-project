@@ -26,11 +26,27 @@ CREATE TABLE `users` (
   `password_hash` VARCHAR(255) NOT NULL COMMENT 'Mật khẩu đã được mã hóa (Bcrypt/Argon2)',
   `role` ENUM('candidate', 'employer', 'admin') NOT NULL COMMENT 'Vai trò người dùng: Ứng viên, Nhà tuyển dụng, Quản trị viên',
   `status` ENUM('active', 'locked') NOT NULL DEFAULT 'active' COMMENT 'Trạng thái tài khoản: đang hoạt động hoặc bị khóa',
+  `email_verified` TINYINT(1) NOT NULL DEFAULT 1 COMMENT 'Email đã được xác minh',
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Thời điểm tạo tài khoản',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_users_email` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='Bảng lưu thông tin đăng ký, đăng nhập, phân quyền và quản lý trạng thái tài khoản';
+
+CREATE TABLE `email_verifications` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `user_id` INT NOT NULL,
+  `code_hash` VARCHAR(255) NOT NULL,
+  `expires_at` DATETIME NOT NULL,
+  `sent_at` DATETIME NOT NULL,
+  `failed_attempts` INT NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_email_verifications_user_id` (`user_id`),
+  CONSTRAINT `fk_email_verifications_user_id`
+    FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+    ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+COMMENT='Mã xác minh email đã được băm và thời hạn sử dụng';
 
 -- 1.2. Bảng candidate_profiles
 DROP TABLE IF EXISTS `candidate_profiles`;

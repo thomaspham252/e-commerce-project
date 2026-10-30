@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { Building2, Briefcase, MapPin, ArrowRight } from 'lucide-react';
 import { CompanyLogo } from '../common/CompanyLogo';
 import { COMPANY_SECTORS, FEATURED_COMPANIES } from '../../data/homeCandidateMockData';
@@ -22,7 +23,13 @@ export const FeaturedCompaniesHome = () => {
               <Building2 size={14} strokeWidth={1.75} />
               <span>Đối tác tuyển dụng</span>
             </div>
-            <h2 className="companies-main-title">Doanh nghiệp tiêu biểu</h2>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+              <h2 className="companies-main-title">Doanh nghiệp tiêu biểu</h2>
+              <Link to="/cong-ty" style={{ color: 'var(--color-primary, #10B981)', fontWeight: 600, fontSize: '0.9rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <span>Xem tất cả công ty</span>
+                <ArrowRight size={15} />
+              </Link>
+            </div>
             <p className="companies-sub-title">
               Khám phá các tổ chức hàng đầu đang tích cực tìm kiếm nhân tài trên JobViet
             </p>
@@ -48,7 +55,7 @@ export const FeaturedCompaniesHome = () => {
         {/* Grid thẻ công ty (4 cột desktop, 2 tablet, 1 mobile) */}
         <div className="companies-grid">
           {filteredCompanies.map((company) => (
-            <article key={company.id} className="company-feature-card">
+            <Link key={company.id} to={/cong-ty/} className="company-feature-card" style={{ textDecoration: 'none', color: 'inherit' }}>
               <div className="company-card-top-cluster">
                 <CompanyLogo
                   companyName={company.name}
@@ -80,7 +87,7 @@ export const FeaturedCompaniesHome = () => {
                   <ArrowRight size={13} strokeWidth={1.75} />
                 </div>
               </div>
-            </article>
+            </Link>
           ))}
         </div>
       </div>

@@ -3,15 +3,15 @@ package com.fit.project.controller;
 import com.fit.project.dto.CompanyResponse;
 import com.fit.project.dto.JobResponse;
 import com.fit.project.dto.common.PageResponse;
+import com.fit.project.dto.company.CompanyReviewResponse;
+import com.fit.project.dto.company.CreateReplyRequest;
+import com.fit.project.dto.company.EmployerReviewsSummaryResponse;
 import com.fit.project.dto.employer.*;
 import com.fit.project.entity.User;
 import com.fit.project.enums.ApplicationStatus;
 import com.fit.project.enums.JobStatus;
 import com.fit.project.enums.UserRole;
-import com.fit.project.service.ApplicationManagementService;
-import com.fit.project.service.CurrentUserService;
-import com.fit.project.service.EmployerService;
-import com.fit.project.service.StatisticsService;
+import com.fit.project.service.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -30,6 +30,7 @@ public class EmployerController {
     private final EmployerService employerService;
     private final ApplicationManagementService applicationService;
     private final StatisticsService statisticsService;
+    private final CompanyPublicService companyPublicService;
 
     // ===== Hồ sơ doanh nghiệp =====
 
@@ -120,6 +121,43 @@ public class EmployerController {
                                        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
                                        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
         return statisticsService.employerStats(employer(userId).getId(), from, to);
+    }
+
+    // ===== Quản lý Đánh giá & Bình luận của ứng viên =====
+
+    @GetMapping("/reviews")
+    public EmployerReviewsSummaryResponse getEmployerReviews(
+            @RequestHeader(CurrentUserService.HEADER) Integer userId,
+            @RequestParam(required = false) Integer rating,
+            @RequestParam(required = false) String replyStatus,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return companyPublicService.getEmployerReviews(employer(userId).getId(), rating, replyStatus, keyword, page, size);
+    }
+
+    @PostMapping("/reviews/{reviewId}/reply")
+    public CompanyReviewResponse replyReview(
+            @RequestHeader(CurrentUserService.HEADER) Integer userId,
+            @PathVariable Integer reviewId,
+            @Valid @RequestBody CreateReplyRequest req
+    ) {
+        User emp = employer(userId);
+        var companyOpt = employerService.getCompany(emp);
+        if (companyOpt.isEmpty()) {
+            throw com.fit.project.exception.ApiException.badRequest("Doanh nghiệp chưa có hồ sơ công ty");
+        }
+        return companyPublicService.replyReview(emp.getId(), companyOpt.get().id(), reviewId, req);
+    }
+
+    @DeleteMapping("/reviews/{reviewId}/reply")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteReply(
+            @RequestHeader(CurrentUserService.HEADER) Integer userId,
+            @PathVariable Integer reviewId
+    ) {
+        companyPublicService.deleteReply(employer(userId).getId(), reviewId);
     }
 
     private User employer(Integer userId) {

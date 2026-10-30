@@ -143,6 +143,7 @@ export const JobDetailPage = () => {
 
   // Dữ liệu mở rộng chuẩn ITviec (có fallback thông minh từ job & job.company)
   const company = job.company || {};
+  const companyId = job.companyId || company.id;
   const companyName = job.companyName || company.name || 'Công ty Công nghệ';
   const companyLogo = job.companyLogo || company.logo || null;
   const companyInitials = job.companyInitials || (companyName.slice(0, 3).toUpperCase());
@@ -224,7 +225,14 @@ export const JobDetailPage = () => {
                 <h1 className="itv-hero-job-title">{job.title}</h1>
 
                 <div className="itv-hero-company-line">
-                  <span className="itv-company-name-text">{companyName}</span>
+                  <Link
+                    to={companyId ? `/cong-ty/${companyId}` : '/cong-ty'}
+                    className="itv-company-name-text"
+                    style={{ textDecoration: 'none', color: 'inherit' }}
+                    title={`Xem hồ sơ doanh nghiệp & đánh giá về ${companyName}`}
+                  >
+                    {companyName}
+                  </Link>
                   <span className="itv-verified-badge" title="Doanh nghiệp đã xác thực">
                     <ShieldCheck size={15} /> Xác thực
                   </span>
@@ -568,6 +576,15 @@ export const JobDetailPage = () => {
               </div>
 
               <div className="itv-company-external-links">
+                <Link
+                  to={companyId ? `/cong-ty/${companyId}` : '/cong-ty'}
+                  className="itv-external-btn"
+                  style={{ background: 'var(--color-primary, #10B981)', color: '#FFFFFF', borderColor: 'var(--color-primary, #10B981)', textDecoration: 'none' }}
+                >
+                  <Building2 size={16} />
+                  <span>Xem trang chi tiết & đánh giá công ty</span>
+                  <ChevronRight size={14} />
+                </Link>
                 {company.website && (
                   <a
                     href={company.website.startsWith('http') ? company.website : `https://${company.website}`}
@@ -604,6 +621,13 @@ export const JobDetailPage = () => {
                     Đánh giá từ nhân viên ({reviewCount})
                   </h2>
                   <p className="itv-reviews-subtitle">Trải nghiệm thực tế từ các kỹ sư và chuyên gia đang làm việc</p>
+                  <Link
+                    to={companyId ? `/cong-ty/${companyId}#sec-reviews` : '/cong-ty'}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.85rem', color: 'var(--color-primary, #10B981)', fontWeight: 600, textDecoration: 'none', marginTop: '6px' }}
+                  >
+                    <span>Xem đầy đủ nhận xét & viết đánh giá</span>
+                    <ChevronRight size={14} />
+                  </Link>
                 </div>
                 <div className="itv-overall-badge">
                   <strong>{ratingScore.toFixed(1)}</strong>

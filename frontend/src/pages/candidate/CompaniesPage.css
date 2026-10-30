@@ -1,0 +1,544 @@
+/* =====================================================================
+   COMPANIES LIST PAGE STYLES (Đồng bộ với chuẩn ITviec / JobViet)
+   ===================================================================== */
+
+.companies-page-wrapper {
+  background-color: var(--color-background, #F9FAFB);
+  min-height: calc(100vh - 72px);
+  padding-bottom: 60px;
+}
+
+.companies-page-wrapper svg,
+.company-card-item svg,
+.companies-search-bar svg,
+.companies-toolbar svg,
+.companies-hero-tag svg {
+  flex-shrink: 0 !important;
+}
+
+/* 1. HERO BANNER */
+.companies-hero-banner {
+  background: linear-gradient(135deg, #0F172A 0%, #1E293B 60%, #0F2824 100%);
+  color: #FFFFFF;
+  padding: 48px 0 44px;
+  position: relative;
+  overflow: hidden;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.companies-hero-banner::after {
+  content: '';
+  position: absolute;
+  top: -60px;
+  right: -40px;
+  width: 420px;
+  height: 420px;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.15) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.companies-hero-content {
+  position: relative;
+  z-index: 1;
+  max-width: 880px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.companies-hero-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(16, 185, 129, 0.16);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  color: #34D399;
+  font-size: 0.825rem;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  margin-bottom: 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.companies-hero-title {
+  font-size: 2.15rem;
+  font-weight: 800;
+  line-height: 1.25;
+  margin-bottom: 14px;
+  color: #FFFFFF;
+  letter-spacing: -0.02em;
+}
+
+.companies-hero-subtitle {
+  font-size: 1.05rem;
+  color: #94A3B8;
+  line-height: 1.6;
+  margin-bottom: 28px;
+}
+
+/* Thanh tìm kiếm */
+.companies-search-bar {
+  display: flex;
+  align-items: center;
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: 6px;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.22);
+  gap: 8px;
+  margin-bottom: 22px;
+}
+
+.companies-search-input-group {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  padding: 0 12px;
+  gap: 10px;
+}
+
+.companies-search-icon {
+  color: #94A3B8;
+  flex-shrink: 0;
+}
+
+.companies-search-input {
+  width: 100%;
+  border: none;
+  outline: none;
+  font-size: 0.95rem;
+  color: #1E293B;
+  background: transparent;
+  padding: 10px 0;
+}
+
+.companies-search-input::placeholder {
+  color: #94A3B8;
+}
+
+.companies-location-select-group {
+  display: flex;
+  align-items: center;
+  border-left: 1px solid #E2E8F0;
+  padding: 0 12px;
+  gap: 8px;
+  min-width: 170px;
+}
+
+.companies-select-icon {
+  color: #94A3B8;
+  flex-shrink: 0;
+}
+
+.companies-select {
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 0.9rem;
+  color: #334155;
+  font-weight: 500;
+  cursor: pointer;
+  width: 100%;
+}
+
+.companies-search-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--color-primary, #10B981);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.925rem;
+  padding: 12px 24px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.companies-search-btn:hover {
+  background: var(--color-primary-hover, #059669);
+  transform: translateY(-1px);
+}
+
+/* Industry Pills */
+.companies-industry-pills {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.companies-pills-label {
+  font-size: 0.85rem;
+  color: #94A3B8;
+  font-weight: 500;
+}
+
+.companies-pills-list {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.companies-pill-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #E2E8F0;
+  font-size: 0.825rem;
+  padding: 5px 12px;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.companies-pill-btn:hover {
+  background: rgba(255, 255, 255, 0.16);
+  color: #FFFFFF;
+}
+
+.companies-pill-btn.is-active {
+  background: var(--color-primary, #10B981);
+  border-color: var(--color-primary, #10B981);
+  color: #FFFFFF;
+  font-weight: 600;
+}
+
+/* 2. MAIN CONTAINER & TOOLBAR */
+.companies-main-container {
+  padding-top: 32px;
+}
+
+.companies-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #E5E7EB;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.companies-toolbar-left {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.companies-count-highlight {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0F172A;
+}
+
+.companies-count-sub {
+  font-size: 0.9rem;
+  color: #64748B;
+}
+
+.companies-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.companies-size-filter {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  padding: 6px 12px;
+}
+
+.toolbar-icon {
+  color: #64748B;
+}
+
+.companies-size-select {
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 0.85rem;
+  color: #334155;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.companies-reset-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #F1F5F9;
+  border: 1px solid #E2E8F0;
+  color: #475569;
+  font-size: 0.825rem;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.companies-reset-btn:hover {
+  background: #E2E8F0;
+  color: #0F172A;
+}
+
+/* 3. COMPANIES CARDS GRID */
+.companies-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 22px;
+}
+
+@media (max-width: 1100px) {
+  .companies-cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 680px) {
+  .companies-cards-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Card Item */
+.company-card-item {
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 14px;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.company-card-item:hover {
+  transform: translateY(-3px);
+  border-color: #CBD5E1;
+  box-shadow: 0 12px 24px -4px rgba(15, 23, 42, 0.08), 0 4px 6px -2px rgba(15, 23, 42, 0.03);
+}
+
+.company-card-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.company-card-logo-wrap {
+  flex-shrink: 0;
+  width: 64px;
+  height: 64px;
+  border-radius: 12px;
+  border: 1px solid #F1F5F9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #FFFFFF;
+}
+
+.company-card-meta-top {
+  flex: 1;
+  min-width: 0;
+}
+
+.company-card-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+
+.company-card-name {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #0F172A;
+  text-decoration: none;
+  line-height: 1.3;
+  transition: color 0.15s ease;
+}
+
+.company-card-name:hover {
+  color: var(--color-primary, #10B981);
+}
+
+.company-verified-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #ECFDF5;
+  color: #059669;
+  border: 1px solid #A7F3D0;
+  font-size: 0.725rem;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 9999px;
+  white-space: nowrap;
+}
+
+.company-card-rating-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 0.825rem;
+}
+
+.company-stars-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #FEF3C7;
+  color: #B45309;
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 0.8rem;
+}
+
+.company-review-text {
+  color: #64748B;
+}
+
+.company-recommend-text {
+  color: #059669;
+  font-weight: 500;
+}
+
+/* Info List */
+.company-card-info-list {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-bottom: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px dashed #F1F5F9;
+}
+
+.company-info-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: #475569;
+}
+
+.company-info-row .info-icon {
+  color: #94A3B8;
+  flex-shrink: 0;
+}
+
+.company-info-row span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Description */
+.company-card-description {
+  font-size: 0.875rem;
+  color: #64748B;
+  line-height: 1.5;
+  margin-bottom: 18px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  flex: 1;
+}
+
+/* Foot */
+.company-card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+  padding-top: 14px;
+  border-top: 1px solid #F1F5F9;
+  gap: 12px;
+}
+
+.company-open-jobs-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #F0FDF4;
+  color: #166534;
+  font-size: 0.825rem;
+  font-weight: 500;
+  padding: 5px 10px;
+  border-radius: 8px;
+  border: 1px solid #DCFCE7;
+}
+
+.company-open-jobs-badge strong {
+  font-weight: 700;
+  color: #15803D;
+}
+
+.btn-company-detail {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--color-primary, #10B981);
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-decoration: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+}
+
+.btn-company-detail:hover {
+  background: #ECFDF5;
+  color: var(--color-primary-hover, #059669);
+}
+
+/* States */
+.companies-loading-state,
+.companies-empty-state {
+  text-align: center;
+  padding: 64px 20px;
+  background: #FFFFFF;
+  border-radius: 16px;
+  border: 1px solid #E2E8F0;
+  max-width: 600px;
+  margin: 30px auto;
+}
+
+.companies-loading-state p {
+  margin-top: 16px;
+  color: #64748B;
+  font-size: 0.95rem;
+}
+
+.companies-empty-icon {
+  color: #94A3B8;
+  margin-bottom: 16px;
+}
+
+.companies-empty-state h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0F172A;
+  margin-bottom: 8px;
+}
+
+.companies-empty-state p {
+  color: #64748B;
+  font-size: 0.925rem;
+  margin-bottom: 20px;
+}
+

@@ -61,6 +61,7 @@ public class ChatServiceImpl implements ChatService {
             conv = Conversation.builder()
                     .candidate(candidate)
                     .company(company)
+                    .employer(company.getOwner())
                     .job(job)
                     .lastMessage("Bắt đầu cuộc trò chuyện với nhà tuyển dụng")
                     .lastMessageAt(now)

@@ -33,6 +33,10 @@ public class User {
     @Builder.Default
     private UserStatus status = UserStatus.ACTIVE;
 
+    @Column(name = "email_verified", columnDefinition = "TINYINT(1) NOT NULL DEFAULT 1")
+    @Builder.Default
+    private boolean emailVerified = true;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 

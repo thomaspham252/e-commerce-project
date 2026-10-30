@@ -1,13 +1,33 @@
 /* ==========================================================================
    ITVIEC DESIGN SYSTEM - JOB DETAIL & COMPANY PROFILE
+   Chất lượng cao, typography chuẩn mực, chống đè text & icon tuyệt đối
    ========================================================================== */
 
+/* 0. RESET & CHỐNG CO RÚT ICON (FLEX-SHRINK: 0 TOÀN DIỆN) */
 .itv-detail-wrapper {
-  background-color: #F7F8FA;
+  background-color: #F8FAFC;
   min-height: 100vh;
   padding-bottom: 72px;
   color: #1E293B;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  line-height: 1.5;
+}
+
+.itv-detail-wrapper svg,
+.itv-hero-banner svg,
+.itv-meta-item svg,
+.itv-btn svg,
+.itv-pill svg,
+.itv-verified-badge svg,
+.itv-card-title svg,
+.itv-subnav-tab svg,
+.itv-info-cell svg,
+.itv-checklist svg,
+.itv-award-badge-icon svg,
+.itv-loc-pin-icon,
+.itv-title-icon,
+.itv-trophy-icon {
+  flex-shrink: 0 !important;
 }
 
 /* ==========================================================================
@@ -15,9 +35,9 @@
    ========================================================================== */
 
 .itv-hero-banner {
-  background: linear-gradient(135deg, #141118 0%, #1E151C 50%, #2A1721 100%);
+  background: linear-gradient(135deg, #120F16 0%, #1A1319 45%, #25141E 100%);
   color: #FFFFFF;
-  padding: 36px 0 32px;
+  padding: 38px 0 34px;
   position: relative;
   overflow: hidden;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
@@ -26,18 +46,18 @@
 .itv-hero-banner::before {
   content: '';
   position: absolute;
-  top: -60px;
-  right: -40px;
-  width: 420px;
-  height: 420px;
-  background: radial-gradient(circle, rgba(234, 30, 48, 0.18) 0%, transparent 70%);
+  top: -80px;
+  right: -50px;
+  width: 480px;
+  height: 480px;
+  background: radial-gradient(circle, rgba(234, 30, 48, 0.16) 0%, transparent 70%);
   pointer-events: none;
 }
 
 .itv-hero-inner {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   gap: 32px;
   position: relative;
   z-index: 2;
@@ -61,8 +81,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.12);
   flex-shrink: 0;
+  box-sizing: border-box;
 }
 
 .itv-hero-logo {
@@ -74,25 +95,31 @@
 .itv-hero-details {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .itv-hero-badges-row {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 8px;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .itv-pill {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
   padding: 4px 10px;
   border-radius: 6px;
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.4px;
+  line-height: 1.2;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .itv-pill-hot {
@@ -107,68 +134,87 @@
 }
 
 .itv-pill-type {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.14);
   color: #F1F5F9;
   backdrop-filter: blur(4px);
 }
 
 .itv-hero-job-title {
-  font-size: 26px;
+  font-size: 27px;
   font-weight: 800;
-  line-height: 1.3;
+  line-height: 1.35;
   color: #FFFFFF;
-  margin-bottom: 6px;
+  margin: 0 0 10px 0;
   letter-spacing: -0.4px;
+  word-break: break-word;
 }
 
 .itv-hero-company-line {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 10px;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 12px;
 }
 
 .itv-company-name-text {
   font-size: 16px;
   font-weight: 600;
   color: #E2E8F0;
+  line-height: 1.4;
+  transition: color 0.15s ease;
+}
+
+.itv-company-name-text:hover {
+  color: #FFFFFF;
+  text-decoration: underline;
 }
 
 .itv-verified-badge {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  font-size: 11px;
+  gap: 5px;
+  font-size: 11.5px;
   font-weight: 700;
   color: #10B981;
-  background: rgba(16, 185, 129, 0.15);
-  padding: 2px 8px;
+  background: rgba(16, 185, 129, 0.16);
+  padding: 3px 10px;
   border-radius: 9999px;
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  white-space: nowrap;
+  flex-shrink: 0;
+  line-height: 1.2;
 }
 
 .itv-hero-meta-row {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 8px 14px;
   font-size: 13.5px;
+  line-height: 1.5;
   color: #94A3B8;
-  margin-bottom: 20px;
+  margin-bottom: 22px;
 }
 
 .itv-meta-item {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
+  line-height: 1.4;
+  white-space: nowrap;
 }
 
 .itv-meta-item strong {
   color: #F8FAFC;
+  font-weight: 600;
+  margin-left: 2px;
 }
 
 .itv-meta-divider {
   color: #475569;
+  user-select: none;
+  font-size: 12px;
 }
 
 .itv-openings-count {
@@ -181,7 +227,7 @@
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 10px;
 }
 
 .itv-btn {
@@ -189,13 +235,17 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 11px 22px;
+  padding: 10px 18px;
   border-radius: 8px;
-  font-size: 14.5px;
+  font-size: 14px;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   text-decoration: none;
+  white-space: nowrap;
+  line-height: 1.3;
+  flex-shrink: 0;
+  box-sizing: border-box;
 }
 
 .itv-btn-primary {
@@ -232,17 +282,17 @@
 }
 
 .itv-btn-applied {
-  background: rgba(16, 185, 129, 0.2);
+  background: rgba(16, 185, 129, 0.22);
   color: #34D399;
-  border: 1px solid rgba(16, 185, 129, 0.4);
+  border: 1px solid rgba(16, 185, 129, 0.45);
   cursor: default;
 }
 
 .itv-btn-outline {
   background: rgba(255, 255, 255, 0.1);
   color: #E2E8F0;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  padding: 11px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  padding: 10px 16px;
   backdrop-filter: blur(4px);
 }
 
@@ -266,9 +316,9 @@
   box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
 }
 
-/* Cột phải Hero: Đánh giá & Danh hiệu */
+/* Cột phải Hero: Đánh giá & Danh hiệu chuẩn ảnh người dùng */
 .itv-hero-right {
-  width: 280px;
+  width: 290px;
   flex-shrink: 0;
 }
 
@@ -276,15 +326,15 @@
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 14px;
-  padding: 18px;
+  padding: 18px 20px;
   backdrop-filter: blur(10px);
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.35);
 }
 
 .itv-rating-top {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   margin-bottom: 12px;
 }
 
@@ -299,7 +349,7 @@
 .itv-stars-group {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 4px;
 }
 
 .itv-stars-row {
@@ -311,13 +361,14 @@
 .itv-review-count-text {
   font-size: 12px;
   color: #CBD5E1;
+  line-height: 1.2;
 }
 
 .itv-recommend-stat {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 0;
+  padding: 10px 0;
   border-top: 1px dashed rgba(255, 255, 255, 0.15);
   border-bottom: 1px dashed rgba(255, 255, 255, 0.15);
   margin-bottom: 12px;
@@ -327,21 +378,22 @@
   font-size: 17px;
   font-weight: 800;
   color: #10B981;
+  flex-shrink: 0;
 }
 
 .itv-recommend-label {
-  font-size: 12.5px;
+  font-size: 12px;
   color: #E2E8F0;
-  line-height: 1.3;
+  line-height: 1.35;
 }
 
 .itv-top-employer-badge {
   display: flex;
   align-items: center;
   gap: 10px;
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(217, 119, 6, 0.2) 100%);
-  border: 1px solid rgba(245, 158, 11, 0.35);
-  padding: 8px 12px;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.18) 0%, rgba(217, 119, 6, 0.22) 100%);
+  border: 1px solid rgba(245, 158, 11, 0.38);
+  padding: 9px 12px;
   border-radius: 8px;
 }
 
@@ -353,6 +405,8 @@
 .itv-top-employer-badge div {
   display: flex;
   flex-direction: column;
+  gap: 2px;
+  min-width: 0;
 }
 
 .itv-top-employer-badge strong {
@@ -360,11 +414,17 @@
   font-weight: 800;
   color: #FBBF24;
   letter-spacing: 0.3px;
+  line-height: 1.2;
+  white-space: nowrap;
 }
 
 .itv-top-employer-badge span {
   font-size: 11px;
   color: #FEF3C7;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* ==========================================================================
@@ -386,7 +446,7 @@
 }
 
 .itv-subnav-tab {
-  padding: 15px 20px;
+  padding: 14px 20px;
   font-size: 14.5px;
   font-weight: 600;
   color: #64748B;
@@ -397,7 +457,9 @@
   transition: all 0.2s ease;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
+  white-space: nowrap;
+  line-height: 1.3;
 }
 
 .itv-subnav-tab:hover {
@@ -410,12 +472,16 @@
 }
 
 .itv-tab-counter {
-  font-size: 11px;
+  font-size: 11.5px;
   font-weight: 700;
-  padding: 2px 7px;
+  padding: 2px 8px;
   border-radius: 9999px;
   background: #F1F5F9;
   color: #475569;
+  line-height: 1.2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .itv-subnav-tab.is-active .itv-tab-counter {
@@ -451,17 +517,19 @@
   border-radius: 12px;
   padding: 24px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  box-sizing: border-box;
 }
 
 .itv-card-title {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 18.5px;
+  font-size: 18px;
   font-weight: 700;
   color: #0F172A;
-  margin-bottom: 20px;
+  margin: 0 0 20px 0;
   letter-spacing: -0.3px;
+  line-height: 1.3;
 }
 
 .itv-title-icon {
@@ -473,7 +541,7 @@
   color: #D97706 !important;
 }
 
-/* Grid thông tin chung (6 - 9 ô) */
+/* Grid thông tin chung (Chuẩn 3 cột x 2 hàng / 3 hàng) */
 .itv-general-info-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -483,24 +551,29 @@
 .itv-info-cell {
   background: #F8FAFC;
   border: 1px solid #EDF2F7;
-  padding: 14px 16px;
-  border-radius: 8px;
+  padding: 14px 18px;
+  border-radius: 10px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  justify-content: center;
+  gap: 6px;
+  min-height: 84px;
+  box-sizing: border-box;
 }
 
 .itv-cell-label {
   font-size: 12.5px;
   color: #64748B;
   font-weight: 500;
+  line-height: 1.3;
 }
 
 .itv-cell-value {
   font-size: 14.5px;
-  color: #1E293B;
-  font-weight: 600;
-  line-height: 1.4;
+  color: #0F172A;
+  font-weight: 700;
+  line-height: 1.45;
+  word-break: break-word;
 }
 
 .itv-cell-salary {
@@ -533,6 +606,7 @@
   background: #FEF3C7;
   padding: 3px 10px;
   border-radius: 9999px;
+  line-height: 1.2;
 }
 
 .itv-awards-list {
@@ -567,12 +641,14 @@
 .itv-award-info {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 4px;
+  min-width: 0;
 }
 
 .itv-award-info strong {
   font-size: 14px;
   color: #1E293B;
+  line-height: 1.35;
 }
 
 .itv-award-metrics {
@@ -581,6 +657,7 @@
   gap: 8px;
   font-size: 12px;
   color: #64748B;
+  line-height: 1.3;
 }
 
 .itv-award-score {
@@ -645,13 +722,14 @@
 }
 
 .itv-skill-chip {
-  padding: 7px 16px;
+  padding: 6px 14px;
   background: #F1F5F9;
   border: 1px solid #E2E8F0;
   border-radius: 9999px;
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 600;
   color: #334155;
+  line-height: 1.3;
   transition: all 0.2s ease;
 }
 
@@ -676,6 +754,7 @@
   font-weight: 700;
   color: #0F172A;
   margin-bottom: 14px;
+  line-height: 1.3;
 }
 
 .itv-photo-grid {
@@ -741,6 +820,7 @@
   font-size: 13.5px;
   font-weight: 600;
   color: #334155;
+  line-height: 1.3;
   transition: all 0.2s ease;
 }
 
@@ -756,6 +836,7 @@
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 20px;
+  gap: 16px;
 }
 
 .itv-reviews-header .itv-card-title {
@@ -766,6 +847,7 @@
   font-size: 13.5px;
   color: #64748B;
   margin: 0;
+  line-height: 1.4;
 }
 
 .itv-overall-badge {
@@ -777,11 +859,13 @@
   display: flex;
   align-items: baseline;
   gap: 4px;
+  flex-shrink: 0;
 }
 
 .itv-overall-badge strong {
   font-size: 22px;
   font-weight: 800;
+  line-height: 1;
 }
 
 .itv-overall-badge span {
@@ -810,6 +894,7 @@
   justify-content: space-between;
   font-size: 13px;
   color: #334155;
+  line-height: 1.3;
 }
 
 .itv-bar-track {
@@ -843,18 +928,22 @@
   align-items: center;
   justify-content: space-between;
   margin-bottom: 8px;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .itv-reviewer-role {
   font-size: 12px;
   color: #64748B;
+  line-height: 1.3;
 }
 
 .itv-review-headline {
   font-size: 15px;
   font-weight: 700;
   color: #0F172A;
-  margin-bottom: 6px;
+  margin: 0 0 6px 0;
+  line-height: 1.4;
 }
 
 .itv-review-content {
@@ -867,6 +956,7 @@
 /* Địa điểm & Bản đồ */
 .itv-location-tabs {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 16px;
 }
@@ -875,14 +965,15 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 9px 16px;
+  padding: 8px 14px;
   border-radius: 8px;
   border: 1px solid #E2E8F0;
   background: #F8FAFC;
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: 600;
   color: #475569;
   cursor: pointer;
+  line-height: 1.3;
   transition: all 0.2s ease;
 }
 
@@ -905,6 +996,7 @@
   color: #EA1E30;
   padding: 1px 6px;
   border-radius: 4px;
+  line-height: 1.2;
 }
 
 .itv-location-box {
@@ -933,12 +1025,14 @@
   font-size: 15px;
   color: #0F172A;
   margin-bottom: 2px;
+  line-height: 1.3;
 }
 
 .itv-loc-info-row p {
-  font-size: 14px;
+  font-size: 13.5px;
   color: #64748B;
   margin: 0;
+  line-height: 1.45;
 }
 
 /* Khối bản đồ định vị */
@@ -1019,6 +1113,7 @@
   border-radius: 6px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
   white-space: nowrap;
+  line-height: 1.2;
 }
 
 .itv-map-overlay-bar {
@@ -1072,53 +1167,81 @@
   top: 68px;
 }
 
-/* Widget 1: Ứng tuyển nhanh */
+/* Widget 1: Ứng tuyển nhanh (Đúng tông màu & font size như ảnh người dùng) */
 .itv-sticky-apply-widget {
   background: #FFFFFF;
   border: 1px solid #E2E8F0;
   border-radius: 12px;
-  padding: 22px;
+  padding: 24px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  box-sizing: border-box;
 }
 
 .itv-widget-salary-row {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
   margin-bottom: 18px;
-  padding-bottom: 14px;
+  padding-bottom: 16px;
   border-bottom: 1px dashed #E2E8F0;
 }
 
 .itv-widget-salary-label {
-  font-size: 12.5px;
+  font-size: 13px;
   color: #64748B;
   font-weight: 500;
+  line-height: 1.3;
 }
 
 .itv-widget-salary-value {
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 800;
-  color: #EA1E30;
+  color: #DC2626;
   letter-spacing: -0.3px;
+  line-height: 1.2;
 }
 
 .itv-widget-actions {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
 }
 
 .itv-w-full {
-  width: 100%;
+  width: 100% !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 12px 18px !important;
+  font-size: 14.5px !important;
+  border-radius: 8px !important;
+  box-sizing: border-box !important;
+  line-height: 1.3 !important;
+}
+
+/* Nút đã nộp hồ sơ chuẩn màu xanh nhạt như ảnh */
+.itv-sticky-apply-widget .itv-btn-applied {
+  background: #D1FAE5 !important;
+  color: #065F46 !important;
+  border: 1px solid #A7F3D0 !important;
+  cursor: default;
+  font-weight: 700;
+}
+
+/* Nút đã lưu tin chuẩn màu hồng nhạt như ảnh */
+.itv-sticky-apply-widget .itv-btn-secondary.is-saved {
+  background: #FEE2E2 !important;
+  color: #DC2626 !important;
+  border: 1px solid #FECACA !important;
+  font-weight: 700;
 }
 
 .itv-btn-chat-widget {
   background: #F0FDF4;
   color: #15803D;
   border: 1px solid #BBF7D0;
-  padding: 10px 16px;
+  padding: 11px 18px;
   font-size: 14px;
   font-weight: 700;
   border-radius: 8px;
@@ -1128,6 +1251,7 @@
   justify-content: center;
   gap: 8px;
   transition: all 0.2s ease;
+  line-height: 1.3;
 }
 
 .itv-btn-chat-widget:hover {
@@ -1138,7 +1262,7 @@
 }
 
 .itv-widget-footer {
-  padding-top: 12px;
+  padding-top: 14px;
   border-top: 1px dashed #E2E8F0;
 }
 
@@ -1148,6 +1272,7 @@
   gap: 6px;
   font-size: 12.5px;
   color: #64748B;
+  line-height: 1.3;
 }
 
 .itv-widget-deadline strong {
@@ -1174,6 +1299,7 @@
   font-weight: 700;
   color: #0F172A;
   margin: 0;
+  line-height: 1.3;
 }
 
 .itv-sidebar-job-list {
@@ -1204,8 +1330,8 @@
 }
 
 .itv-sb-logo-wrap {
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
   border-radius: 8px;
   border: 1px solid #E2E8F0;
   background: #FFFFFF;
@@ -1226,6 +1352,7 @@
   color: #94A3B8;
   display: block;
   margin-bottom: 2px;
+  line-height: 1.2;
 }
 
 .itv-sb-job-title {
@@ -1233,7 +1360,8 @@
   font-weight: 700;
   color: #0F172A;
   line-height: 1.35;
-  margin: 0 0 3px 0;
+  margin: 0 0 4px 0;
+  word-break: break-word;
   transition: color 0.15s ease;
 }
 
@@ -1245,6 +1373,7 @@
   font-size: 12.5px;
   color: #64748B;
   display: block;
+  line-height: 1.3;
 }
 
 .itv-sb-job-mid {
@@ -1253,6 +1382,7 @@
   justify-content: space-between;
   gap: 8px;
   font-size: 12.5px;
+  line-height: 1.3;
 }
 
 .itv-sb-location {
@@ -1260,6 +1390,7 @@
   align-items: center;
   gap: 4px;
   color: #64748B;
+  white-space: nowrap;
 }
 
 .itv-sb-salary {
@@ -1268,6 +1399,7 @@
   gap: 4px;
   color: #EA1E30;
   font-weight: 700;
+  white-space: nowrap;
 }
 
 .itv-sb-job-skills {
@@ -1283,6 +1415,7 @@
   color: #475569;
   padding: 2px 8px;
   border-radius: 4px;
+  line-height: 1.2;
 }
 
 .itv-sidebar-footer-link {
@@ -1300,6 +1433,7 @@
   font-weight: 700;
   color: #EA1E30;
   text-decoration: none;
+  line-height: 1.3;
 }
 
 .itv-view-all-jobs-btn:hover {
@@ -1327,13 +1461,14 @@
   font-size: 13.5px;
   color: #14532D;
   margin-bottom: 2px;
+  line-height: 1.3;
 }
 
 .itv-trust-badge-card p {
   font-size: 12px;
   color: #166534;
   margin: 0;
-  line-height: 1.4;
+  line-height: 1.45;
 }
 
 /* ==========================================================================
@@ -1357,6 +1492,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
+  flex-wrap: wrap;
 }
 
 .itv-bottom-breadcrumb a {
@@ -1485,6 +1621,7 @@
   .itv-hero-inner {
     flex-direction: column;
     align-items: stretch;
+    gap: 24px;
   }
 
   .itv-hero-right {
@@ -1515,6 +1652,12 @@
   .itv-hero-left {
     flex-direction: column;
     align-items: flex-start;
+    gap: 16px;
+  }
+
+  .itv-hero-logo-box {
+    width: 80px;
+    height: 80px;
   }
 
   .itv-hero-job-title {
