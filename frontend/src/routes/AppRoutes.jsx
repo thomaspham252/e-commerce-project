@@ -3,6 +3,7 @@ import { MainLayout } from '../layouts/MainLayout';
 import { HomePage } from '../pages/HomePage';
 import { AuthPage } from '../pages/AuthPage';
 import { EmailVerificationPage } from '../pages/EmailVerificationPage';
+import { ForgotPasswordPage } from '../pages/ForgotPasswordPage';
 
 // Candidate Imports
 import { JobsPage } from '../pages/candidate/JobsPage';
@@ -53,6 +54,7 @@ export const AppRoutes = () => {
       <Routes>
         <Route path="/dang-nhap" element={<AuthPage />} />
         <Route path="/xac-thuc-email" element={<EmailVerificationPage />} />
+        <Route path="/quen-mat-khau" element={<ForgotPasswordPage />} />
 
         {/* Public Employer Portal Routes */}
         <Route path="/employer" element={<EmployerLandingPage />} />

@@ -1,5 +1,6 @@
 package com.fit.project.service;
 
+import com.fit.project.dto.auth.ChangePasswordRequest;
 import com.fit.project.dto.auth.LoginRequest;
 import com.fit.project.dto.auth.LoginResponse;
 import com.fit.project.dto.auth.RegisterRequest;
@@ -52,7 +53,7 @@ class AuthServiceTest {
         LoginResponse response = authService.register(
                 new RegisterRequest(" Candidate Name ", " CANDIDATE@example.com ", "password123"));
 
-        assertEquals(new LoginResponse(17, "candidate@example.com", UserRole.CANDIDATE), response);
+        assertEquals(new LoginResponse(17, "candidate@example.com", UserRole.CANDIDATE, true), response);
         verify(candidateProfileRepository).save(any(CandidateProfile.class));
         verify(emailVerificationService).sendVerificationCode(user);
         verify(passwordEncoder).encode(eq("password123"));
@@ -83,7 +84,7 @@ class AuthServiceTest {
 
         LoginResponse response = authService.login(new LoginRequest(" candidate@example.com ", "password"));
 
-        assertEquals(new LoginResponse(17, "candidate@example.com", UserRole.CANDIDATE), response);
+        assertEquals(new LoginResponse(17, "candidate@example.com", UserRole.CANDIDATE, true), response);
     }
 
     @Test
@@ -146,7 +147,7 @@ class AuthServiceTest {
 
         LoginResponse response = authService.verifyEmail("candidate@example.com", "012345");
 
-        assertEquals(new LoginResponse(17, "candidate@example.com", UserRole.CANDIDATE), response);
+        assertEquals(new LoginResponse(17, "candidate@example.com", UserRole.CANDIDATE, true), response);
     }
 
     @Test
@@ -156,6 +157,7 @@ class AuthServiceTest {
                 .email("candidate@example.com")
                 .role(UserRole.CANDIDATE)
                 .status(UserStatus.ACTIVE)
+                .passwordLoginEnabled(false)
                 .build();
         when(googleIdentityService.verify("valid-google-credential"))
                 .thenReturn(new GoogleIdentityService.GoogleIdentity("Candidate@example.com", "Candidate Name"));
@@ -165,7 +167,7 @@ class AuthServiceTest {
 
         LoginResponse response = authService.loginWithGoogle("valid-google-credential");
 
-        assertEquals(new LoginResponse(18, "candidate@example.com", UserRole.CANDIDATE), response);
+        assertEquals(new LoginResponse(18, "candidate@example.com", UserRole.CANDIDATE, false), response);
         verify(candidateProfileRepository).save(any(CandidateProfile.class));
     }
 
@@ -183,8 +185,58 @@ class AuthServiceTest {
 
         LoginResponse response = authService.loginWithGoogle("valid-google-credential");
 
-        assertEquals(new LoginResponse(17, "candidate@example.com", UserRole.EMPLOYER), response);
+        assertEquals(new LoginResponse(17, "candidate@example.com", UserRole.EMPLOYER, true), response);
         verify(userRepository, org.mockito.Mockito.never()).save(any(User.class));
         verify(candidateProfileRepository, org.mockito.Mockito.never()).save(any(CandidateProfile.class));
+    }
+
+    @Test
+    void changePasswordVerifiesCurrentPasswordAndStoresNewHash() {
+        User user = User.builder()
+                .id(17)
+                .email("candidate@example.com")
+                .passwordHash("{bcrypt}old")
+                .passwordLoginEnabled(true)
+                .build();
+        when(passwordEncoder.matches("old-password", "{bcrypt}old")).thenReturn(true);
+        when(passwordEncoder.matches("new-password", "{bcrypt}old")).thenReturn(false);
+        when(passwordEncoder.encode("new-password")).thenReturn("{bcrypt}new");
+
+        authService.changePassword(user, new ChangePasswordRequest("old-password", "new-password"));
+
+        assertEquals("{bcrypt}new", user.getPasswordHash());
+        verify(userRepository).save(user);
+    }
+
+    @Test
+    void changePasswordRejectsIncorrectCurrentPassword() {
+        User user = User.builder()
+                .id(17)
+                .passwordHash("{bcrypt}old")
+                .passwordLoginEnabled(true)
+                .build();
+        when(passwordEncoder.matches("wrong-password", "{bcrypt}old")).thenReturn(false);
+
+        ApiException exception = assertThrows(ApiException.class,
+                () -> authService.changePassword(user, new ChangePasswordRequest("wrong-password", "new-password")));
+
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+        org.mockito.Mockito.verify(userRepository, org.mockito.Mockito.never()).save(any(User.class));
+    }
+
+    @Test
+    void googleOnlyAccountCanSetItsFirstPasswordWithoutCurrentPassword() {
+        User user = User.builder()
+                .id(17)
+                .passwordHash("{bcrypt}random")
+                .passwordLoginEnabled(false)
+                .build();
+        when(passwordEncoder.encode("new-password")).thenReturn("{bcrypt}new");
+
+        authService.changePassword(user, new ChangePasswordRequest(null, "new-password"));
+
+        assertEquals("{bcrypt}new", user.getPasswordHash());
+        assertEquals(true, user.isPasswordLoginEnabled());
+        verify(userRepository).save(user);
     }
 }

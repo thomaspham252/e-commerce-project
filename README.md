@@ -26,7 +26,7 @@
 
 ### Tài khoản
 - Đăng ký, đăng nhập, đăng xuất
-- Lấy lại mật khẩu
+- Lấy lại mật khẩu bằng mã xác minh email có thời hạn
 - Đăng nhập bằng Google (OAuth)
 - Cập nhật hồ sơ cá nhân
 

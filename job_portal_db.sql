@@ -27,6 +27,7 @@ CREATE TABLE `users` (
   `role` ENUM('candidate', 'employer', 'admin') NOT NULL COMMENT 'Vai trò người dùng: Ứng viên, Nhà tuyển dụng, Quản trị viên',
   `status` ENUM('active', 'locked') NOT NULL DEFAULT 'active' COMMENT 'Trạng thái tài khoản: đang hoạt động hoặc bị khóa',
   `email_verified` TINYINT(1) NOT NULL DEFAULT 1 COMMENT 'Email đã được xác minh',
+  `password_login_enabled` TINYINT(1) NOT NULL DEFAULT 1 COMMENT 'Tài khoản có thể đăng nhập bằng mật khẩu',
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Thời điểm tạo tài khoản',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_users_email` (`email`)

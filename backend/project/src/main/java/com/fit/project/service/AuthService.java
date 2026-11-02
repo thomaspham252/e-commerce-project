@@ -1,9 +1,13 @@
 package com.fit.project.service;
 
+import com.fit.project.dto.auth.AuthMessageResponse;
+import com.fit.project.dto.auth.ChangePasswordRequest;
+import com.fit.project.dto.auth.ForgotPasswordRequest;
 import com.fit.project.dto.auth.EmployerRegisterRequest;
 import com.fit.project.dto.auth.LoginRequest;
 import com.fit.project.dto.auth.LoginResponse;
 import com.fit.project.dto.auth.RegisterRequest;
+import com.fit.project.dto.auth.ResetPasswordRequest;
 import com.fit.project.entity.CandidateProfile;
 import com.fit.project.entity.Company;
 import com.fit.project.entity.User;
@@ -54,7 +58,7 @@ public class AuthService {
                 .build());
         emailVerificationService.sendVerificationCode(user);
 
-        return new LoginResponse(user.getId(), user.getEmail(), user.getRole());
+        return toLoginResponse(user);
     }
 
     /**
@@ -111,7 +115,7 @@ public class AuthService {
             emailVerificationService.deleteVerificationCode(user);
         }
 
-        return new LoginResponse(user.getId(), user.getEmail(), user.getRole());
+        return toLoginResponse(user);
     }
 
     @Transactional(readOnly = true)
@@ -129,16 +133,48 @@ public class AuthService {
             throw ApiException.forbidden("Vui lòng xác minh email trước khi đăng nhập");
         }
 
-        return new LoginResponse(user.getId(), user.getEmail(), user.getRole());
+        return toLoginResponse(user);
     }
 
     public LoginResponse verifyEmail(String email, String code) {
         User user = emailVerificationService.verifyEmail(email, code);
-        return new LoginResponse(user.getId(), user.getEmail(), user.getRole());
+        return toLoginResponse(user);
     }
 
     public void resendVerificationCode(String email) {
         emailVerificationService.resendVerificationCode(email);
+    }
+
+    public AuthMessageResponse requestPasswordReset(ForgotPasswordRequest request) {
+        emailVerificationService.requestPasswordReset(request.email());
+        return new AuthMessageResponse(
+                "Nếu email đã đăng ký và đã xác minh, mã đặt lại mật khẩu sẽ được gửi đến hộp thư của bạn.");
+    }
+
+    public AuthMessageResponse resetPassword(ResetPasswordRequest request) {
+        emailVerificationService.resetPassword(request.email(), request.code(), request.newPassword());
+        return new AuthMessageResponse("Đặt lại mật khẩu thành công. Bạn có thể đăng nhập bằng mật khẩu mới.");
+    }
+
+    @Transactional
+    public AuthMessageResponse changePassword(User user, ChangePasswordRequest request) {
+        boolean isFirstPassword = !user.isPasswordLoginEnabled();
+        if (!isFirstPassword) {
+            if (request.currentPassword() == null || request.currentPassword().isBlank()
+                    || !passwordEncoder.matches(request.currentPassword(), user.getPasswordHash())) {
+                throw ApiException.badRequest("Mật khẩu hiện tại không chính xác");
+            }
+            if (passwordEncoder.matches(request.newPassword(), user.getPasswordHash())) {
+                throw ApiException.badRequest("Mật khẩu mới phải khác mật khẩu hiện tại");
+            }
+        }
+
+        user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
+        user.setPasswordLoginEnabled(true);
+        userRepository.save(user);
+        return new AuthMessageResponse(isFirstPassword
+                ? "Đặt mật khẩu thành công. Bạn có thể đăng nhập bằng email hoặc Google."
+                : "Đổi mật khẩu thành công.");
     }
 
     private ApiException invalidCredentials() {
@@ -152,6 +188,7 @@ public class AuthService {
                 .role(UserRole.CANDIDATE)
                 .status(UserStatus.ACTIVE)
                 .emailVerified(true)
+                .passwordLoginEnabled(false)
                 .build());
         String fullName = name == null || name.isBlank()
                 ? email.substring(0, email.indexOf('@'))
@@ -161,5 +198,9 @@ public class AuthService {
                 .fullName(fullName)
                 .build());
         return user;
+    }
+
+    private LoginResponse toLoginResponse(User user) {
+        return new LoginResponse(user.getId(), user.getEmail(), user.getRole(), user.isPasswordLoginEnabled());
     }
 }
