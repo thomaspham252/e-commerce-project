@@ -1,120 +1,59 @@
 /**
  * Tầng dịch vụ Gói dịch vụ Nhà tuyển dụng (Employer Package Service).
- * Tuân thủ hợp đồng tại specs/004-employer-packages-dashboard/contracts/employer-service-contract.md.
- * Thao tác in-memory, giả lập Promise bất đồng bộ như API backend.
+ * Toàn bộ dữ liệu lấy từ database: bảng packages (danh mục gói) và subscriptions (gói NTD đang dùng).
+ * Việc kích hoạt gói sau khi thanh toán do backend thực hiện (FulfillmentService).
  */
-
-import {
-  initialEmployerPackages,
-  initialEmployerSubscription,
-} from './employerPackageMockData.js';
 
 import { apiClient } from './apiClient.js';
+import { employerService } from './employerService.js';
 
-let packages = [...initialEmployerPackages];
-let currentSubscription = { ...initialEmployerSubscription };
+/** Danh sách quyền lợi hiển thị trên thẻ gói, sinh từ các cột của bảng packages. */
+const buildFeatures = (pkg) => {
+  const features = [
+    pkg.jobPostLimit == null
+      ? 'Đăng tin tuyển dụng không giới hạn'
+      : `Đăng tối đa ${pkg.jobPostLimit} tin tuyển dụng`,
+    pkg.cvViewLimit == null ? 'Xem hồ sơ ứng viên không giới hạn' : `Xem tối đa ${pkg.cvViewLimit} hồ sơ ứng viên`,
+  ];
+  if (pkg.canHighlightJobs) features.push('Làm nổi bật tin tuyển dụng');
+  if (pkg.canPrioritizeJobs) features.push('Ưu tiên hiển thị tin lên đầu');
+  if (pkg.canSearchCandidates) features.push('Tìm kiếm trong kho hồ sơ ứng viên');
+  if (pkg.includedTokens > 0) features.push(`Tặng kèm ${pkg.includedTokens} Token`);
+  return features;
+};
 
-const simulateDelay = (ms = 120) => new Promise((resolve) => setTimeout(resolve, ms));
+/** Bổ sung các trường giao diện thẻ gói cần (giữ nguyên các cột DB). */
+const toPackageCard = (pkg) => ({
+  ...pkg,
+  priceVND: Number(pkg.priceVND ?? pkg.price ?? 0),
+  maxJobPosts: pkg.jobPostLimit,
+  allowRealtimeChat: Boolean(pkg.canDirectContact),
+  description: `Thời hạn ${pkg.durationDays} ngày`,
+  features: buildFeatures(pkg),
+});
 
 /**
- * 1. Lấy danh sách các gói dịch vụ tuyển dụng từ database MySQL.
+ * 1. Lấy danh sách gói dịch vụ tuyển dụng từ database.
+ * includeInactive = true (Admin): lấy cả gói đã tạm ngưng.
  */
 export const getEmployerPackages = async ({ includeInactive = false } = {}) => {
-  // Admin quản lý gói: luôn lấy từ DB (kể cả gói đã tạm ngưng), lỗi thì báo lên giao diện
-  if (includeInactive) {
-    const res = await apiClient.get('/v1/packages', { params: { all: true } });
-    return res.data.data;
-  }
-  try {
-    const res = await apiClient.get('/v1/packages');
-    if (res.data?.success && res.data?.data) {
-      return res.data.data;
-    }
-  } catch (err) {
-    console.warn('[EmployerPackageService] Backend offline, fallback sang mock:', err);
-  }
-  return packages.filter((p) => p.isActive);
+  const res = await apiClient.get('/v1/packages', { params: includeInactive ? { all: true } : undefined });
+  const list = res.data.data || [];
+  return includeInactive ? list : list.map(toPackageCard);
 };
 
 /**
- * 2. Lấy thông tin gói dịch vụ hiện tại của Nhà tuyển dụng.
+ * 2. Gói dịch vụ hiện tại của NTD đang đăng nhập (bảng subscriptions).
+ * status: ACTIVE | EXPIRED | FREE (chưa từng mua gói). maxJobPosts = null nghĩa là không giới hạn.
  */
-export const getCurrentSubscription = async (_employerId = 'EMP-001') => {
-  await simulateDelay();
-  // Tính lại remainingDays chính xác theo thời gian hiện tại
-  const now = Date.now();
-  const end = new Date(currentSubscription.endDate).getTime();
-  const diffDays = Math.max(0, Math.ceil((end - now) / (86400 * 1000)));
-
-  currentSubscription = {
-    ...currentSubscription,
-    remainingDays: diffDays,
-    status: diffDays > 0 ? 'ACTIVE' : 'EXPIRED',
-  };
-
-  return { ...currentSubscription };
-};
+export const getCurrentSubscription = async () => employerService.getSubscription();
 
 /**
- * 3. Kích hoạt mua/gia hạn/nâng cấp gói sau khi thanh toán thành công (Phương án A).
+ * 3. Sau khi thanh toán thành công, backend đã tự kích hoạt gói — chỉ cần tải lại gói hiện tại.
  */
-export const subscribePackage = async (
-  _employerId = 'EMP-001',
-  packageId = 'pkg-emp-pro',
-  orderId = null
-) => {
-  await simulateDelay();
-  const targetPkg = packages.find((p) => p.id === packageId);
-  if (!targetPkg) {
-    throw new Error(`Không tìm thấy gói dịch vụ có mã: ${packageId}`);
-  }
-
-  const isSamePackage = currentSubscription.packageId === packageId;
-  const now = new Date();
-
-  if (isSamePackage && currentSubscription.status === 'ACTIVE') {
-    // Gia hạn: Cộng dồn thời gian và hạn mức tin
-    const currentEnd = new Date(currentSubscription.endDate);
-    const newEnd = new Date(currentEnd.getTime() + targetPkg.durationDays * 86400 * 1000);
-    const newRemainingDays = Math.max(
-      0,
-      Math.ceil((newEnd.getTime() - Date.now()) / (86400 * 1000))
-    );
-
-    currentSubscription = {
-      ...currentSubscription,
-      endDate: newEnd.toISOString(),
-      remainingDays: newRemainingDays,
-      maxJobPosts: currentSubscription.maxJobPosts + targetPkg.maxJobPosts,
-      allowRealtimeChat: targetPkg.allowRealtimeChat || currentSubscription.allowRealtimeChat,
-      status: 'ACTIVE',
-      lastOrderId: orderId || currentSubscription.lastOrderId,
-    };
-  } else {
-    // Nâng cấp gói khác: Kích hoạt gói mới ngay lập tức
-    const newEnd = new Date(now.getTime() + targetPkg.durationDays * 86400 * 1000);
-
-    currentSubscription = {
-      subscriptionId: `SUB-EMP-${Date.now().toString().slice(-6)}`,
-      employerId: 'EMP-001',
-      companyName: currentSubscription.companyName || 'FPT Software',
-      packageId: targetPkg.id,
-      packageName: targetPkg.name,
-      startDate: now.toISOString(),
-      endDate: newEnd.toISOString(),
-      remainingDays: targetPkg.durationDays,
-      usedJobPosts: 0,
-      maxJobPosts: targetPkg.maxJobPosts,
-      allowRealtimeChat: targetPkg.allowRealtimeChat,
-      status: 'ACTIVE',
-      lastOrderId: orderId,
-    };
-  }
-
-  return {
-    success: true,
-    subscription: { ...currentSubscription },
-  };
+export const subscribePackage = async () => {
+  const subscription = await getCurrentSubscription();
+  return { success: true, subscription };
 };
 
 /**
@@ -138,13 +77,10 @@ export const togglePackageStatus = async (packageId) => {
 };
 
 /**
- * 6. Kiểm tra quyền hạn của NTD để kích hoạt popup PackageLimitModal.
+ * 6. Kiểm tra quyền hạn của NTD (dựa trên gói thật trong DB) để hiện popup PackageLimitModal.
+ * Backend cũng kiểm tra lại khi tạo tin nên không thể vượt hạn mức bằng cách bỏ qua bước này.
  */
-export const checkPackagePermission = async (
-  _employerId = 'EMP-001',
-  actionType = 'POST_JOB'
-) => {
-  await simulateDelay(50);
+export const checkPackagePermission = async (actionType = 'POST_JOB') => {
   const sub = await getCurrentSubscription();
 
   if (sub.status === 'EXPIRED') {
@@ -156,39 +92,30 @@ export const checkPackagePermission = async (
     };
   }
 
-  if (actionType === 'POST_JOB') {
-    if (sub.usedJobPosts >= sub.maxJobPosts) {
-      return {
-        allowed: false,
-        reason: 'LIMIT_REACHED',
-        message: `Bạn đã sử dụng hết ${sub.usedJobPosts}/${sub.maxJobPosts} tin đăng của gói hiện tại. Vui lòng nâng cấp gói để đăng thêm tin mới.`,
-        subscription: sub,
-      };
-    }
+  if (actionType === 'POST_JOB' && sub.maxJobPosts != null && sub.usedJobPosts >= sub.maxJobPosts) {
+    return {
+      allowed: false,
+      reason: 'LIMIT_REACHED',
+      message: sub.status === 'FREE'
+        ? `Bạn đã dùng hết ${sub.maxJobPosts} tin đăng miễn phí. Vui lòng mua gói dịch vụ để đăng thêm tin.`
+        : `Bạn đã sử dụng hết ${sub.usedJobPosts}/${sub.maxJobPosts} tin đăng của gói hiện tại. Vui lòng nâng cấp gói để đăng thêm tin mới.`,
+      subscription: sub,
+    };
   }
 
-  if (actionType === 'REALTIME_CHAT') {
-    if (!sub.allowRealtimeChat) {
-      return {
-        allowed: false,
-        reason: 'NO_PERMISSION',
-        message: 'Gói dịch vụ hiện tại của bạn chưa kích hoạt quyền Nhắn tin Realtime với ứng viên.',
-        subscription: sub,
-      };
-    }
+  if (actionType === 'REALTIME_CHAT' && !sub.allowRealtimeChat) {
+    return {
+      allowed: false,
+      reason: 'NO_PERMISSION',
+      message: 'Gói dịch vụ hiện tại của bạn chưa kích hoạt quyền Nhắn tin trực tiếp với ứng viên.',
+      subscription: sub,
+    };
   }
 
   return { allowed: true, subscription: sub };
 };
 
 /**
- * 7. Tăng số lượng tin đăng đã dùng khi NTD tạo tin thành công.
+ * 7. Sau khi tạo tin thành công: tải lại gói để số tin đã dùng (đếm từ DB) cập nhật.
  */
-export const incrementJobPostUsage = async (_employerId = 'EMP-001') => {
-  await simulateDelay(50);
-  currentSubscription.usedJobPosts = Math.min(
-    currentSubscription.maxJobPosts,
-    currentSubscription.usedJobPosts + 1
-  );
-  return { ...currentSubscription };
-};
+export const incrementJobPostUsage = async () => getCurrentSubscription();

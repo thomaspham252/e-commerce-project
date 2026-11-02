@@ -6,6 +6,7 @@ import {
   checkPackagePermission as serviceCheckPermission,
   incrementJobPostUsage as serviceIncrementUsage,
 } from '../services/employerPackageService.js';
+import { getAuthSession } from '../services/apiClient.js';
 
 const EmployerPackageContext = createContext(null);
 
@@ -18,11 +19,18 @@ export const EmployerPackageProvider = ({ children }) => {
   const [packages, setPackages] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Chỉ tải gói khi người đang đăng nhập là Nhà tuyển dụng (Provider bọc toàn bộ app)
   const fetchSubscription = useCallback(async () => {
+    if (getAuthSession()?.role !== 'EMPLOYER') {
+      setSubscription(null);
+      setPackages([]);
+      setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
       const [subData, pkgsData] = await Promise.all([
-        getCurrentSubscription('EMP-001'),
+        getCurrentSubscription(),
         getEmployerPackages({ includeInactive: false }),
       ]);
       setSubscription(subData);
@@ -36,25 +44,30 @@ export const EmployerPackageProvider = ({ children }) => {
 
   useEffect(() => {
     fetchSubscription();
+    // Đăng nhập / đăng xuất / đổi tài khoản thì tải lại gói
+    window.addEventListener('auth-session-changed', fetchSubscription);
+    return () => window.removeEventListener('auth-session-changed', fetchSubscription);
   }, [fetchSubscription]);
 
-  // Hành động kích hoạt mua/gia hạn gói
-  const purchasePackage = useCallback(async (packageId, orderId = null) => {
-    const res = await serviceSubscribe('EMP-001', packageId, orderId);
+  // Sau khi thanh toán xong: backend đã kích hoạt gói, tải lại gói hiện tại
+  const purchasePackage = useCallback(async () => {
+    const res = await serviceSubscribe();
     if (res.success && res.subscription) {
       setSubscription(res.subscription);
     }
     return res;
   }, []);
 
-  // Kiểm tra quyền hạn (hết tin đăng, hết hạn, chat realtime)
+  // Kiểm tra quyền hạn (hết tin đăng, hết hạn, nhắn tin trực tiếp)
   const checkPermission = useCallback(async (actionType) => {
-    return await serviceCheckPermission('EMP-001', actionType);
+    const result = await serviceCheckPermission(actionType);
+    setSubscription(result.subscription);
+    return result;
   }, []);
 
-  // Tăng số lượng tin đã đăng
+  // Sau khi đăng tin: tải lại số tin đã dùng từ DB
   const incrementUsage = useCallback(async () => {
-    const updated = await serviceIncrementUsage('EMP-001');
+    const updated = await serviceIncrementUsage();
     setSubscription(updated);
     return updated;
   }, []);

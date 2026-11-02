@@ -39,6 +39,7 @@ public class EmployerService {
     private final CompanyRepository companyRepository;
     private final JobRepository jobRepository;
     private final ApplicationRepository applicationRepository;
+    private final EmployerSubscriptionService subscriptionService;
 
     // ===== Doanh nghiệp =====
 
@@ -108,6 +109,7 @@ public class EmployerService {
         if (company.getVerificationStatus() != VerificationStatus.VERIFIED) {
             throw ApiException.forbidden("Doanh nghiệp chưa được xác minh nên chưa thể đăng tin");
         }
+        subscriptionService.assertCanPostJob(employer);
         Job job = Job.builder().company(company).build();
         applyRequest(job, req);
         job.setStatus(JobStatus.PENDING_REVIEW);
