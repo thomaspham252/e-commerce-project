@@ -3,7 +3,9 @@ package com.fit.project.controller;
 import com.fit.project.dto.wallet.TokenPackageResponse;
 import com.fit.project.entity.TokenPackage;
 import com.fit.project.exception.ApiException;
+import com.fit.project.enums.UserRole;
 import com.fit.project.repository.TokenPackageRepository;
+import com.fit.project.service.CurrentUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,11 +26,17 @@ import java.util.stream.Collectors;
 public class TokenPackageController {
 
     private final TokenPackageRepository tokenPackageRepository;
+    private final CurrentUserService currentUserService;
 
     @GetMapping
     @Transactional(readOnly = true)
     public ResponseEntity<Map<String, Object>> getTokenPackages(
+            @RequestHeader(value = CurrentUserService.HEADER, required = false) Integer userId,
             @RequestParam(name = "all", defaultValue = "false") boolean all) {
+        if (all) {
+            // Danh sách đầy đủ (kể cả gói đã tắt) chỉ dành cho Admin
+            currentUserService.require(userId, UserRole.ADMIN);
+        }
         List<TokenPackage> packages = all ? tokenPackageRepository.findAll() : tokenPackageRepository.findByIsActiveTrue();
 
         List<TokenPackageResponse> responses = packages.stream().map(pkg -> {
@@ -76,10 +84,16 @@ public class TokenPackageController {
 
     @PostMapping
     @Transactional
-    public ResponseEntity<Map<String, Object>> createTokenPackage(@RequestBody Map<String, Object> payload) {
-        int tokens = Integer.parseInt(payload.get("tokens").toString());
-        BigDecimal price = new BigDecimal(payload.get("priceVND") != null ? payload.get("priceVND").toString() : payload.get("price").toString());
-        int bonus = payload.get("bonusTokens") != null ? Integer.parseInt(payload.get("bonusTokens").toString()) : 0;
+    public ResponseEntity<Map<String, Object>> createTokenPackage(
+            @RequestHeader(value = CurrentUserService.HEADER, required = false) Integer userId,
+            @RequestBody Map<String, Object> payload) {
+        currentUserService.require(userId, UserRole.ADMIN);
+        Integer tokens = intField(payload, "tokens", "Số Token", 1);
+        BigDecimal price = priceField(payload);
+        if (tokens == null) throw ApiException.badRequest("Vui lòng nhập số Token");
+        if (price == null) throw ApiException.badRequest("Vui lòng nhập giá bán");
+        Integer bonusValue = intField(payload, "bonusTokens", "Số Token tặng thêm", 0);
+        int bonus = bonusValue != null ? bonusValue : 0;
         String badge = payload.get("badgeLabel") != null ? payload.get("badgeLabel").toString() : null;
         String desc = payload.get("description") != null ? payload.get("description").toString() : null;
         boolean popular = payload.get("isPopular") != null && Boolean.parseBoolean(payload.get("isPopular").toString());
@@ -99,20 +113,25 @@ public class TokenPackageController {
 
     @PutMapping("/{id}")
     @Transactional
-    public ResponseEntity<Map<String, Object>> updateTokenPackage(@PathVariable Integer id, @RequestBody Map<String, Object> payload) {
+    public ResponseEntity<Map<String, Object>> updateTokenPackage(
+            @RequestHeader(value = CurrentUserService.HEADER, required = false) Integer userId,
+            @PathVariable Integer id,
+            @RequestBody Map<String, Object> payload) {
+        currentUserService.require(userId, UserRole.ADMIN);
         TokenPackage pkg = tokenPackageRepository.findById(id)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Không tìm thấy gói Token ID: " + id));
 
-        if (payload.containsKey("tokens") && payload.get("tokens") != null) {
-            pkg.setTokens(Integer.parseInt(payload.get("tokens").toString()));
+        Integer tokens = intField(payload, "tokens", "Số Token", 1);
+        if (tokens != null) {
+            pkg.setTokens(tokens);
         }
-        if (payload.containsKey("priceVND") && payload.get("priceVND") != null) {
-            pkg.setPrice(new BigDecimal(payload.get("priceVND").toString()));
-        } else if (payload.containsKey("price") && payload.get("price") != null) {
-            pkg.setPrice(new BigDecimal(payload.get("price").toString()));
+        BigDecimal price = priceField(payload);
+        if (price != null) {
+            pkg.setPrice(price);
         }
-        if (payload.containsKey("bonusTokens") && payload.get("bonusTokens") != null) {
-            pkg.setBonusTokens(Integer.parseInt(payload.get("bonusTokens").toString()));
+        Integer bonus = intField(payload, "bonusTokens", "Số Token tặng thêm", 0);
+        if (bonus != null) {
+            pkg.setBonusTokens(bonus);
         }
         if (payload.containsKey("badgeLabel")) {
             pkg.setBadgeLabel(payload.get("badgeLabel") != null ? payload.get("badgeLabel").toString() : null);
@@ -128,9 +147,44 @@ public class TokenPackageController {
         return ResponseEntity.ok(Map.of("success", true, "data", saved));
     }
 
+    /** Đọc số nguyên từ payload; null nếu không gửi. Sai định dạng hoặc nhỏ hơn min → 400. */
+    private static Integer intField(Map<String, Object> payload, String key, String label, int min) {
+        Object raw = payload.get(key);
+        if (raw == null || raw.toString().isBlank()) return null;
+        int value;
+        try {
+            value = new BigDecimal(raw.toString().trim()).intValueExact();
+        } catch (NumberFormatException | ArithmeticException e) {
+            throw ApiException.badRequest(label + " phải là số nguyên hợp lệ");
+        }
+        if (value < min) {
+            throw ApiException.badRequest(label + (min > 0 ? " phải lớn hơn 0" : " không được âm"));
+        }
+        return value;
+    }
+
+    /** Giá bán (nhận priceVND hoặc price); null nếu không gửi. Sai định dạng hoặc ≤ 0 → 400. */
+    private static BigDecimal priceField(Map<String, Object> payload) {
+        Object raw = payload.get("priceVND") != null ? payload.get("priceVND") : payload.get("price");
+        if (raw == null || raw.toString().isBlank()) return null;
+        BigDecimal price;
+        try {
+            price = new BigDecimal(raw.toString().trim());
+        } catch (NumberFormatException e) {
+            throw ApiException.badRequest("Giá bán phải là số hợp lệ");
+        }
+        if (price.signum() <= 0) {
+            throw ApiException.badRequest("Giá bán phải lớn hơn 0");
+        }
+        return price;
+    }
+
     @PatchMapping("/{id}/toggle-status")
     @Transactional
-    public ResponseEntity<Map<String, Object>> toggleTokenPackageStatus(@PathVariable Integer id) {
+    public ResponseEntity<Map<String, Object>> toggleTokenPackageStatus(
+            @RequestHeader(value = CurrentUserService.HEADER, required = false) Integer userId,
+            @PathVariable Integer id) {
+        currentUserService.require(userId, UserRole.ADMIN);
         TokenPackage pkg = tokenPackageRepository.findById(id)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Không tìm thấy gói Token ID: " + id));
         pkg.setIsActive(!Boolean.TRUE.equals(pkg.getIsActive()));

@@ -1,9 +1,34 @@
 import React, { useState, useEffect } from 'react';
 import { FiX, FiCheck } from 'react-icons/fi';
+import { getErrorMessage } from '../../services/apiClient';
 import './PackageManageModal.css';
 
+/** Các quyền lợi dạng bật/tắt — khớp cột boolean của bảng packages. */
+const BENEFITS = [
+  { key: 'canHighlightJobs', label: 'Làm nổi bật tin tuyển dụng' },
+  { key: 'canPrioritizeJobs', label: 'Ưu tiên hiển thị tin lên đầu' },
+  { key: 'canSearchCandidates', label: 'Tìm kiếm trong kho hồ sơ ứng viên' },
+  { key: 'canDirectContact', label: 'Chủ động nhắn tin trực tiếp với ứng viên' },
+];
+
+const EMPTY_FORM = {
+  name: '',
+  price: '',
+  durationDays: 30,
+  jobPostLimit: 5,
+  cvViewLimit: '',
+  includedTokens: 0,
+  canHighlightJobs: false,
+  canPrioritizeJobs: false,
+  canSearchCandidates: false,
+  canDirectContact: false,
+};
+
+/** '' → null (không giới hạn), còn lại đổi sang số. */
+const toLimit = (value) => (value === '' || value == null ? null : Number(value));
+
 /**
- * Modal Thêm / Chỉnh sửa Gói dịch vụ Nhà tuyển dụng.
+ * Modal Thêm / Chỉnh sửa Gói dịch vụ Nhà tuyển dụng (lưu vào bảng packages).
  * Kiểm tra tính hợp lệ dữ liệu và thông báo lỗi bằng tiếng Việt.
  */
 export const PackageManageModal = ({
@@ -12,19 +37,7 @@ export const PackageManageModal = ({
   onSave,
   initialData = null,
 }) => {
-  const [formData, setFormData] = useState({
-    name: '',
-    priceVND: '',
-    durationDays: 30,
-    maxJobPosts: 5,
-    allowRealtimeChat: true,
-    isPopular: false,
-    badge: '',
-    description: '',
-    featuresText: '',
-    isActive: true,
-  });
-
+  const [formData, setFormData] = useState(EMPTY_FORM);
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
 
@@ -33,29 +46,18 @@ export const PackageManageModal = ({
       setFormData({
         id: initialData.id,
         name: initialData.name || '',
-        priceVND: initialData.priceVND ?? '',
+        price: initialData.price ?? initialData.priceVND ?? '',
         durationDays: initialData.durationDays ?? 30,
-        maxJobPosts: initialData.maxJobPosts ?? 5,
-        allowRealtimeChat: Boolean(initialData.allowRealtimeChat),
-        isPopular: Boolean(initialData.isPopular),
-        badge: initialData.badge || '',
-        description: initialData.description || '',
-        featuresText: (initialData.features || []).join('\n'),
-        isActive: initialData.isActive !== false,
+        jobPostLimit: initialData.jobPostLimit ?? '',
+        cvViewLimit: initialData.cvViewLimit ?? '',
+        includedTokens: initialData.includedTokens ?? 0,
+        canHighlightJobs: Boolean(initialData.canHighlightJobs),
+        canPrioritizeJobs: Boolean(initialData.canPrioritizeJobs),
+        canSearchCandidates: Boolean(initialData.canSearchCandidates),
+        canDirectContact: Boolean(initialData.canDirectContact),
       });
     } else {
-      setFormData({
-        name: '',
-        priceVND: '',
-        durationDays: 30,
-        maxJobPosts: 5,
-        allowRealtimeChat: true,
-        isPopular: false,
-        badge: '',
-        description: '',
-        featuresText: 'Đăng tin tuyển dụng tiêu chuẩn\nTìm kiếm và lọc hồ sơ ứng viên\nChat trao đổi realtime với ứng viên',
-        isActive: true,
-      });
+      setFormData(EMPTY_FORM);
     }
     setErrors({});
   }, [initialData, isOpen]);
@@ -72,27 +74,36 @@ export const PackageManageModal = ({
 
   if (!isOpen) return null;
 
+  const setField = (key, value) => setFormData((prev) => ({ ...prev, [key]: value }));
+
   const validate = () => {
     const newErrors = {};
 
-    if (!formData.name || formData.name.trim().length < 3) {
-      newErrors.name = 'Tên gói dịch vụ phải có tối thiểu 3 ký tự';
+    const name = formData.name.trim();
+    if (name.length < 3 || name.length > 100) {
+      newErrors.name = 'Tên gói dịch vụ phải từ 3 đến 100 ký tự';
     }
 
-    const price = Number(formData.priceVND);
-    if (formData.priceVND === '' || isNaN(price) || price <= 0) {
-      newErrors.priceVND = 'Giá bán phải là số hợp lệ và lớn hơn 0 ₫';
+    const price = Number(formData.price);
+    if (formData.price === '' || isNaN(price) || price <= 0) {
+      newErrors.price = 'Giá bán phải là số hợp lệ và lớn hơn 0 ₫';
     }
 
     const duration = Number(formData.durationDays);
-    if (formData.durationDays === '' || isNaN(duration) || duration <= 0) {
-      newErrors.durationDays = 'Thời hạn sử dụng phải lớn hơn 0 ngày';
+    if (formData.durationDays === '' || !Number.isInteger(duration) || duration <= 0) {
+      newErrors.durationDays = 'Thời hạn sử dụng phải là số nguyên lớn hơn 0';
     }
 
-    const posts = Number(formData.maxJobPosts);
-    if (formData.maxJobPosts === '' || isNaN(posts) || posts < 0) {
-      newErrors.maxJobPosts = 'Số lượng tin đăng không được là số âm';
-    }
+    [
+      ['jobPostLimit', 'Số tin đăng'],
+      ['cvViewLimit', 'Số lượt xem CV'],
+      ['includedTokens', 'Số token tặng kèm'],
+    ].forEach(([key, label]) => {
+      const value = formData[key];
+      if (value !== '' && value != null && (!Number.isInteger(Number(value)) || Number(value) < 0)) {
+        newErrors[key] = `${label} phải là số nguyên không âm`;
+      }
+    });
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -104,28 +115,46 @@ export const PackageManageModal = ({
 
     setSubmitting(true);
     try {
-      const features = formData.featuresText
-        .split('\n')
-        .map((f) => f.trim())
-        .filter(Boolean);
-
-      const payload = {
-        ...formData,
-        priceVND: Number(formData.priceVND),
+      await onSave?.({
+        id: formData.id,
+        name: formData.name.trim(),
+        price: Number(formData.price),
         durationDays: Number(formData.durationDays),
-        maxJobPosts: Number(formData.maxJobPosts),
-        features: features.length > 0 ? features : [`Đăng tối đa ${formData.maxJobPosts} tin`],
-      };
-      delete payload.featuresText;
-
-      await onSave?.(payload);
+        jobPostLimit: toLimit(formData.jobPostLimit),
+        cvViewLimit: toLimit(formData.cvViewLimit),
+        includedTokens: Number(formData.includedTokens || 0),
+        canHighlightJobs: formData.canHighlightJobs,
+        canPrioritizeJobs: formData.canPrioritizeJobs,
+        canSearchCandidates: formData.canSearchCandidates,
+        canDirectContact: formData.canDirectContact,
+      });
       onClose?.();
     } catch (err) {
-      alert(err.message || 'Có lỗi xảy ra khi lưu gói dịch vụ');
+      setErrors({ submit: getErrorMessage(err) || 'Có lỗi xảy ra khi lưu gói dịch vụ' });
     } finally {
       setSubmitting(false);
     }
   };
+
+  const numberField = (key, label, { placeholder, min = 0, step = 1, required = false, hint } = {}) => (
+    <div className="pkg-form-group">
+      <label className="pkg-form-label">
+        {label} {required && <span className="required">*</span>}
+      </label>
+      <input
+        type="number"
+        min={min}
+        step={step}
+        className={`pkg-form-input ${errors[key] ? 'error' : ''}`}
+        placeholder={placeholder}
+        value={formData[key]}
+        onChange={(e) => setField(key, e.target.value)}
+      />
+      {errors[key]
+        ? <span className="pkg-form-error">{errors[key]}</span>
+        : hint && <span style={{ fontSize: '12px', color: '#64748b' }}>{hint}</span>}
+    </div>
+  );
 
   return (
     <div className="pkg-modal-overlay" onClick={onClose}>
@@ -147,116 +176,46 @@ export const PackageManageModal = ({
               </label>
               <input
                 type="text"
+                maxLength={100}
                 className={`pkg-form-input ${errors.name ? 'error' : ''}`}
                 placeholder="VD: Gói Khởi Nghiệp, Gói Tăng Tốc..."
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) => setField('name', e.target.value)}
               />
               {errors.name && <span className="pkg-form-error">{errors.name}</span>}
             </div>
 
             <div className="pkg-form-row">
-              <div className="pkg-form-group">
-                <label className="pkg-form-label">
-                  Giá bán (VNĐ) <span className="required">*</span>
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  step="1000"
-                  className={`pkg-form-input ${errors.priceVND ? 'error' : ''}`}
-                  placeholder="VD: 599000"
-                  value={formData.priceVND}
-                  onChange={(e) => setFormData({ ...formData, priceVND: e.target.value })}
-                />
-                {errors.priceVND && <span className="pkg-form-error">{errors.priceVND}</span>}
-              </div>
-
-              <div className="pkg-form-group">
-                <label className="pkg-form-label">
-                  Thời hạn (Ngày) <span className="required">*</span>
-                </label>
-                <input
-                  type="number"
-                  min="1"
-                  className={`pkg-form-input ${errors.durationDays ? 'error' : ''}`}
-                  placeholder="VD: 30"
-                  value={formData.durationDays}
-                  onChange={(e) => setFormData({ ...formData, durationDays: e.target.value })}
-                />
-                {errors.durationDays && <span className="pkg-form-error">{errors.durationDays}</span>}
-              </div>
+              {numberField('price', 'Giá bán (VNĐ)', { placeholder: 'VD: 599000', step: 1000, required: true })}
+              {numberField('durationDays', 'Thời hạn (Ngày)', { placeholder: 'VD: 30', min: 1, required: true })}
             </div>
 
             <div className="pkg-form-row">
-              <div className="pkg-form-group">
-                <label className="pkg-form-label">
-                  Số tin đăng tối đa <span className="required">*</span>
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  className={`pkg-form-input ${errors.maxJobPosts ? 'error' : ''}`}
-                  placeholder="VD: 5"
-                  value={formData.maxJobPosts}
-                  onChange={(e) => setFormData({ ...formData, maxJobPosts: e.target.value })}
-                />
-                {errors.maxJobPosts && <span className="pkg-form-error">{errors.maxJobPosts}</span>}
-              </div>
-
-              <div className="pkg-form-group">
-                <label className="pkg-form-label">Huy hiệu nổi bật (Badge)</label>
-                <input
-                  type="text"
-                  className="pkg-form-input"
-                  placeholder="VD: Phổ biến nhất, Tiết kiệm 20%"
-                  value={formData.badge}
-                  onChange={(e) => setFormData({ ...formData, badge: e.target.value })}
-                />
-              </div>
-            </div>
-
-            <div className="pkg-form-group">
-              <label className="pkg-form-label">Mô tả ngắn</label>
-              <input
-                type="text"
-                className="pkg-form-input"
-                placeholder="VD: Phù hợp doanh nghiệp tuyển dụng quy mô nhỏ và vừa"
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              />
-            </div>
-
-            <div className="pkg-form-group">
-              <label className="pkg-form-label">Danh sách tính năng / quyền lợi (Mỗi dòng 1 mục)</label>
-              <textarea
-                rows="4"
-                className="pkg-form-textarea"
-                placeholder="Đăng tối đa 5 tin tuyển dụng&#10;Hiển thị ưu tiên trên trang chủ&#10;Hỗ trợ kỹ thuật 24/7"
-                value={formData.featuresText}
-                onChange={(e) => setFormData({ ...formData, featuresText: e.target.value })}
-              />
+              {numberField('jobPostLimit', 'Số tin đăng tối đa', { placeholder: 'VD: 5', hint: 'Để trống = không giới hạn' })}
+              {numberField('cvViewLimit', 'Số lượt xem CV', { placeholder: 'VD: 50', hint: 'Để trống = không giới hạn' })}
             </div>
 
             <div className="pkg-form-row">
-              <label className="pkg-form-checkbox-label">
-                <input
-                  type="checkbox"
-                  checked={formData.allowRealtimeChat}
-                  onChange={(e) => setFormData({ ...formData, allowRealtimeChat: e.target.checked })}
-                />
-                <span>Hỗ trợ Chat Realtime với ứng viên</span>
-              </label>
-
-              <label className="pkg-form-checkbox-label">
-                <input
-                  type="checkbox"
-                  checked={formData.isPopular}
-                  onChange={(e) => setFormData({ ...formData, isPopular: e.target.checked })}
-                />
-                <span>Đánh dấu gói Nổi bật (Highlight)</span>
-              </label>
+              {numberField('includedTokens', 'Token tặng kèm', { placeholder: 'VD: 0' })}
             </div>
+
+            <div className="pkg-form-group">
+              <label className="pkg-form-label">Quyền lợi của gói</label>
+              <div className="pkg-form-row" style={{ flexWrap: 'wrap' }}>
+                {BENEFITS.map(({ key, label }) => (
+                  <label key={key} className="pkg-form-checkbox-label">
+                    <input
+                      type="checkbox"
+                      checked={formData[key]}
+                      onChange={(e) => setField(key, e.target.checked)}
+                    />
+                    <span>{label}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {errors.submit && <span className="pkg-form-error">{errors.submit}</span>}
           </div>
 
           <div className="pkg-modal-footer">

@@ -63,8 +63,18 @@ export const StatusBadge = ({ status }) => {
     case 'cancelled':
     case 'đã huỷ':
     case 'đã hủy':
+    case 'failed':
+    case 'thất bại':
       badgeClass = 'badge-danger';
-      label = status === 'CANCELLED' ? 'Đã huỷ' : label;
+      if (status === 'CANCELLED') label = 'Đã huỷ';
+      if (status === 'FAILED') label = 'Thất bại';
+      break;
+
+    // Giao dịch đã hoàn tiền
+    case 'refunded':
+    case 'đã hoàn tiền':
+      badgeClass = 'badge-default';
+      if (status === 'REFUNDED') label = 'Đã hoàn tiền';
       break;
 
     // Trạng thái thông tin / phỏng vấn

@@ -2,7 +2,9 @@ package com.fit.project.controller;
 
 import com.fit.project.entity.ServiceFee;
 import com.fit.project.exception.ApiException;
+import com.fit.project.enums.UserRole;
 import com.fit.project.repository.ServiceFeeRepository;
+import com.fit.project.service.CurrentUserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -23,6 +25,7 @@ import java.util.Map;
 public class ServiceFeeController {
 
     private final ServiceFeeRepository serviceFeeRepository;
+    private final CurrentUserService currentUserService;
 
     @GetMapping
     @Transactional(readOnly = true)
@@ -37,8 +40,10 @@ public class ServiceFeeController {
     @PutMapping("/{id}")
     @Transactional
     public ResponseEntity<Map<String, Object>> updateServiceFee(
+            @RequestHeader(value = CurrentUserService.HEADER, required = false) Integer userId,
             @PathVariable String id,
             @RequestBody Map<String, Object> payload) {
+        currentUserService.require(userId, UserRole.ADMIN);
         ServiceFee fee = null;
         try {
             Integer numId = Integer.parseInt(id);
@@ -51,7 +56,12 @@ public class ServiceFeeController {
         }
 
         if (payload.containsKey("tokenCost") && payload.get("tokenCost") != null) {
-            int cost = Integer.parseInt(payload.get("tokenCost").toString());
+            int cost;
+            try {
+                cost = new java.math.BigDecimal(payload.get("tokenCost").toString().trim()).intValueExact();
+            } catch (NumberFormatException | ArithmeticException e) {
+                throw new ApiException(HttpStatus.BAD_REQUEST, "Mức trừ Token phải là số nguyên hợp lệ");
+            }
             if (cost <= 0) {
                 throw new ApiException(HttpStatus.BAD_REQUEST, "Mức trừ Token phải lớn hơn 0");
             }

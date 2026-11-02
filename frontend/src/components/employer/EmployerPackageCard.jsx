@@ -55,12 +55,16 @@ export const EmployerPackageCard = ({
       <div className="emp-pkg-highlights">
         <div className="emp-highlight-item">
           <Briefcase className="emp-highlight-icon" />
-          <span>Đăng tối đa <strong>{pkg.maxJobPosts} tin</strong> tuyển dụng</span>
+          {pkg.maxJobPosts == null ? (
+            <span>Đăng tin <strong>không giới hạn</strong></span>
+          ) : (
+            <span>Đăng tối đa <strong>{pkg.maxJobPosts} tin</strong> tuyển dụng</span>
+          )}
         </div>
         <div className="emp-highlight-item">
           <FiMessageSquare className="emp-highlight-icon" />
           <span>
-            Chat Realtime ứng viên:{' '}
+            Nhắn tin trực tiếp ứng viên:{' '}
             {pkg.allowRealtimeChat ? (
               <strong className="text-success">Có hỗ trợ</strong>
             ) : (
@@ -82,7 +86,7 @@ export const EmployerPackageCard = ({
           {!pkg.allowRealtimeChat && (
             <li className="emp-feature-item text-muted">
               <FiX className="feature-x-icon" />
-              <span>Chưa hỗ trợ Nhắn tin Realtime</span>
+              <span>Chưa hỗ trợ nhắn tin trực tiếp với ứng viên</span>
             </li>
           )}
         </ul>

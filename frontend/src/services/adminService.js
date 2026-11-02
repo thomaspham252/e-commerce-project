@@ -10,8 +10,6 @@ export const adminService = {
   updateSearchable: (id, searchable) => apiClient.patch(`/admin/users/${id}/searchable`, { searchable }, cfg()),
 
   // Hồ sơ (CV)
-  getCvs: (params) => apiClient.get('/admin/cvs', cfg(params)).then((r) => r.data),
-  deleteCv: (id) => apiClient.delete(`/admin/cvs/${id}`, cfg()),
 
   // Doanh nghiệp
   getCompanies: (params) => apiClient.get('/admin/companies', cfg(params)).then((r) => r.data),
@@ -31,4 +29,7 @@ export const adminService = {
   getMonthlyStats: ({ months = 6, from, to } = {}) =>
     apiClient.get('/admin/stats/monthly', cfg({ months, from, to })).then((r) => r.data),
   getJobStatusStats: () => apiClient.get('/admin/stats/job-status', cfg()).then((r) => r.data),
+  /** Báo cáo doanh thu từ đơn đã thanh toán; from/to dạng yyyy-MM-dd, bỏ trống = toàn bộ / hôm nay. */
+  getRevenueStats: ({ from, to } = {}) =>
+    apiClient.get('/admin/stats/revenue', cfg({ from, to })).then((r) => r.data),
 };

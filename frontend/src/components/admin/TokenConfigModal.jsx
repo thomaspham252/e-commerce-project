@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FiX, FiCheck } from 'react-icons/fi';
+import { toast } from 'react-toastify';
+import { getErrorMessage } from '../../services/apiClient';
 import './TokenConfigModal.css';
 
 /**
@@ -132,7 +134,7 @@ export const TokenConfigModal = ({
       }
       onClose?.();
     } catch (err) {
-      alert(err.message || 'Lỗi khi lưu cấu hình');
+      toast.error(getErrorMessage(err) || 'Lỗi khi lưu cấu hình');
     } finally {
       setSubmitting(false);
     }

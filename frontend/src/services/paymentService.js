@@ -6,16 +6,12 @@
 import { apiClient, getErrorMessage } from './apiClient.js';
 import {
   initialMockOrders,
-  initialMockTransactions,
-  initialMockWebhookLogs,
   DEFAULT_BANK_INFO,
   generateVietQrUrl,
 } from './paymentMockData.js';
 
-// Trạng thái lưu trữ in-memory dùng để fallback khi không có kết nối mạng
+// Trạng thái lưu trữ in-memory dùng để fallback khi không có kết nối mạng (luồng thanh toán phía người dùng)
 let mockOrders = [...initialMockOrders];
-let mockTransactions = [...initialMockTransactions];
-let mockWebhookLogs = { ...initialMockWebhookLogs };
 
 /**
  * Chuẩn hóa đối tượng đơn hàng trả về cho các component Frontend.
@@ -248,8 +244,28 @@ export const simulateOrderStatus = async (orderId, targetStatus, customActualAmo
   return { orderId, status: targetStatus, actualAmount: customActualAmount };
 };
 
+/** Chuẩn hóa một dòng giao dịch từ API /v1/admin/payments cho giao diện Admin. */
+const normalizeAdminTransaction = (row) => ({
+  transactionId: row.id,
+  orderId: row.orderCode,
+  orderType: row.orderType, // SUBSCRIPTION (gói NTD) | TOKEN (nạp token)
+  serviceName: row.serviceName,
+  userName: row.userName,
+  userEmail: row.userEmail,
+  expectedAmount: Number(row.expectedAmount ?? 0),
+  actualAmount: Number(row.actualAmount ?? 0),
+  amount: Number(row.actualAmount ?? 0),
+  amountMismatch: row.status === 'SUCCESS' && Number(row.actualAmount) !== Number(row.expectedAmount),
+  referenceCode: row.referenceCode,
+  gateway: row.gateway,
+  status: row.status, // PENDING | SUCCESS | FAILED | REFUNDED
+  createdAt: row.createdAt,
+  receivedAt: row.paidAt,
+});
+
 /**
- * 5. Lấy danh sách giao dịch hiển thị cho Quản trị viên (Admin).
+ * 5. Lấy danh sách giao dịch cho Quản trị viên (Admin) từ database (bảng payments + orders).
+ * Lọc trạng thái / loại đơn / khoảng ngày / từ khóa được thực hiện ở backend. Lỗi được ném ra cho giao diện.
  */
 export const getTransactions = async ({
   status = 'ALL',
@@ -260,88 +276,38 @@ export const getTransactions = async ({
   page = 1,
   pageSize = 10,
 } = {}) => {
-  try {
-    const params = {
-      status,
-      orderType,
-      search,
-      page: page - 1,
-      size: pageSize,
-    };
-    const res = await apiClient.get('/v1/admin/payments', { params });
-    if (res.data?.success && res.data?.data) {
-      const pageData = res.data.data;
-      return {
-        data: pageData.content || [],
-        total: pageData.totalElements || 0,
-        page: (pageData.page || 0) + 1,
-        pageSize: pageData.size || pageSize,
-        totalPages: pageData.totalPages || 1,
-      };
-    }
-  } catch (err) {
-    console.warn('[PaymentService] Lỗi gọi API admin payments, fallback sang mock:', err);
-  }
-
-  // Fallback mock transactions
-  let filtered = [...mockTransactions];
-  if (status && status !== 'ALL') {
-    filtered = filtered.filter((t) => t.status === status);
-  }
-  if (orderType && orderType !== 'ALL') {
-    filtered = filtered.filter((t) => t.orderType === orderType);
-  }
-  if (search && search.trim() !== '') {
-    const q = search.trim().toLowerCase();
-    filtered = filtered.filter(
-      (t) =>
-        t.orderId.toLowerCase().includes(q) ||
-        t.userName.toLowerCase().includes(q) ||
-        t.userEmail.toLowerCase().includes(q)
-    );
-  }
-
-  const total = filtered.length;
-  const totalPages = Math.ceil(total / pageSize) || 1;
-  const startIndex = (page - 1) * pageSize;
-  const paginatedData = filtered.slice(startIndex, startIndex + pageSize);
-
-  return {
-    data: paginatedData,
-    total,
-    page,
-    pageSize,
-    totalPages,
+  const params = {
+    status,
+    orderType,
+    search: search?.trim() || undefined,
+    from: startDate || undefined,
+    to: endDate || undefined,
+    page: page - 1,
+    size: pageSize,
   };
+  const res = await apiClient.get('/v1/admin/payments', { params });
+  const pageData = res.data.data;
+  return {
+    data: (pageData.content || []).map(normalizeAdminTransaction),
+    total: pageData.totalElements || 0,
+    page: (pageData.page || 0) + 1,
+    pageSize: pageData.size || pageSize,
+    totalPages: pageData.totalPages || 1,
+  };
+};
+
+/** 5b. Thống kê nhanh toàn bộ giao dịch: { PENDING, SUCCESS, FAILED, REFUNDED, AMOUNT_MISMATCH }. */
+export const getTransactionSummary = async () => {
+  const res = await apiClient.get('/v1/admin/payments/summary');
+  return res.data.data;
 };
 
 /**
- * 6. Lấy chi tiết một giao dịch kèm log Webhook SePay mẫu.
+ * 6. Chi tiết một giao dịch (dữ liệu thật của dòng giao dịch đã tải).
+ * Hệ thống không lưu bản tin webhook gốc vào database nên webhookLog = null.
  */
-export const getTransactionDetailWithWebhook = async (transactionId) => {
-  const tx = mockTransactions.find((t) => t.transactionId === transactionId);
-  const order = mockOrders.find((o) => o.orderId === (tx ? tx.orderId : transactionId)) || null;
-  const webhookLog = tx ? (mockWebhookLogs[tx.webhookLogId] || null) : null;
-
-  return {
-    transaction: tx || { transactionId, status: 'SUCCESS' },
-    order,
-    webhookLog: webhookLog || {
-      id: `WH-LOG-${transactionId}`,
-      transactionId,
-      orderCode: order ? order.orderId : '-',
-      gateway: 'SePay - MBBank',
-      receivedAt: new Date().toISOString(),
-      rawPayload: {
-        id: Math.floor(1000000 + Math.random() * 9000000),
-        gateway: 'MBBank',
-        transactionDate: new Date().toISOString(),
-        accountNumber: DEFAULT_BANK_INFO.accountNumber,
-        content: `JOBVIET ${order ? order.orderId : ''} chuyen khoan thanh toan`,
-        transferType: 'in',
-        transferAmount: order ? order.amount : 100000,
-        referenceCode: `FT${Date.now().toString().slice(-8)}`,
-      },
-    },
-  };
-};
+export const getTransactionDetailWithWebhook = async (transaction) => ({
+  transaction,
+  order: null,
+  webhookLog: null,
+});

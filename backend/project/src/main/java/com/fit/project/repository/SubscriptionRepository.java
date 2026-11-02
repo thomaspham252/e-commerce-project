@@ -2,9 +2,13 @@ package com.fit.project.repository;
 
 import com.fit.project.entity.Subscription;
 import com.fit.project.enums.SubscriptionStatus;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,4 +20,20 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, Inte
     List<Subscription> findByEmployerIdAndStatus(Integer employerId, SubscriptionStatus status);
 
     Optional<Subscription> findFirstByEmployerIdAndStatusOrderByEndAtDesc(Integer employerId, SubscriptionStatus status);
+
+    /** Gói đang có hiệu lực tại thời điểm now (gói gia hạn nối tiếp chưa tới ngày bắt đầu thì không tính). */
+    @EntityGraph(attributePaths = {"packageEntity", "order"})
+    @Query("""
+            select s from Subscription s
+            where s.employer.id = :employerId and s.status = :status
+              and s.startAt <= :now and s.endAt > :now
+            order by s.startAt desc
+            """)
+    List<Subscription> findInEffect(@Param("employerId") Integer employerId,
+                                    @Param("status") SubscriptionStatus status,
+                                    @Param("now") LocalDateTime now);
+
+    /** Gói gần nhất của NTD (kể cả đã hết hạn) để báo "gói đã hết hạn". */
+    @EntityGraph(attributePaths = {"packageEntity", "order"})
+    Optional<Subscription> findFirstByEmployerIdOrderByEndAtDesc(Integer employerId);
 }

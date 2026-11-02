@@ -6,6 +6,8 @@ import {
   getServiceFees,
   saveServiceFee,
 } from '../../services/walletService.js';
+import { toast } from 'react-toastify';
+import { getErrorMessage } from '../../services/apiClient';
 import { TokenConfigModal } from '../../components/admin/TokenConfigModal.jsx';
 import { DataTable } from '../../components/common/DataTable.jsx';
 import { FiPlus, FiEdit2, FiCheck, FiX, FiLayers, FiZap } from 'react-icons/fi';
@@ -28,11 +30,14 @@ export const AdminTokenConfigPage = () => {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [pkgs, fees] = await Promise.all([getTokenPackages(true), getServiceFees()]);
+      const [pkgs, fees] = await Promise.all([
+        getTokenPackages(true),
+        getServiceFees({ fallback: false }),
+      ]);
       setPackages(pkgs);
       setServiceFees(fees);
     } catch (err) {
-      console.error('Lỗi tải dữ liệu cấu hình token:', err);
+      toast.error(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -65,7 +70,7 @@ export const AdminTokenConfigPage = () => {
       await toggleTokenPackageStatus(pkg.id);
       await loadData();
     } catch (err) {
-      alert(err.message || 'Lỗi cập nhật trạng thái gói token');
+      toast.error(getErrorMessage(err));
     }
   };
 

@@ -22,9 +22,11 @@ export const CurrentPackageCard = ({
   if (!subscription) return null;
 
   const used = subscription.usedJobPosts || 0;
-  const max = subscription.maxJobPosts || 1;
-  const percent = Math.min(100, Math.round((used / max) * 100));
-  const remainingPosts = Math.max(0, max - used);
+  const max = subscription.maxJobPosts; // null = không giới hạn
+  const unlimited = max == null;
+  const percent = unlimited ? 0 : max > 0 ? Math.min(100, Math.round((used / max) * 100)) : 100;
+  const remainingPosts = unlimited ? null : Math.max(0, max - used);
+  const isFree = subscription.status === 'FREE';
 
   const formatDate = (isoStr) => {
     if (!isoStr) return '—';
@@ -34,7 +36,7 @@ export const CurrentPackageCard = ({
       .padStart(2, '0')}/${d.getFullYear()}`;
   };
 
-  const isExpired = subscription.status === 'EXPIRED' || subscription.remainingDays <= 0;
+  const isExpired = subscription.status === 'EXPIRED';
 
   return (
     <div className="current-package-card">
@@ -46,26 +48,40 @@ export const CurrentPackageCard = ({
                 isExpired ? 'status-badge--expired' : 'status-badge--active'
               }`}
             >
-              <FiShield /> {isExpired ? 'Gói đã hết hạn' : 'Đang hoạt động'}
+              <FiShield /> {isExpired ? 'Gói đã hết hạn' : isFree ? 'Chưa mua gói' : 'Đang hoạt động'}
             </span>
-            <span className="current-pkg-code">Mã: {subscription.subscriptionId}</span>
+            {subscription.subscriptionId && (
+              <span className="current-pkg-code">Mã: SUB-{subscription.subscriptionId}</span>
+            )}
           </div>
 
           <h2 className="current-pkg-title">{subscription.packageName}</h2>
-          <span className="current-pkg-company">Doanh nghiệp: {subscription.companyName}</span>
+          <span className="current-pkg-company">Doanh nghiệp: {subscription.companyName || '—'}</span>
         </div>
 
-        <div className="current-pkg-days-box">
-          <div className="days-counter">
-            <span className="days-number">{subscription.remainingDays}</span>
-            <span className="days-unit">ngày còn lại</span>
+        {isFree ? (
+          <div className="current-pkg-days-box">
+            <div className="days-counter">
+              <span className="days-number">{max}</span>
+              <span className="days-unit">tin miễn phí</span>
+            </div>
+            <div className="days-date-range">
+              <span>Mua gói để đăng thêm tin và mở khóa quyền lợi</span>
+            </div>
           </div>
-          <div className="days-date-range">
-            <span>
-              <FiCalendar /> {formatDate(subscription.startDate)} - {formatDate(subscription.endDate)}
-            </span>
+        ) : (
+          <div className="current-pkg-days-box">
+            <div className="days-counter">
+              <span className="days-number">{subscription.remainingDays}</span>
+              <span className="days-unit">ngày còn lại</span>
+            </div>
+            <div className="days-date-range">
+              <span>
+                <FiCalendar /> {formatDate(subscription.startDate)} - {formatDate(subscription.endDate)}
+              </span>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       <div className="current-pkg-divider" />
@@ -77,7 +93,7 @@ export const CurrentPackageCard = ({
             <FiBriefcase className="quota-icon" /> Hạn Mức Đăng Tin Tuyển Dụng
           </span>
           <span className="quota-count">
-            <strong>{used}</strong> / {max} tin
+            <strong>{used}</strong> / {unlimited ? '∞' : max} tin
           </span>
         </div>
 
@@ -91,8 +107,12 @@ export const CurrentPackageCard = ({
         </div>
 
         <div className="quota-footer-hint">
-          {percent >= 100 ? (
-            <span className="text-danger">⚠️ Đã sử dụng hết 100% hạn mức tin đăng của gói.</span>
+          {isExpired ? (
+            <span className="text-danger">⚠️ Gói đã hết hạn, vui lòng gia hạn để đăng tin mới.</span>
+          ) : unlimited ? (
+            <span>Gói của bạn được đăng tin <strong>không giới hạn</strong>.</span>
+          ) : percent >= 100 ? (
+            <span className="text-danger">⚠️ Đã sử dụng hết 100% hạn mức tin đăng.</span>
           ) : (
             <span>Bạn còn <strong>{remainingPosts} lượt</strong> đăng tin tuyển dụng mới.</span>
           )}
@@ -105,29 +125,28 @@ export const CurrentPackageCard = ({
         <div className="benefits-grid">
           <div className="benefit-item">
             <FiCheckCircle className="benefit-icon text-success" />
-            <span>Đăng tối đa {max} tin tuyển dụng</span>
+            <span>{unlimited ? 'Đăng tin không giới hạn' : `Đăng tối đa ${max} tin tuyển dụng`}</span>
           </div>
-          <div className="benefit-item">
-            {subscription.allowRealtimeChat ? (
-              <>
-                <FiCheckCircle className="benefit-icon text-success" />
-                <span>Nhắn tin Realtime với ứng viên 💬</span>
-              </>
-            ) : (
-              <>
-                <FiClock className="benefit-icon text-muted" />
-                <span className="text-muted">Chưa kích hoạt Chat Realtime</span>
-              </>
-            )}
-          </div>
-          <div className="benefit-item">
-            <FiCheckCircle className="benefit-icon text-success" />
-            <span>Xem & lọc toàn bộ hồ sơ ứng viên nộp CV</span>
-          </div>
-          <div className="benefit-item">
-            <FiCheckCircle className="benefit-icon text-success" />
-            <span>Báo cáo thống kê hiệu quả tuyển dụng</span>
-          </div>
+          {[
+            [subscription.allowRealtimeChat, 'Nhắn tin trực tiếp với ứng viên'],
+            [subscription.canSearchCandidates, 'Tìm kiếm trong kho hồ sơ ứng viên'],
+            [subscription.canHighlightJobs, 'Làm nổi bật tin tuyển dụng'],
+            [subscription.canPrioritizeJobs, 'Ưu tiên hiển thị tin lên đầu'],
+          ].map(([enabled, label]) => (
+            <div className="benefit-item" key={label}>
+              {enabled ? (
+                <>
+                  <FiCheckCircle className="benefit-icon text-success" />
+                  <span>{label}</span>
+                </>
+              ) : (
+                <>
+                  <FiClock className="benefit-icon text-muted" />
+                  <span className="text-muted">Chưa có: {label.toLowerCase()}</span>
+                </>
+              )}
+            </div>
+          ))}
         </div>
       </div>
 
@@ -140,7 +159,7 @@ export const CurrentPackageCard = ({
           id="btn-current-pkg-renew"
         >
           <FiRefreshCw />
-          <span>Gia hạn gói này</span>
+          <span>{isFree ? 'Xem bảng giá' : 'Gia hạn gói này'}</span>
         </button>
 
         <button
@@ -149,7 +168,7 @@ export const CurrentPackageCard = ({
           onClick={onUpgradeClick}
           id="btn-current-pkg-upgrade"
         >
-          <span>Nâng cấp gói cao hơn</span>
+          <span>{isFree ? 'Mua gói dịch vụ' : 'Nâng cấp gói cao hơn'}</span>
           <FiArrowUpRight />
         </button>
       </div>

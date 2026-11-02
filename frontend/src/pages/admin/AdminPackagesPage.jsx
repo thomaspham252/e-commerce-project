@@ -4,6 +4,8 @@ import {
   savePackage,
   togglePackageStatus,
 } from '../../services/employerPackageService.js';
+import { toast } from 'react-toastify';
+import { getErrorMessage } from '../../services/apiClient';
 import { PackageManageModal } from '../../components/admin/PackageManageModal.jsx';
 import { DataTable } from '../../components/common/DataTable.jsx';
 import { FiPlus, FiEdit2, FiCheck, FiX, FiCheckCircle, FiMinusCircle } from 'react-icons/fi';
@@ -21,10 +23,10 @@ export const AdminPackagesPage = () => {
   const loadPackages = async () => {
     setLoading(true);
     try {
-      const data = await getEmployerPackages();
+      const data = await getEmployerPackages({ includeInactive: true });
       setPackagesList(data);
     } catch (err) {
-      console.error('Lỗi lấy danh sách gói:', err);
+      toast.error(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -46,17 +48,21 @@ export const AdminPackagesPage = () => {
 
   const handleSavePackage = async (packageData) => {
     await savePackage(packageData);
+    toast.success(packageData.id ? 'Đã cập nhật gói dịch vụ' : 'Đã thêm gói dịch vụ mới');
     await loadPackages();
   };
 
   const handleToggleStatus = async (pkg) => {
     try {
-      await togglePackageStatus(pkg.id);
+      const updated = await togglePackageStatus(pkg.id);
+      toast.success(updated.isActive ? `Đã mở bán ${pkg.name}` : `Đã tạm ngưng ${pkg.name}`);
       await loadPackages();
     } catch (err) {
-      alert(err.message || 'Lỗi cập nhật trạng thái gói');
+      toast.error(getErrorMessage(err));
     }
   };
+
+  const formatLimit = (value, unit) => (value == null ? 'Không giới hạn' : `${value} ${unit}`);
 
   const formatVND = (amount) => {
     return new Intl.NumberFormat('vi-VN', {
@@ -70,44 +76,37 @@ export const AdminPackagesPage = () => {
     {
       header: 'Tên gói dịch vụ',
       accessor: 'name',
-      render: (row) => (
-        <div>
-          <div style={{ fontWeight: 600, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span>{row.name}</span>
-            {row.isPopular && (
-              <span
-                style={{
-                  background: '#fef3c7',
-                  color: '#b45309',
-                  fontSize: '11px',
-                  fontWeight: 600,
-                  padding: '2px 6px',
-                  borderRadius: '4px',
-                }}
-              >
-                Nổi bật
-              </span>
-            )}
-            {row.badge && (
-              <span
-                style={{
-                  background: '#eff6ff',
-                  color: '#1d4ed8',
-                  fontSize: '11px',
-                  fontWeight: 600,
-                  padding: '2px 6px',
-                  borderRadius: '4px',
-                }}
-              >
-                {row.badge}
-              </span>
-            )}
+      render: (row) => {
+        const benefits = [
+          row.canHighlightJobs && 'Nổi bật tin',
+          row.canPrioritizeJobs && 'Ưu tiên hiển thị',
+          row.canSearchCandidates && 'Tìm ứng viên',
+          row.includedTokens > 0 && `Tặng ${row.includedTokens} token`,
+        ].filter(Boolean);
+        return (
+          <div>
+            <div style={{ fontWeight: 600, color: '#0f172a' }}>{row.name}</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '4px' }}>
+              {benefits.length === 0 && <span style={{ fontSize: '12px', color: '#94a3b8' }}>Gói cơ bản</span>}
+              {benefits.map((label) => (
+                <span
+                  key={label}
+                  style={{
+                    background: '#eff6ff',
+                    color: '#1d4ed8',
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    padding: '2px 6px',
+                    borderRadius: '4px',
+                  }}
+                >
+                  {label}
+                </span>
+              ))}
+            </div>
           </div>
-          <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
-            {row.description || 'Chưa có mô tả'}
-          </div>
-        </div>
-      ),
+        );
+      },
     },
     {
       header: 'Giá bán',
@@ -125,14 +124,19 @@ export const AdminPackagesPage = () => {
     },
     {
       header: 'Hạn mức tin',
-      accessor: 'maxJobPosts',
-      render: (row) => <span>{row.maxJobPosts} tin đăng</span>,
+      accessor: 'jobPostLimit',
+      render: (row) => <span>{formatLimit(row.jobPostLimit, 'tin đăng')}</span>,
     },
     {
-      header: 'Chat Realtime',
-      accessor: 'allowRealtimeChat',
+      header: 'Lượt xem CV',
+      accessor: 'cvViewLimit',
+      render: (row) => <span>{formatLimit(row.cvViewLimit, 'lượt')}</span>,
+    },
+    {
+      header: 'Nhắn tin ứng viên',
+      accessor: 'canDirectContact',
       render: (row) =>
-        row.allowRealtimeChat ? (
+        row.canDirectContact ? (
           <span style={{ color: '#059669', display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '13px' }}>
             <FiCheckCircle /> Có
           </span>
@@ -182,7 +186,7 @@ export const AdminPackagesPage = () => {
         <div>
           <h2 className="packages-page-title">Quản lý Gói dịch vụ NTD</h2>
           <p className="packages-page-desc">
-            Cấu hình danh mục gói cước tuyển dụng, định giá, số lượng tin đăng và tính năng Chat realtime.
+            Cấu hình danh mục gói cước tuyển dụng: giá bán, thời hạn, hạn mức tin đăng, lượt xem CV và quyền lợi.
           </p>
         </div>
 
