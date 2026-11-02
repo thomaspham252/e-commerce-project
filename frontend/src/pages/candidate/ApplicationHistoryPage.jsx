@@ -14,9 +14,8 @@ import {
 import { CompanyLogo } from '../../components/CompanyLogo';
 import { DataTable } from '../../components/common/DataTable';
 import { StatusBadge } from '../../components/common/StatusBadge';
-import { useApplications } from '../../context/ApplicationsContext';
+import { useApplications, APPLICATION_STATUS } from '../../context/ApplicationsContext';
 import { getErrorMessage } from '../../services/apiClient';
-import { APPLICATION_STATUS } from '../../services/candidateData';
 import './CandidateShared.css';
 import './ApplicationHistoryPage.css';
 

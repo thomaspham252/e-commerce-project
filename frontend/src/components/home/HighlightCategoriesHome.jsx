@@ -10,7 +10,7 @@ import {
   Headphones,
   LayoutGrid
 } from 'lucide-react';
-import { HIGHLIGHT_CATEGORIES } from '../../data/homeCandidateMockData';
+import { HIGHLIGHT_CATEGORIES } from '../../data/homeConstants';
 import './HighlightCategoriesHome.css';
 
 const ICON_MAP = {

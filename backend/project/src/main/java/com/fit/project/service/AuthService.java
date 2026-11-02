@@ -95,7 +95,7 @@ public class AuthService {
 
         emailVerificationService.sendVerificationCode(user);
 
-        return new LoginResponse(user.getId(), user.getEmail(), user.getRole());
+        return toLoginResponse(user);
     }
 
     @Transactional

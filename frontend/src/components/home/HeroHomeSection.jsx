@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { apiClient } from '../../services/apiClient';
 import {
   Search,
   MapPin,
@@ -19,8 +20,8 @@ import {
 import {
   HERO_POPULAR_KEYWORDS,
   HERO_SIDEBAR_CATEGORIES,
-  PLATFORM_STATS
-} from '../../data/homeCandidateMockData';
+  
+} from '../../data/homeConstants';
 import './HeroHomeSection.css';
 
 const ICON_MAP = {
@@ -52,7 +53,27 @@ export const HeroHomeSection = ({ onSearch }) => {
   };
 
   // Lấy 3 chỉ số chính để hiển thị gọn gàng trong Hero
-  const heroStats = PLATFORM_STATS.slice(0, 3);
+  const [stats, setStats] = useState({ jobCount: 0, companyCount: 0, candidateCount: 0 });
+
+  useEffect(() => {
+    let active = true;
+    apiClient.get('/public/stats').then((res) => {
+      if (active && res.data) {
+        setStats({
+          jobCount: res.data.jobCount || 0,
+          companyCount: res.data.companyCount || 0,
+          candidateCount: res.data.candidateCount || 0,
+        });
+      }
+    }).catch(() => {});
+    return () => { active = false; };
+  }, []);
+
+  const heroStats = [
+    { id: 'jobs', value: stats.jobCount > 0 ? stats.jobCount.toLocaleString('vi-VN') + '+' : '100+', label: 'Việc làm mở tuyển', iconName: 'Briefcase' },
+    { id: 'companies', value: stats.companyCount > 0 ? stats.companyCount.toLocaleString('vi-VN') + '+' : '20+', label: 'Doanh nghiệp uy tín', iconName: 'Building2' },
+    { id: 'candidates', value: stats.candidateCount > 0 ? stats.candidateCount.toLocaleString('vi-VN') + '+' : '10+', label: 'Ứng viên gia nhập', iconName: 'Users' },
+  ];
 
   return (
     <div className="hero-section-wrapper">

@@ -1,6 +1,9 @@
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { getAuthSession } from '../services/apiClient';
 import { candidateService } from '../services/candidateService';
+import { APPLICATION_STATUS } from '../constants/applicationStatus';
+
+export { APPLICATION_STATUS };
 
 const ApplicationsContext = createContext();
 
@@ -12,9 +15,9 @@ export const useApplications = () => {
       loading: false,
       error: null,
       hasApplied: () => false,
-      addApplication: async () => {},
-      withdrawApplication: async () => {},
-      reload: async () => {},
+      addApplication: async () => { },
+      withdrawApplication: async () => { },
+      reload: async () => { },
     };
   }
   return context;
