@@ -2,14 +2,12 @@ package com.fit.project.service;
 
 import com.fit.project.dto.CompanyResponse;
 import com.fit.project.dto.JobResponse;
-import com.fit.project.dto.admin.AdminCvResponse;
 import com.fit.project.dto.admin.AdminUserDetailResponse;
 import com.fit.project.dto.admin.AdminUserResponse;
 import com.fit.project.dto.admin.ReviewJobRequest;
 import com.fit.project.dto.common.PageResponse;
 import com.fit.project.entity.CandidateProfile;
 import com.fit.project.entity.Company;
-import com.fit.project.entity.Cv;
 import com.fit.project.entity.Job;
 import com.fit.project.entity.User;
 import com.fit.project.enums.*;
@@ -31,7 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-/** Admin quản lý cơ bản: người dùng, hồ sơ (CV), doanh nghiệp, duyệt/gỡ tin tuyển dụng. */
+/** Admin quản lý cơ bản: người dùng, doanh nghiệp, duyệt/gỡ tin tuyển dụng. */
 @Service
 @RequiredArgsConstructor
 public class AdminService {
@@ -107,30 +105,6 @@ public class AdminService {
                     u.getRole(), u.getStatus(), u.getCreatedAt(),
                     null, null, null, null, null, null, null, null, null, null);
         };
-    }
-
-    // ===== Hồ sơ ứng viên (CV) =====
-
-    @Transactional(readOnly = true)
-    public PageResponse<AdminCvResponse> listCvs(String keyword, int page, int size) {
-        Page<Cv> cvs = cvRepository.search(QueryUtils.likePattern(keyword),
-                QueryUtils.page(page, size, Sort.by(Sort.Direction.DESC, "uploadedAt")));
-        Map<Integer, Long> counts = applicationRepository.countByCvIds(cvs.getContent().stream().map(Cv::getId).toList());
-        return PageResponse.of(cvs, cv -> new AdminCvResponse(cv.getId(), cv.getFileName(), cv.getFileUrl(),
-                cv.getIsDefault(), cv.getUploadedAt(),
-                cv.getCandidate().getUserId(), cv.getCandidate().getFullName(), cv.getCandidate().getUser().getEmail(),
-                cv.getCandidate().getIsSearchable(), counts.getOrDefault(cv.getId(), 0L)));
-    }
-
-    /** CV đã dùng để nộp đơn thì không xóa được (FK RESTRICT, NTD vẫn cần xem lại hồ sơ). */
-    @Transactional
-    public void deleteCv(Integer cvId) {
-        Cv cv = cvRepository.findById(cvId)
-                .orElseThrow(() -> ApiException.notFound("Không tìm thấy CV"));
-        if (applicationRepository.existsByCvId(cvId)) {
-            throw ApiException.conflict("CV đã được dùng để ứng tuyển, không thể xóa. Hãy ẩn hồ sơ ứng viên thay vì xóa");
-        }
-        cvRepository.delete(cv);
     }
 
     /** Ẩn/hiện hồ sơ ứng viên khỏi tìm kiếm của nhà tuyển dụng. */

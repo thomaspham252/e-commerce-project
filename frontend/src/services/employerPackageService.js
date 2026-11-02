@@ -20,6 +20,11 @@ const simulateDelay = (ms = 120) => new Promise((resolve) => setTimeout(resolve,
  * 1. Lấy danh sách các gói dịch vụ tuyển dụng từ database MySQL.
  */
 export const getEmployerPackages = async ({ includeInactive = false } = {}) => {
+  // Admin quản lý gói: luôn lấy từ DB (kể cả gói đã tạm ngưng), lỗi thì báo lên giao diện
+  if (includeInactive) {
+    const res = await apiClient.get('/v1/packages', { params: { all: true } });
+    return res.data.data;
+  }
   try {
     const res = await apiClient.get('/v1/packages');
     if (res.data?.success && res.data?.data) {
@@ -27,9 +32,6 @@ export const getEmployerPackages = async ({ includeInactive = false } = {}) => {
     }
   } catch (err) {
     console.warn('[EmployerPackageService] Backend offline, fallback sang mock:', err);
-  }
-  if (includeInactive) {
-    return [...packages];
   }
   return packages.filter((p) => p.isActive);
 };
@@ -116,72 +118,23 @@ export const subscribePackage = async (
 };
 
 /**
- * 4. Quản lý Admin: Tạo mới hoặc chỉnh sửa gói dịch vụ.
+ * 4. Quản lý Admin: Tạo mới (không có id) hoặc chỉnh sửa gói dịch vụ — lưu vào bảng packages.
+ * Trường theo đúng cột DB; jobPostLimit / cvViewLimit để null = không giới hạn.
  */
 export const savePackage = async (packageData) => {
-  await simulateDelay();
-
-  // Kiểm tra dữ liệu đầu vào theo Hiến pháp & Spec
-  if (!packageData.name || packageData.name.trim().length < 3) {
-    throw new Error('Tên gói cước phải có ít nhất 3 ký tự');
-  }
-  if (!packageData.priceVND || Number(packageData.priceVND) <= 0) {
-    throw new Error('Giá bán của gói phải lớn hơn 0 ₫');
-  }
-  if (!packageData.durationDays || Number(packageData.durationDays) <= 0) {
-    throw new Error('Thời hạn sử dụng phải lớn hơn 0 ngày');
-  }
-  if (packageData.maxJobPosts == null || Number(packageData.maxJobPosts) < 0) {
-    throw new Error('Số lượng tin đăng tối đa không được âm');
-  }
-
-  const existingIndex = packages.findIndex((p) => p.id === packageData.id);
-
-  if (existingIndex >= 0) {
-    // Chỉnh sửa gói hiện có
-    packages[existingIndex] = {
-      ...packages[existingIndex],
-      ...packageData,
-      priceVND: Number(packageData.priceVND),
-      durationDays: Number(packageData.durationDays),
-      maxJobPosts: Number(packageData.maxJobPosts),
-    };
-    return { ...packages[existingIndex] };
-  } else {
-    // Thêm gói mới
-    const newPackage = {
-      id: packageData.id || `pkg-emp-${Date.now().toString().slice(-4)}`,
-      name: packageData.name,
-      priceVND: Number(packageData.priceVND),
-      durationDays: Number(packageData.durationDays),
-      maxJobPosts: Number(packageData.maxJobPosts),
-      allowRealtimeChat: Boolean(packageData.allowRealtimeChat),
-      badge: packageData.badge || null,
-      isPopular: Boolean(packageData.isPopular),
-      isActive: packageData.isActive !== false,
-      description: packageData.description || 'Gói tuyển dụng doanh nghiệp',
-      features: packageData.features || [
-        `Đăng tối đa ${packageData.maxJobPosts} tin tuyển dụng`,
-        `Thời hạn sử dụng ${packageData.durationDays} ngày`,
-      ],
-      createdAt: new Date().toISOString(),
-    };
-    packages.push(newPackage);
-    return { ...newPackage };
-  }
+  const { id, ...body } = packageData;
+  const res = id
+    ? await apiClient.put(`/v1/packages/${id}`, body)
+    : await apiClient.post('/v1/packages', body);
+  return res.data.data;
 };
 
 /**
- * 5. Quản lý Admin: Bật/tắt trạng thái mở bán của gói.
+ * 5. Quản lý Admin: Bật/tắt trạng thái mở bán của gói (lưu vào DB).
  */
 export const togglePackageStatus = async (packageId) => {
-  await simulateDelay();
-  const pkg = packages.find((p) => p.id === packageId);
-  if (!pkg) {
-    throw new Error(`Không tìm thấy gói có mã: ${packageId}`);
-  }
-  pkg.isActive = !pkg.isActive;
-  return { ...pkg };
+  const res = await apiClient.patch(`/v1/packages/${packageId}/toggle-status`);
+  return res.data.data;
 };
 
 /**

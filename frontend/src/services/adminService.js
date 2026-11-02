@@ -10,8 +10,6 @@ export const adminService = {
   updateSearchable: (id, searchable) => apiClient.patch(`/admin/users/${id}/searchable`, { searchable }, cfg()),
 
   // Hồ sơ (CV)
-  getCvs: (params) => apiClient.get('/admin/cvs', cfg(params)).then((r) => r.data),
-  deleteCv: (id) => apiClient.delete(`/admin/cvs/${id}`, cfg()),
 
   // Doanh nghiệp
   getCompanies: (params) => apiClient.get('/admin/companies', cfg(params)).then((r) => r.data),

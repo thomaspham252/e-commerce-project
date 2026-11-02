@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { RevenueAnalyticsCharts } from '../../components/admin/RevenueAnalyticsCharts.jsx';
 import { getAdminRevenueAnalytics } from '../../services/analyticsService.js';
 import { getTransactions } from '../../services/paymentService.js';
+import { getErrorMessage } from '../../services/apiClient';
+import { toast } from 'react-toastify';
 import { DataTable } from '../../components/common/DataTable.jsx';
 import { StatusBadge } from '../../components/common/StatusBadge.jsx';
 import { FiArrowRight, FiFileText, FiRefreshCw } from 'react-icons/fi';
@@ -49,14 +51,13 @@ export const AdminRevenuePage = () => {
     try {
       const [analyticsRes, ordersRes] = await Promise.all([
         getAdminRevenueAnalytics({ startDate, endDate }),
-        getTransactions({ pageSize: 6 }),
+        getTransactions({ status: 'SUCCESS', pageSize: 6 }),
       ]);
       setAnalyticsData(analyticsRes);
-      // Lấy danh sách giao dịch gần nhất
-      const paidOrders = (ordersRes?.data || []).slice(0, 6);
-      setRecentOrders(paidOrders);
+      // 6 giao dịch thanh toán thành công gần nhất
+      setRecentOrders(ordersRes?.data || []);
     } catch (err) {
-      console.error('Lỗi tải dữ liệu doanh thu:', err);
+      toast.error(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -98,18 +99,23 @@ export const AdminRevenuePage = () => {
             borderRadius: '6px',
             fontSize: '12px',
             fontWeight: 500,
-            background: row.orderType === 'EMPLOYER_PACKAGE' ? '#eff6ff' : '#fef3c7',
-            color: row.orderType === 'EMPLOYER_PACKAGE' ? '#2563eb' : '#d97706',
+            background: row.orderType === 'SUBSCRIPTION' ? '#eff6ff' : '#fef3c7',
+            color: row.orderType === 'SUBSCRIPTION' ? '#2563eb' : '#d97706',
           }}
         >
-          {row.orderType === 'EMPLOYER_PACKAGE' ? 'Gói NTD' : 'Token'}
+          {row.orderType === 'SUBSCRIPTION' ? 'Gói NTD' : 'Token'}
         </span>
       ),
     },
     {
       header: 'Mô tả',
-      accessor: 'description',
-      render: (row) => row.packageName || row.tokenPackageName || row.description || 'Thanh toán',
+      accessor: 'serviceName',
+      render: (row) => (
+        <div>
+          <div>{row.serviceName || 'Thanh toán'}</div>
+          <div style={{ fontSize: '12px', color: '#64748b' }}>{row.userName}</div>
+        </div>
+      ),
     },
     {
       header: 'Số tiền',
@@ -121,12 +127,15 @@ export const AdminRevenuePage = () => {
     {
       header: 'Trạng thái',
       accessor: 'status',
-      render: (row) => <StatusBadge status={row.status === 'PAID' ? 'Hoạt động' : row.status} />,
+      render: (row) => <StatusBadge status={row.status} />,
     },
     {
       header: 'Thời gian',
-      accessor: 'createdAt',
-      render: (row) => (row.createdAt ? new Date(row.createdAt).toLocaleDateString('vi-VN') : '-'),
+      accessor: 'receivedAt',
+      render: (row) => {
+        const time = row.receivedAt || row.createdAt;
+        return time ? new Date(time).toLocaleString('vi-VN') : '-';
+      },
     },
   ];
 

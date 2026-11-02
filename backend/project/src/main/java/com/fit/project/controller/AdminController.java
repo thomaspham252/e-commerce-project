@@ -63,24 +63,6 @@ public class AdminController {
         adminService.updateCandidateSearchable(id, req.searchable());
     }
 
-    // ===== Hồ sơ (CV) =====
-
-    @GetMapping("/cvs")
-    public PageResponse<AdminCvResponse> listCvs(@RequestHeader(CurrentUserService.HEADER) Integer userId,
-                                                 @RequestParam(required = false) String keyword,
-                                                 @RequestParam(defaultValue = "0") int page,
-                                                 @RequestParam(defaultValue = "10") int size) {
-        admin(userId);
-        return adminService.listCvs(keyword, page, size);
-    }
-
-    @DeleteMapping("/cvs/{id}")
-    public void deleteCv(@RequestHeader(CurrentUserService.HEADER) Integer userId,
-                         @PathVariable Integer id) {
-        admin(userId);
-        adminService.deleteCv(id);
-    }
-
     // ===== Doanh nghiệp =====
 
     @GetMapping("/companies")
