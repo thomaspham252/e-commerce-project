@@ -1,342 +1,248 @@
-/* Giao diện Thẻ Số Dư Ví Token Ứng Viên */
+/* Khối số dư khả dụng - Nền phẳng xanh lá đậm (#0B4F37), không gradient, không bóng đổ */
 .wallet-balance-card {
-  position: relative;
-  background: linear-gradient(135deg, #1e1b4b 0%, #172554 50%, #0f172a 100%);
-  border-radius: 20px;
-  padding: 32px;
-  color: #ffffff;
-  box-shadow: 0 20px 40px -15px rgba(30, 27, 75, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.08);
-  overflow: hidden;
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  background-color: #0B4F37;
+  border-radius: 10px;
+  padding: 24px;
+  color: #FFFFFF;
+  box-shadow: none;
+  border: none;
+  font-family: inherit;
 }
 
-.wallet-balance-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 24px 48px -12px rgba(30, 27, 75, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.15);
-}
-
-.wallet-balance-card__glow-bg {
-  position: absolute;
-  top: -80px;
-  right: -80px;
-  width: 260px;
-  height: 260px;
-  background: radial-gradient(circle, rgba(234, 179, 8, 0.25) 0%, rgba(99, 102, 241, 0.15) 50%, transparent 70%);
-  border-radius: 50%;
-  pointer-events: none;
-  filter: blur(40px);
-}
-
+/* Phần trên: Thông tin số dư và nút hành động */
 .wallet-balance-card__top {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-  position: relative;
-  z-index: 2;
-  flex-wrap: wrap;
-  gap: 12px;
+  align-items: flex-start;
+  gap: 24px;
 }
 
-.wallet-balance-card__badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(8px);
-  padding: 6px 14px;
-  border-radius: 999px;
-  font-size: 0.825rem;
-  font-weight: 600;
-  color: #93c5fd;
-  border: 1px solid rgba(147, 197, 253, 0.2);
-}
-
-.wallet-balance-card__badge-icon {
-  font-size: 1rem;
-  color: #38bdf8;
-}
-
-.wallet-balance-card__rate-hint {
-  font-size: 0.85rem;
-  color: #cbd5e1;
-  background: rgba(15, 23, 42, 0.6);
-  padding: 4px 12px;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.wallet-balance-card__rate-hint strong {
-  color: #fbbf24;
-}
-
-.wallet-balance-card__main {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  gap: 28px;
-  position: relative;
-  z-index: 2;
-}
-
-.wallet-balance-card__coin-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.wallet-balance-card__coin-glow {
-  width: 76px;
-  height: 76px;
-  border-radius: 20px;
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 10px 25px rgba(245, 158, 11, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.3);
-  animation: pulse-glow 3s infinite alternate;
-}
-
-@keyframes pulse-glow {
-  0% {
-    transform: scale(1);
-    box-shadow: 0 10px 25px rgba(245, 158, 11, 0.4);
-  }
-  100% {
-    transform: scale(1.04);
-    box-shadow: 0 14px 30px rgba(245, 158, 11, 0.6);
-  }
-}
-
-.wallet-balance-card__coin-icon {
-  width: 42px;
-  height: 42px;
-  color: #ffffff;
-}
-
-.wallet-balance-card__info {
+.wallet-balance-card__main-info {
   display: flex;
   flex-direction: column;
 }
 
 .wallet-balance-card__label {
-  font-size: 0.875rem;
-  color: #94a3b8;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  font-size: 13px;
+  font-weight: 400;
+  color: #A7D7C5;
   margin-bottom: 4px;
 }
 
-.wallet-balance-card__balance-row {
+.wallet-balance-card__amount-row {
   display: flex;
   align-items: baseline;
-  gap: 10px;
+  gap: 8px;
 }
 
-.wallet-balance-card__balance-number {
-  font-size: 3rem;
-  font-weight: 800;
-  line-height: 1.1;
-  background: linear-gradient(to right, #ffffff, #fef08a);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.wallet-balance-card__balance-unit {
-  font-size: 1.3rem;
+.wallet-balance-card__number {
+  font-size: 48px;
   font-weight: 700;
-  color: #fde047;
+  line-height: 1.05;
+  color: #FFFFFF;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
 }
 
-.wallet-balance-card__subtext {
+.wallet-balance-card__unit {
+  font-size: 15px;
+  font-weight: 500;
+  color: #A7D7C5;
+}
+
+.wallet-balance-card__explanation {
   margin: 6px 0 0 0;
-  font-size: 0.85rem;
-  color: #94a3b8;
-  line-height: 1.4;
+  font-size: 13px;
+  font-weight: 400;
+  color: #D1FAE5;
+  line-height: 1.45;
 }
 
+/* Cột nút bên phải */
 .wallet-balance-card__actions {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  min-width: 200px;
+  gap: 8px;
+  width: 170px;
+  flex-shrink: 0;
 }
 
-.wallet-balance-card__btn-deposit {
+/* Nút chính: Nền trắng, chữ xanh đậm */
+.wallet-btn-primary {
+  width: 100%;
+  height: 38px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 14px 24px;
-  background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%);
-  color: #1e1b4b;
-  font-weight: 700;
-  font-size: 0.975rem;
-  border-radius: 12px;
+  background-color: #FFFFFF;
+  color: #0B4F37;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 8px;
   border: none;
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 8px 20px rgba(234, 179, 8, 0.3);
+  transition: background-color 0.15s ease;
+  white-space: nowrap;
 }
 
-.wallet-balance-card__btn-deposit:hover {
-  background: linear-gradient(135deg, #facc15 0%, #eab308 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 12px 24px rgba(234, 179, 8, 0.45);
+.wallet-btn-primary:hover {
+  background-color: #F0FDF4;
 }
 
-.wallet-balance-card__btn-deposit:active {
-  transform: translateY(0);
+.wallet-btn-primary:focus-visible {
+  outline: 2px solid #FFFFFF;
+  outline-offset: 2px;
 }
 
-.wallet-balance-card__btn-fees {
+/* Nút phụ: Viền mảnh màu trắng, chiều rộng bằng nút chính */
+.wallet-btn-secondary {
+  width: 100%;
+  height: 38px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 12px 20px;
-  background: rgba(255, 255, 255, 0.08);
-  color: #e2e8f0;
-  font-weight: 600;
-  font-size: 0.9rem;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background-color: transparent;
+  color: #FFFFFF;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.7);
   cursor: pointer;
-  transition: all 0.2s ease;
-  backdrop-filter: blur(6px);
+  transition: background-color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+  text-decoration: none;
 }
 
-.wallet-balance-card__btn-fees:hover {
-  background: rgba(255, 255, 255, 0.16);
-  color: #ffffff;
-  border-color: rgba(255, 255, 255, 0.3);
+.wallet-btn-secondary:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: #FFFFFF;
 }
 
-.wallet-btn-icon {
-  font-size: 1.15rem;
+.wallet-btn-secondary:focus-visible {
+  outline: 2px solid #FFFFFF;
+  outline-offset: 2px;
 }
 
-.wallet-balance-card__divider {
-  height: 1px;
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.02) 100%);
-  margin: 28px 0 20px 0;
-  position: relative;
-  z-index: 2;
-}
-
-.wallet-balance-card__stats {
-  display: flex;
-  align-items: center;
-  gap: 24px;
-  flex-wrap: wrap;
-  position: relative;
-  z-index: 2;
-}
-
-.wallet-stat-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: rgba(15, 23, 42, 0.4);
-  padding: 10px 16px;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.wallet-stat-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.1rem;
-}
-
-.wallet-stat-icon--deposit {
-  background: rgba(34, 197, 94, 0.15);
-  color: #4ade80;
-}
-
-.wallet-stat-icon--consume {
-  background: rgba(239, 68, 68, 0.15);
-  color: #f87171;
-}
-
-.wallet-stat-content {
+/* Thanh tỉ lệ ngang 6px */
+.wallet-balance-card__progress-wrap {
+  margin-top: 20px;
   display: flex;
   flex-direction: column;
+  gap: 6px;
+}
+
+.wallet-balance-card__progress-bar {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background-color: rgba(255, 255, 255, 0.15);
+  display: flex;
+  overflow: hidden;
+}
+
+.wallet-progress-segment {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.wallet-progress-segment--consumed {
+  background-color: #F5B942;
+}
+
+.wallet-progress-segment--remaining {
+  background-color: #E8F5EE;
+}
+
+.wallet-balance-card__progress-caption {
+  font-size: 12px;
+  color: #A7D7C5;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.4;
+}
+
+/* Dải số liệu phía dưới: 3 cột ngang ngăn cách bằng đường kẻ dọc mảnh */
+.wallet-balance-card__footer {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  align-items: center;
+}
+
+.wallet-stat-col {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 0 16px;
+}
+
+.wallet-stat-col:first-child {
+  padding-left: 0;
+}
+
+.wallet-stat-col:not(:last-child) {
+  border-right: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .wallet-stat-label {
-  font-size: 0.775rem;
-  color: #94a3b8;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
+  font-size: 12px;
+  color: #A7D7C5;
+  font-weight: 400;
 }
 
 .wallet-stat-value {
-  font-size: 0.95rem;
-  font-weight: 700;
+  font-size: 14px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
 }
 
 .text-deposit {
-  color: #4ade80;
+  color: #8FE3BA;
 }
 
-.text-consume {
-  color: #f87171;
+.text-consumed {
+  color: #FFB4A8;
 }
 
-.wallet-stat-item--policy {
-  margin-left: auto;
-  background: transparent;
-  border: none;
-  padding: 0;
+.text-last-date {
+  color: #FFFFFF;
 }
 
-.wallet-policy-note {
-  font-size: 0.8rem;
-  color: #94a3b8;
-}
-
-/* Responsive quy chuẩn */
-@media (max-width: 992px) {
-  .wallet-balance-card__main {
-    grid-template-columns: 1fr;
-    gap: 20px;
-  }
-  .wallet-balance-card__actions {
-    flex-direction: row;
-    width: 100%;
-  }
-  .wallet-balance-card__actions button {
-    flex: 1;
-  }
-  .wallet-stat-item--policy {
-    margin-left: 0;
-    width: 100%;
-  }
-}
-
+/* Responsive trên điện thoại */
 @media (max-width: 640px) {
   .wallet-balance-card {
-    padding: 20px;
-    border-radius: 16px;
+    padding: 18px 16px;
   }
-  .wallet-balance-card__balance-number {
-    font-size: 2.25rem;
-  }
-  .wallet-balance-card__actions {
-    flex-direction: column;
-  }
-  .wallet-balance-card__stats {
+
+  .wallet-balance-card__top {
     flex-direction: column;
     align-items: stretch;
+    gap: 16px;
+  }
+
+  .wallet-balance-card__number {
+    font-size: 38px;
+  }
+
+  .wallet-balance-card__actions {
+    width: 100%;
+    margin-top: 4px;
+  }
+
+  .wallet-btn-primary,
+  .wallet-btn-secondary {
+    width: 100%;
+  }
+
+  .wallet-balance-card__footer {
+    grid-template-columns: 1fr;
     gap: 12px;
   }
-  .wallet-stat-item {
-    width: 100%;
+
+  .wallet-stat-col {
+    padding: 0;
+    border-right: none !important;
   }
 }

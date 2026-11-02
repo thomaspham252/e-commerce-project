@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom';
 import { DataTable } from '../../components/common/DataTable';
 import { StatusBadge } from '../../components/common/StatusBadge';
 import { EmployerAnalyticsCharts } from '../../components/employer/EmployerAnalyticsCharts.jsx';
+import { PendingVerificationBanner } from '../../components/employer/PendingVerificationBanner.jsx';
 import { useEmployerPackage } from '../../context/EmployerPackageContext.jsx';
 import { FiPlusCircle, FiBox, FiArrowRight, FiMessageSquare } from 'react-icons/fi';
 
@@ -13,13 +14,23 @@ export const EmployerDashboard = () => {
   const { subscription } = useEmployerPackage();
   const [recentApps, setRecentApps] = useState([]);
   const [loadingApps, setLoadingApps] = useState(true);
+  const [company, setCompany] = useState(null);
 
   useEffect(() => {
+    // Tải thông tin công ty để kiểm tra verificationStatus
+    employerService.getCompany()
+      .then((data) => setCompany(data || null))
+      .catch(() => setCompany(null));
+
+    // Tải các ứng tuyển gần nhất
     employerService.getApplications({ size: 5 })
-      .then((res) => setRecentApps(res.content))
+      .then((res) => setRecentApps(res?.content || []))
       .catch(() => setRecentApps([]))
       .finally(() => setLoadingApps(false));
   }, []);
+
+  const isVerified = company?.verificationStatus === 'VERIFIED';
+  const verificationStatus = company?.verificationStatus || 'PENDING';
 
   const columns = [
     { header: 'Ứng viên', accessor: 'candidateName' },
@@ -54,6 +65,12 @@ export const EmployerDashboard = () => {
 
   return (
     <>
+      {/* Banner thông báo trạng thái PENDING hoặc REJECTED */}
+      <PendingVerificationBanner
+        status={verificationStatus}
+        companyName={company?.name}
+      />
+
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <div>
           <h2 className="page-title">Tổng quan tuyển dụng</h2>
@@ -71,18 +88,40 @@ export const EmployerDashboard = () => {
             <FiBox size={16} />
             <span>Gói: {subscription?.packageName || 'Chưa kích hoạt'}</span>
           </Link>
-          <Link
-            to="/employer/jobs/create"
-            className="btn btn-primary"
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '13px', padding: '8px 14px' }}
-          >
-            <FiPlusCircle size={16} />
-            <span>Đăng tin tuyển dụng</span>
-          </Link>
+
+          {isVerified ? (
+            <Link
+              to="/employer/jobs/create"
+              className="btn btn-primary"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '13px', padding: '8px 14px' }}
+            >
+              <FiPlusCircle size={16} />
+              <span>Đăng tin tuyển dụng</span>
+            </Link>
+          ) : (
+            <button
+              type="button"
+              className="btn btn-primary"
+              disabled
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                fontSize: '13px',
+                padding: '8px 14px',
+                opacity: 0.65,
+                cursor: 'not-allowed'
+              }}
+              title="Doanh nghiệp đang chờ duyệt xác minh nên chưa thể đăng tin tuyển dụng mới"
+            >
+              <FiPlusCircle size={16} />
+              <span>Đăng tin (Chờ duyệt)</span>
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Component Biểu đồ và Thống kê Tuyển dụng (US4) */}
+      {/* Component Biểu đồ và Thống kê Tuyển dụng */}
       <div style={{ marginBottom: '32px' }}>
         <EmployerAnalyticsCharts />
       </div>

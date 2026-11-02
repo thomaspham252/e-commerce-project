@@ -42,6 +42,12 @@ export const EmployerCreateJob = () => {
 
   const handleSubmit = async (data) => {
     if (!isEdit) {
+      // Chặn nếu doanh nghiệp chưa được duyệt VERIFIED
+      if (company !== undefined && company?.verificationStatus !== 'VERIFIED') {
+        toast.error('Doanh nghiệp đang ở trạng thái chờ duyệt, chưa thể tạo tin tuyển dụng.');
+        return;
+      }
+
       // Kiểm tra quyền hạn đăng tin của gói
       const perm = await checkPermission('POST_JOB');
       if (!perm.allowed) {

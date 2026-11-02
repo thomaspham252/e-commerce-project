@@ -1,0 +1,352 @@
+/* ==========================================================================
+   Employer Registration Page Styles
+   Thương hiệu: JobViet Tuyển Dụng
+   ========================================================================== */
+
+.employer-auth-layout {
+  display: grid;
+  grid-template-columns: 420px 1fr;
+  min-height: 100vh;
+  background-color: #f8fafc;
+  font-family: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: #0f172a;
+}
+
+/* Sidebar bên trái */
+.auth-brand-sidebar {
+  background-color: #064e3b;
+  color: #ffffff;
+  padding: 48px 36px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+.sidebar-logo {
+  font-size: 26px;
+  font-weight: 800;
+  color: #ffffff;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sidebar-logo span {
+  font-size: 12px;
+  font-weight: 700;
+  background-color: #047857;
+  color: #a7f3d0;
+  padding: 3px 8px;
+  border-radius: 9999px;
+  text-transform: uppercase;
+}
+
+.sidebar-promo-box {
+  margin: auto 0;
+}
+
+.promo-tag {
+  color: #a7f3d0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.sidebar-promo-box h2 {
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1.35;
+  margin-bottom: 16px;
+  color: #ffffff;
+  letter-spacing: -0.5px;
+}
+
+.sidebar-promo-box p {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #d1fae5;
+  margin-bottom: 32px;
+}
+
+.sidebar-perks {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.perk-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 14px;
+  color: #ecfdf5;
+}
+
+.perk-row .perk-icon {
+  color: #34d399;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.sidebar-footer p {
+  font-size: 12px;
+  color: #a7f3d0;
+  opacity: 0.8;
+}
+
+/* Container bên phải */
+.auth-form-container {
+  padding: 40px 60px;
+  overflow-y: auto;
+  max-width: 820px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.auth-form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+  font-size: 14px;
+}
+
+.btn-back-home {
+  color: #475569;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.btn-back-home:hover {
+  color: #047857;
+}
+
+.header-login-prompt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-login-prompt span {
+  color: #64748b;
+}
+
+.link-switch-auth {
+  color: #047857;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.link-switch-auth:hover {
+  text-decoration: underline;
+}
+
+.form-title-group {
+  margin-bottom: 28px;
+}
+
+.form-main-title {
+  font-size: 28px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.5px;
+  margin-bottom: 8px;
+}
+
+.form-main-desc {
+  font-size: 14px;
+  color: #64748b;
+}
+
+.auth-error-alert {
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 14px;
+  margin-bottom: 24px;
+}
+
+/* Các khối trường form */
+.form-section-block {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.section-block-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #047857;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.section-title-icon {
+  color: #047857;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.form-field {
+  margin-bottom: 18px;
+}
+
+.form-field label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 6px;
+}
+
+.input-with-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-with-icon .input-icon {
+  position: absolute;
+  left: 14px;
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+.input-with-icon input,
+.form-field select {
+  width: 100%;
+  padding: 11px 14px 11px 42px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  font-size: 14px;
+  font-family: inherit;
+  color: #0f172a;
+  outline: none;
+  transition: all 0.2s ease;
+  background-color: #ffffff;
+}
+
+.form-field select {
+  padding-left: 14px;
+}
+
+.input-with-icon input:focus,
+.form-field select:focus {
+  border-color: #047857;
+  box-shadow: 0 0 0 3px rgba(4, 120, 87, 0.12);
+}
+
+.field-hint {
+  display: block;
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 4px;
+}
+
+.form-terms-checkbox {
+  margin-bottom: 24px;
+}
+
+.form-terms-checkbox label {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13px;
+  color: #475569;
+  cursor: pointer;
+  line-height: 1.5;
+}
+
+.form-terms-checkbox input {
+  margin-top: 3px;
+  width: 16px;
+  height: 16px;
+  accent-color: #047857;
+}
+
+.form-terms-checkbox a {
+  color: #047857;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.btn-submit-register {
+  width: 100%;
+  background-color: #047857;
+  color: #ffffff;
+  border: none;
+  padding: 14px;
+  border-radius: 9999px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 48px;
+  box-shadow: 0 4px 12px rgba(4, 120, 87, 0.25);
+  transition: all 0.2s ease;
+}
+
+.btn-submit-register:hover:not(:disabled) {
+  background-color: #065f46;
+  transform: translateY(-1px);
+}
+
+.btn-submit-register:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
+@media (max-width: 1024px) {
+  .employer-auth-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-brand-sidebar {
+    height: auto;
+    position: static;
+    padding: 32px 24px;
+  }
+
+  .auth-form-container {
+    padding: 32px 20px;
+  }
+}
+
+@media (max-width: 640px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-form-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+}
+

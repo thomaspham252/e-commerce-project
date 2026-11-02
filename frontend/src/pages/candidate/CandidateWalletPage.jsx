@@ -3,16 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import {
   FiHome,
   FiChevronRight,
-  FiLayers,
-  FiClock,
-  FiCreditCard,
-  FiFileText,
   FiCheckCircle,
   FiAlertCircle,
 } from 'react-icons/fi';
-import { Coins } from 'lucide-react';
 
 import { useWallet } from '../../context/WalletContext.jsx';
+import { getAuthSession } from '../../services/apiClient.js';
 import {
   getTokenPackages,
   getTokenTransactions,
@@ -31,12 +27,25 @@ import { TokenConsumeModal } from '../../components/wallet/TokenConsumeModal.jsx
 import './CandidateWalletPage.css';
 
 /**
- * Trang Quản lý Ví Token của Ứng viên (Candidate Wallet Page).
+ * Trang Quản lý ví token của ứng viên (Candidate Wallet Page).
  * Trung tâm điều khiển số dư token, nạp tiền VietQR SePay,
  * tra cứu lịch sử biến động và trải nghiệm các tính năng tuyển dụng trả phí.
  */
 export const CandidateWalletPage = () => {
   const navigate = useNavigate();
+
+  // Kiểm tra đăng nhập: nếu đã đăng xuất thì lập tức điều hướng về trang đăng nhập
+  useEffect(() => {
+    const checkAuth = () => {
+      const session = getAuthSession();
+      if (!session) {
+        navigate('/dang-nhap');
+      }
+    };
+    checkAuth();
+    window.addEventListener('auth-session-changed', checkAuth);
+    return () => window.removeEventListener('auth-session-changed', checkAuth);
+  }, [navigate]);
   const { wallet, balance, loading: walletLoading, consume } = useWallet();
 
   const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'transactions' | 'deposits' | 'fees'
@@ -64,7 +73,7 @@ export const CandidateWalletPage = () => {
     }, 4500);
   }, []);
 
-  // Tải dữ liệu ban đầu
+  // Tải dữ liệu ban đầu từ Database
   const loadInitialData = useCallback(async () => {
     try {
       setLoadingData(true);
@@ -79,7 +88,7 @@ export const CandidateWalletPage = () => {
       setDeposits(deps);
       setServiceFees(fees);
     } catch (err) {
-      console.error('Lỗi khi tải dữ liệu trang ví:', err);
+      console.error('Lỗi khi tải dữ liệu trang ví từ DB:', err);
       showToast('Không thể tải dữ liệu ví. Vui lòng thử lại sau.', 'error');
     } finally {
       setLoadingData(false);
@@ -96,7 +105,7 @@ export const CandidateWalletPage = () => {
       setLoadingData(true);
       const order = await createPaymentOrder({
         orderType: 'CANDIDATE_TOKEN',
-        serviceName: `Nạp ${pkg.tokens} Token ${
+        serviceName: `Nạp ${pkg.tokens} token ${
           pkg.bonusTokens > 0 ? `(+${pkg.bonusTokens} tặng kèm)` : ''
         }`,
         amount: pkg.priceVND,
@@ -138,7 +147,7 @@ export const CandidateWalletPage = () => {
 
       if (res.success) {
         showToast(
-          `Đã kích hoạt tính năng "${modalConfig.featureName}" thành công! Đã trừ ${modalConfig.tokenCost} Token.`,
+          `Đã kích hoạt tính năng "${modalConfig.featureName}" thành công. Đã trừ ${modalConfig.tokenCost} token.`,
           'success'
         );
         setModalConfig((prev) => ({ ...prev, isOpen: false, loading: false }));
@@ -167,18 +176,54 @@ export const CandidateWalletPage = () => {
     }
   };
 
-  // 5. Nạp thêm Token từ thẻ số dư -> cuộn xuống phần gói nạp
+  // 5. Nạp thêm token từ thẻ số dư -> cuộn xuống phần gói nạp
   const handleDepositClick = () => {
-    setActiveTab('overview');
-    const elem = document.getElementById('token-deposit-section');
-    if (elem) {
-      elem.scrollIntoView({ behavior: 'smooth' });
+    if (activeTab !== 'overview') {
+      setActiveTab('overview');
+      setTimeout(() => {
+        const elem = document.getElementById('token-deposit-section');
+        if (elem) {
+          elem.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 60);
+    } else {
+      const elem = document.getElementById('token-deposit-section');
+      if (elem) {
+        elem.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
     }
   };
 
+  // Lấy chi phí mở khóa liên hệ NTD từ danh sách biểu phí
+  const unlockFeeItem = serviceFees.find((f) => f.featureKey === 'UNLOCK_CONTACT');
+  const unlockCost = unlockFeeItem?.tokenCost || 30;
+
+  // Lấy ngày nạp gần nhất từ đơn nạp tiền hoặc giao dịch DEPOSIT
+  const lastSuccessfulDeposit = deposits.find(
+    (d) => d.status === 'SUCCESS' || d.status === 'PAID' || d.status === 'FULFILLED'
+  );
+  let lastDepositDateFormatted = '—';
+  const rawDate = lastSuccessfulDeposit?.paidAt || lastSuccessfulDeposit?.createdAt;
+  if (rawDate) {
+    const d = new Date(rawDate);
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    lastDepositDateFormatted = `${day}/${month}/${year}`;
+  } else {
+    const depositTx = transactions.find((t) => t.type === 'DEPOSIT');
+    if (depositTx?.createdAt) {
+      const d = new Date(depositTx.createdAt);
+      const day = String(d.getDate()).padStart(2, '0');
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const year = d.getFullYear();
+      lastDepositDateFormatted = `${day}/${month}/${year}`;
+    }
+  }
+
   return (
     <div className="candidate-wallet-page">
-      {/* Thông báo Toast nội bộ */}
+      {/* Thông báo Toast */}
       {toastMessage && (
         <div className={`wallet-toast-banner wallet-toast-banner--${toastMessage.type}`}>
           {toastMessage.type === 'success' ? (
@@ -204,27 +249,27 @@ export const CandidateWalletPage = () => {
           <FiChevronRight className="breadcrumb-separator" />
           <span className="wallet-breadcrumb-link">Ứng viên</span>
           <FiChevronRight className="breadcrumb-separator" />
-          <span className="wallet-breadcrumb-current">Ví Token</span>
+          <span className="wallet-breadcrumb-current">Ví token</span>
         </nav>
 
         {/* Tiêu đề trang */}
         <div className="wallet-page-header">
           <div>
-            <h1 className="wallet-page-title">
-              <Coins className="title-coin-icon text-amber" /> Ví Token Của Tôi
-            </h1>
+            <h1 className="wallet-page-title">Ví token của tôi</h1>
             <p className="wallet-page-subtitle">
-              Nạp token tiện lợi với VietQR SePay, linh hoạt sử dụng cho các tiện ích kết nối nhà tuyển dụng và nâng tầm hồ sơ ứng tuyển.
+              Dùng token để mở liên hệ nhà tuyển dụng, đẩy CV lên đầu và gắn huy hiệu nổi bật.
             </p>
           </div>
         </div>
 
-        {/* Thẻ số dư chính (US1 MVP) */}
+        {/* Khối số dư khả dụng */}
         <div className="wallet-balance-section">
           <WalletBalanceCard
             balance={balance}
             totalDeposited={wallet?.totalDeposited || 0}
             totalConsumed={wallet?.totalConsumed || 0}
+            lastDepositDate={lastDepositDateFormatted}
+            unlockCost={unlockCost}
             onDepositClick={handleDepositClick}
             onViewFeesClick={() => setActiveTab('fees')}
             loading={walletLoading}
@@ -232,55 +277,55 @@ export const CandidateWalletPage = () => {
         </div>
 
         {/* Thanh chuyển tab phân hệ */}
-        <div className="wallet-tabs-nav">
+        <div className="wallet-tabs-nav" role="tablist">
           <button
             type="button"
+            role="tab"
+            aria-selected={activeTab === 'overview'}
             className={`wallet-tab-btn ${activeTab === 'overview' ? 'wallet-tab-btn--active' : ''}`}
             onClick={() => setActiveTab('overview')}
             id="tab-btn-overview"
           >
-            <FiLayers />
-            <span>Nạp Token & Tổng Quan</span>
+            Nạp token
           </button>
 
           <button
             type="button"
-            className={`wallet-tab-btn ${
-              activeTab === 'transactions' ? 'wallet-tab-btn--active' : ''
-            }`}
+            role="tab"
+            aria-selected={activeTab === 'transactions'}
+            className={`wallet-tab-btn ${activeTab === 'transactions' ? 'wallet-tab-btn--active' : ''}`}
             onClick={() => setActiveTab('transactions')}
             id="tab-btn-transactions"
           >
-            <FiClock />
-            <span>Lịch Sử Biến Động</span>
+            Lịch sử biến động
           </button>
 
           <button
             type="button"
-            className={`wallet-tab-btn ${
-              activeTab === 'deposits' ? 'wallet-tab-btn--active' : ''
-            }`}
+            role="tab"
+            aria-selected={activeTab === 'deposits'}
+            className={`wallet-tab-btn ${activeTab === 'deposits' ? 'wallet-tab-btn--active' : ''}`}
             onClick={() => setActiveTab('deposits')}
             id="tab-btn-deposits"
           >
-            <FiCreditCard />
-            <span>Lịch Sử Nạp Tiền (SePay)</span>
+            Lịch sử nạp tiền
           </button>
 
           <button
             type="button"
+            role="tab"
+            aria-selected={activeTab === 'fees'}
             className={`wallet-tab-btn ${activeTab === 'fees' ? 'wallet-tab-btn--active' : ''}`}
             onClick={() => setActiveTab('fees')}
             id="tab-btn-fees"
           >
-            <FiFileText />
-            <span>Biểu Phí Tiện Ích</span>
+            Biểu phí tiện ích
           </button>
         </div>
 
         {/* Nội dung các Tab */}
         <div className="wallet-tab-content">
-          {/* TAB 1: Nạp Token & Tổng quan */}
+          {/* TAB 1: Nạp token & Tổng quan */}
           {activeTab === 'overview' && (
             <div className="wallet-tab-pane" id="token-deposit-section">
               <TokenPackagesGrid
@@ -291,13 +336,13 @@ export const CandidateWalletPage = () => {
 
               <div className="wallet-recent-transactions-preview">
                 <div className="recent-tx-header">
-                  <h3>Giao Dịch Gần Nhất</h3>
+                  <h3>Giao dịch gần nhất</h3>
                   <button
                     type="button"
                     className="btn-view-all-tx"
                     onClick={() => setActiveTab('transactions')}
                   >
-                    Xem tất cả lịch sử ({transactions.length})
+                    Xem tất cả ({transactions.length})
                   </button>
                 </div>
                 <TokenTransactionList
@@ -312,8 +357,8 @@ export const CandidateWalletPage = () => {
           {activeTab === 'transactions' && (
             <div className="wallet-tab-pane">
               <div className="section-intro">
-                <h2>Lịch Sử Biến Động Token</h2>
-                <p>Theo dõi mọi giao dịch cộng/trừ token, kiểm tra số dư đối soát và thời gian thực hiện.</p>
+                <h2>Lịch sử biến động</h2>
+                <p>Theo dõi các giao dịch cộng và trừ token trong tài khoản.</p>
               </div>
               <TokenTransactionList
                 transactions={transactions}
@@ -323,7 +368,7 @@ export const CandidateWalletPage = () => {
             </div>
           )}
 
-          {/* TAB 3: Lịch sử nạp tiền ngân hàng */}
+          {/* TAB 3: Lịch sử nạp tiền */}
           {activeTab === 'deposits' && (
             <div className="wallet-tab-pane">
               <DepositHistoryList
@@ -334,7 +379,7 @@ export const CandidateWalletPage = () => {
             </div>
           )}
 
-          {/* TAB 4: Bảng giá tiện ích */}
+          {/* TAB 4: Biểu phí tiện ích */}
           {activeTab === 'fees' && (
             <div className="wallet-tab-pane">
               <ServiceFeeTable
@@ -347,7 +392,7 @@ export const CandidateWalletPage = () => {
         </div>
       </div>
 
-      {/* Modal trừ token dùng chung (US3) */}
+      {/* Modal trừ token dùng chung */}
       <TokenConsumeModal
         isOpen={modalConfig.isOpen}
         onClose={() => setModalConfig((prev) => ({ ...prev, isOpen: false }))}
@@ -357,7 +402,6 @@ export const CandidateWalletPage = () => {
         tokenCost={modalConfig.tokenCost}
         currentBalance={balance}
         onNavigateDeposit={() => {
-          setActiveTab('overview');
           handleDepositClick();
         }}
         loading={modalConfig.loading}

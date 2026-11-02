@@ -1,15 +1,15 @@
+import { getAuthSession } from '../services/apiClient.js';
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import {
   getWallet,
   consumeTokens as serviceConsume,
 } from '../services/walletService.js';
-import { getAuthSession } from '../services/apiClient.js';
 
 const WalletContext = createContext(null);
 
 /**
  * Provider quản lý trạng thái Ví Token toàn cục cho ứng dụng.
- * Đồng bộ số dư token tức thì giữa Header, Trang Ví, và các Modal trừ token với Database MySQL.
+ * Đồng bộ số dư token tức thì giữa Header, Trang Ví, và các Modal trừ token trực tiếp với Database MySQL qua API.
  */
 export const WalletProvider = ({ children }) => {
   const [wallet, setWallet] = useState({
@@ -23,22 +23,16 @@ export const WalletProvider = ({ children }) => {
   const fetchWalletData = useCallback(async () => {
     const session = getAuthSession();
     if (!session?.id) {
-      setWallet({
-        userId: null,
-        balance: 0,
-        totalDeposited: 0,
-        totalConsumed: 0,
-      });
+      setWallet({ userId: null, balance: 0, totalDeposited: 0, totalConsumed: 0 });
       setLoading(false);
       return;
     }
-
     try {
       setLoading(true);
       const data = await getWallet();
       setWallet(data);
     } catch (err) {
-      console.error('Không thể tải thông tin ví token:', err);
+      console.error('Không thể tải thông tin ví token từ DB:', err);
     } finally {
       setLoading(false);
     }
@@ -82,7 +76,7 @@ export const WalletProvider = ({ children }) => {
 };
 
 /**
- * Custom hook useWallet để truy cập số dư và các hành động nạp/tiêu token.
+ * Custom hook useWallet để truy cập số dư và các hành động nạp/tiêu token từ DB.
  */
 export const useWallet = () => {
   const context = useContext(WalletContext);

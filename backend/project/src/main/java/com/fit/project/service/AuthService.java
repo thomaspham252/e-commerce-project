@@ -1,14 +1,18 @@
 package com.fit.project.service;
 
+import com.fit.project.dto.auth.EmployerRegisterRequest;
 import com.fit.project.dto.auth.LoginRequest;
 import com.fit.project.dto.auth.LoginResponse;
 import com.fit.project.dto.auth.RegisterRequest;
 import com.fit.project.entity.CandidateProfile;
+import com.fit.project.entity.Company;
 import com.fit.project.entity.User;
 import com.fit.project.enums.UserRole;
 import com.fit.project.enums.UserStatus;
+import com.fit.project.enums.VerificationStatus;
 import com.fit.project.exception.ApiException;
 import com.fit.project.repository.CandidateProfileRepository;
+import com.fit.project.repository.CompanyRepository;
 import com.fit.project.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -25,6 +29,7 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final CandidateProfileRepository candidateProfileRepository;
+    private final CompanyRepository companyRepository;
     private final PasswordEncoder passwordEncoder;
     private final GoogleIdentityService googleIdentityService;
     private final EmailVerificationService emailVerificationService;
@@ -47,6 +52,43 @@ public class AuthService {
                 .user(user)
                 .fullName(request.name().trim())
                 .build());
+        emailVerificationService.sendVerificationCode(user);
+
+        return new LoginResponse(user.getId(), user.getEmail(), user.getRole());
+    }
+
+    /**
+     * Đăng ký tài khoản Nhà tuyển dụng mới:
+     * - Tạo tài khoản User vai trò EMPLOYER, trạng thái email_verified = false
+     * - Tạo hồ sơ Company ở trạng thái PENDING
+     * - Gửi mã OTP xác thực qua email
+     */
+    @Transactional
+    public LoginResponse registerEmployer(EmployerRegisterRequest request) {
+        String email = request.email().trim().toLowerCase(Locale.ROOT);
+        if (userRepository.existsByEmailIgnoreCase(email)) {
+            throw ApiException.conflict("Địa chỉ email này đã được đăng ký");
+        }
+
+        User user = userRepository.save(User.builder()
+                .email(email)
+                .passwordHash(passwordEncoder.encode(request.password()))
+                .role(UserRole.EMPLOYER)
+                .status(UserStatus.ACTIVE)
+                .emailVerified(false)
+                .build());
+
+        Company company = Company.builder()
+                .owner(user)
+                .name(request.companyName().trim())
+                .industry(request.industry() != null ? request.industry().trim() : null)
+                .size(request.size() != null ? request.size().trim() : null)
+                .address(request.address() != null ? request.address().trim() : null)
+                .website(request.website() != null && !request.website().isBlank() ? request.website().trim() : null)
+                .verificationStatus(VerificationStatus.PENDING)
+                .build();
+        companyRepository.save(company);
+
         emailVerificationService.sendVerificationCode(user);
 
         return new LoginResponse(user.getId(), user.getEmail(), user.getRole());
