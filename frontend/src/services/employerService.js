@@ -3,6 +3,10 @@ import { apiClient, asUser, cleanParams, DEV_USER_IDS } from './apiClient';
 const cfg = (params) => ({ ...asUser(DEV_USER_IDS.employer), params: params && cleanParams(params) });
 
 export const employerService = {
+  // Gói dịch vụ: gói đang dùng (ACTIVE / EXPIRED / FREE) + hạn mức, và lịch sử đơn mua gói
+  getSubscription: () => apiClient.get('/employer/subscription', cfg()).then((r) => r.data),
+  getOrders: () => apiClient.get('/employer/orders', cfg()).then((r) => r.data),
+
   // Hồ sơ doanh nghiệp (null khi chưa tạo — backend trả 204)
   getCompany: () => apiClient.get('/employer/company', cfg()).then((r) => r.data || null),
   saveCompany: (data) => apiClient.put('/employer/company', data, cfg()).then((r) => r.data),

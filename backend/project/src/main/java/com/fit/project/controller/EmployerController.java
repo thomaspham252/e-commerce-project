@@ -20,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/employer")
@@ -31,6 +32,21 @@ public class EmployerController {
     private final ApplicationManagementService applicationService;
     private final StatisticsService statisticsService;
     private final CompanyPublicService companyPublicService;
+    private final EmployerSubscriptionService subscriptionService;
+
+    // ===== Gói dịch vụ =====
+
+    /** Gói đang dùng (ACTIVE / EXPIRED / FREE) và hạn mức tin đăng đã dùng. */
+    @GetMapping("/subscription")
+    public EmployerSubscriptionResponse getSubscription(@RequestHeader(CurrentUserService.HEADER) Integer userId) {
+        return subscriptionService.getCurrent(employer(userId));
+    }
+
+    /** Lịch sử đơn mua gói của chính NTD. */
+    @GetMapping("/orders")
+    public List<EmployerOrderResponse> listOrders(@RequestHeader(CurrentUserService.HEADER) Integer userId) {
+        return subscriptionService.listOrders(employer(userId));
+    }
 
     // ===== Hồ sơ doanh nghiệp =====
 
@@ -130,11 +146,12 @@ public class EmployerController {
             @RequestHeader(CurrentUserService.HEADER) Integer userId,
             @RequestParam(required = false) Integer rating,
             @RequestParam(required = false) String replyStatus,
+            @RequestParam(required = false) String sentiment,
             @RequestParam(required = false) String keyword,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        return companyPublicService.getEmployerReviews(employer(userId).getId(), rating, replyStatus, keyword, page, size);
+        return companyPublicService.getEmployerReviews(employer(userId).getId(), rating, replyStatus, sentiment, keyword, page, size);
     }
 
     @PostMapping("/reviews/{reviewId}/reply")

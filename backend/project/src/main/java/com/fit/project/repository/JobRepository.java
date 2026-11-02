@@ -78,6 +78,9 @@ public interface JobRepository extends JpaRepository<Job, Integer> {
 
     long countByCompanyOwnerId(Integer ownerId);
 
+    /** Số tin NTD đã tạo kể từ một thời điểm (tính hạn mức tin của gói đang dùng). */
+    long countByCompanyOwnerIdAndCreatedAtGreaterThanEqual(Integer ownerId, LocalDateTime from);
+
     @EntityGraph(attributePaths = "company")
     List<Job> findByCompanyIdAndStatus(Integer companyId, JobStatus status);
 

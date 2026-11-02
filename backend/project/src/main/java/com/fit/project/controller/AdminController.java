@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
 
@@ -60,24 +61,6 @@ public class AdminController {
                                  @Valid @RequestBody UpdateSearchableRequest req) {
         admin(userId);
         adminService.updateCandidateSearchable(id, req.searchable());
-    }
-
-    // ===== Hồ sơ (CV) =====
-
-    @GetMapping("/cvs")
-    public PageResponse<AdminCvResponse> listCvs(@RequestHeader(CurrentUserService.HEADER) Integer userId,
-                                                 @RequestParam(required = false) String keyword,
-                                                 @RequestParam(defaultValue = "0") int page,
-                                                 @RequestParam(defaultValue = "10") int size) {
-        admin(userId);
-        return adminService.listCvs(keyword, page, size);
-    }
-
-    @DeleteMapping("/cvs/{id}")
-    public void deleteCv(@RequestHeader(CurrentUserService.HEADER) Integer userId,
-                         @PathVariable Integer id) {
-        admin(userId);
-        adminService.deleteCv(id);
     }
 
     // ===== Doanh nghiệp =====
@@ -146,6 +129,15 @@ public class AdminController {
     public List<CountItem> jobStatus(@RequestHeader(CurrentUserService.HEADER) Integer userId) {
         admin(userId);
         return statisticsService.adminJobStatus();
+    }
+
+    /** Báo cáo doanh thu từ các đơn đã thanh toán; from/to dạng yyyy-MM-dd, có thể bỏ trống. */
+    @GetMapping("/stats/revenue")
+    public RevenueReportResponse revenue(@RequestHeader(CurrentUserService.HEADER) Integer userId,
+                                         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+                                         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
+        admin(userId);
+        return statisticsService.adminRevenue(from, to);
     }
 
     private User admin(Integer userId) {

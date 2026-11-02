@@ -2,6 +2,7 @@ package com.fit.project.service;
 
 import com.fit.project.dto.admin.AdminOverviewResponse;
 import com.fit.project.dto.admin.MonthlyStat;
+import com.fit.project.dto.admin.RevenueReportResponse;
 import com.fit.project.dto.common.CountItem;
 import com.fit.project.dto.employer.EmployerStatsResponse;
 import com.fit.project.dto.employer.EmployerStatsResponse.DayPoint;
@@ -11,11 +12,14 @@ import com.fit.project.exception.ApiException;
 import com.fit.project.repository.ApplicationRepository;
 import com.fit.project.repository.CompanyRepository;
 import com.fit.project.repository.JobRepository;
+import com.fit.project.repository.OrderRepository;
 import com.fit.project.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
@@ -38,6 +42,82 @@ public class StatisticsService {
     private final CompanyRepository companyRepository;
     private final JobRepository jobRepository;
     private final ApplicationRepository applicationRepository;
+    private final OrderRepository orderRepository;
+
+    /** Đơn được tính là doanh thu: đã thanh toán (kể cả đã kích hoạt dịch vụ). */
+    private static final List<OrderStatus> REVENUE_STATUSES = List.of(OrderStatus.PAID, OrderStatus.FULFILLED);
+
+    // ===== Báo cáo doanh thu (Admin) =====
+
+    /**
+     * Doanh thu theo thời gian, tách gói dịch vụ NTD (SUBSCRIPTION) và nạp token (TOKEN).
+     * from = null → ngày có đơn thanh toán đầu tiên (chưa có đơn → 30 ngày gần nhất); to = null → hôm nay.
+     * Khoảng dài hơn {@value #MAX_DAILY_POINTS} ngày thì gom cột theo tháng.
+     */
+    public RevenueReportResponse adminRevenue(LocalDate from, LocalDate to) {
+        LocalDate end = to != null ? to : LocalDate.now();
+        LocalDate start = from;
+        if (start == null) {
+            LocalDateTime firstPaid = orderRepository.findFirstPaidAt(REVENUE_STATUSES);
+            start = firstPaid != null && firstPaid.toLocalDate().isBefore(end)
+                    ? firstPaid.toLocalDate()
+                    : end.minusDays(29);
+        }
+        if (start.isAfter(end)) {
+            throw ApiException.badRequest("Ngày bắt đầu phải trước ngày kết thúc");
+        }
+
+        List<Object[]> rows = orderRepository.findPaidRevenueRows(
+                REVENUE_STATUSES, start.atStartOfDay(), end.plusDays(1).atStartOfDay());
+
+        boolean daily = ChronoUnit.DAYS.between(start, end) + 1 <= MAX_DAILY_POINTS;
+        // key: ngày đầu của cột (theo ngày hoặc theo tháng) → [doanh thu gói, doanh thu token]
+        Map<LocalDate, long[]> buckets = new TreeMap<>();
+        long packageRevenue = 0, tokenRevenue = 0, packageOrders = 0, tokenOrders = 0;
+        for (Object[] row : rows) {
+            LocalDate paidDate = ((LocalDateTime) row[0]).toLocalDate();
+            OrderType type = (OrderType) row[1];
+            long amount = row[2] != null ? ((BigDecimal) row[2]).setScale(0, RoundingMode.HALF_UP).longValue() : 0L;
+            LocalDate key = daily ? paidDate : paidDate.withDayOfMonth(1);
+            long[] bucket = buckets.computeIfAbsent(key, k -> new long[2]);
+            if (type == OrderType.SUBSCRIPTION) {
+                bucket[0] += amount;
+                packageRevenue += amount;
+                packageOrders++;
+            } else {
+                bucket[1] += amount;
+                tokenRevenue += amount;
+                tokenOrders++;
+            }
+        }
+
+        List<RevenueReportResponse.Point> timeline = new ArrayList<>();
+        if (daily) {
+            for (LocalDate d = start; !d.isAfter(end); d = d.plusDays(1)) {
+                timeline.add(revenuePoint(d, d.format(DAY_LABEL), buckets.get(d)));
+            }
+        } else {
+            for (YearMonth m = YearMonth.from(start); !m.isAfter(YearMonth.from(end)); m = m.plusMonths(1)) {
+                LocalDate d = m.atDay(1);
+                timeline.add(revenuePoint(d, "T" + m.getMonthValue() + "/" + m.getYear(), buckets.get(d)));
+            }
+        }
+
+        long totalRevenue = packageRevenue + tokenRevenue;
+        long totalOrders = packageOrders + tokenOrders;
+        List<RevenueReportResponse.Source> sources = List.of(
+                new RevenueReportResponse.Source(OrderType.SUBSCRIPTION.name(), packageRevenue, packageOrders),
+                new RevenueReportResponse.Source(OrderType.TOKEN.name(), tokenRevenue, tokenOrders));
+        var summary = new RevenueReportResponse.Summary(totalRevenue, packageRevenue, tokenRevenue,
+                totalOrders, packageOrders, tokenOrders, totalOrders > 0 ? Math.round((double) totalRevenue / totalOrders) : 0);
+        return new RevenueReportResponse(start.toString(), end.toString(), timeline, sources, summary);
+    }
+
+    private static RevenueReportResponse.Point revenuePoint(LocalDate date, String label, long[] bucket) {
+        long pkg = bucket != null ? bucket[0] : 0;
+        long token = bucket != null ? bucket[1] : 0;
+        return new RevenueReportResponse.Point(date.toString(), label, pkg, token, pkg + token);
+    }
 
     // ===== Công khai (Landing Page) =====
 

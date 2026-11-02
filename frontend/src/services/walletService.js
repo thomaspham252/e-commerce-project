@@ -25,6 +25,11 @@ export const getWallet = async () => {
  * 2. Lấy danh sách các mốc nạp token từ database MySQL qua API /api/v1/token-packages.
  */
 export const getTokenPackages = async (includeAll = false) => {
+  // Admin (includeAll): lấy cả gói đã tắt, lỗi thì ném ra để giao diện báo
+  if (includeAll) {
+    const res = await apiClient.get('/v1/token-packages', { params: { all: true } });
+    return res.data.data;
+  }
   try {
     const res = await apiClient.get('/v1/token-packages', {
       params: { all: includeAll },
@@ -112,7 +117,12 @@ export const consumeTokens = async (_userId, featureKey = 'UNLOCK_CONTACT') => {
 /**
  * 6. Lấy danh sách biểu phí các tính năng dùng token từ Database MySQL qua API /api/v1/service-fees.
  */
-export const getServiceFees = async () => {
+export const getServiceFees = async ({ fallback = true } = {}) => {
+  // Admin (fallback = false): chỉ dùng dữ liệu DB, lỗi thì ném ra để giao diện báo
+  if (!fallback) {
+    const res = await apiClient.get('/v1/service-fees');
+    return res.data.data;
+  }
   try {
     const res = await apiClient.get('/v1/service-fees');
     if (res.data?.success && res.data?.data) {

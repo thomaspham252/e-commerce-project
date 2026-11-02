@@ -25,7 +25,6 @@ import { CandidateDashboardPage } from '../pages/candidate/CandidateDashboardPag
 import { AdminLayout } from '../layouts/AdminLayout';
 import { AdminDashboard } from '../pages/admin/AdminDashboard';
 import { AdminUsers } from '../pages/admin/AdminUsers';
-import { AdminCvs } from '../pages/admin/AdminCvs';
 import { AdminJobs } from '../pages/admin/AdminJobs';
 import { AdminCompanies } from '../pages/admin/AdminCompanies';
 import { AdminPayments } from '../pages/admin/AdminPayments';
@@ -99,7 +98,6 @@ export const AppRoutes = () => {
           <Route path="/admin/payments" element={<AdminPayments />} />
           <Route path="/admin/transactions" element={<AdminPayments />} />
           <Route path="/admin/users" element={<AdminUsers />} />
-          <Route path="/admin/cvs" element={<AdminCvs />} />
           <Route path="/admin/jobs" element={<AdminJobs />} />
           <Route path="/admin/companies" element={<AdminCompanies />} />
         </Route>

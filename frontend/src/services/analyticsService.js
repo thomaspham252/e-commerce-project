@@ -1,14 +1,12 @@
 /**
  * Tầng dịch vụ Thống kê & Phân tích (Analytics Service).
  * Tuân thủ hợp đồng tại specs/004-employer-packages-dashboard/contracts/employer-service-contract.md.
- * Thống kê tuyển dụng NTD gọi backend; báo cáo doanh thu Admin vẫn dùng mock (thuộc module thanh toán).
+ * Thống kê tuyển dụng NTD và báo cáo doanh thu Admin đều lấy dữ liệu thật từ backend.
  */
 
-import { initialRevenueTimeline } from './analyticsMockData.js';
+import { adminService } from './adminService.js';
 import { employerService } from './employerService.js';
 import { APPLICATION_STATUS } from '../utils/statusLabels.js';
-
-const simulateDelay = (ms = 100) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
  * 1. Lấy dữ liệu thống kê tuyển dụng của Nhà tuyển dụng theo khoảng ngày (dữ liệu thật từ backend).
@@ -29,61 +27,34 @@ export const getRecruitmentAnalytics = async (_employerId, { startDate = '', end
   };
 };
 
+/** Tên hiển thị + màu cho từng nguồn thu (order_type trong bảng orders). */
+const REVENUE_SOURCES = {
+  SUBSCRIPTION: { name: 'Gói Dịch Vụ NTD', color: '#2563eb' },
+  TOKEN: { name: 'Ví Token Ứng Viên', color: '#f59e0b' },
+};
+
 /**
- * 2. Lấy dữ liệu báo cáo doanh thu tài chính Admin theo khoảng ngày.
+ * 2. Báo cáo doanh thu Admin theo khoảng ngày (dữ liệu thật từ bảng orders, chỉ đơn đã thanh toán).
+ * Ngày bắt đầu trống: lấy từ đơn thanh toán đầu tiên. Khoảng > 62 ngày sẽ gom cột theo tháng.
  */
 export const getAdminRevenueAnalytics = async ({ startDate = '', endDate = '' } = {}) => {
-  await simulateDelay();
+  const res = await adminService.getRevenueStats({ from: startDate, to: endDate });
+  const totalRevenue = res.summary.totalRevenue;
 
-  let timeline = [...initialRevenueTimeline];
-
-  if (startDate) {
-    const start = new Date(startDate).setHours(0, 0, 0, 0);
-    timeline = timeline.filter((item) => new Date(item.date).getTime() >= start);
-  }
-
-  if (endDate) {
-    const end = new Date(endDate).setHours(23, 59, 59, 999);
-    timeline = timeline.filter((item) => new Date(item.date).getTime() <= end);
-  }
-
-  const totalRevenue = timeline.reduce((acc, item) => acc + item.totalRevenue, 0);
-  const packageRevenueTotal = timeline.reduce((acc, item) => acc + item.packageRevenue, 0);
-  const tokenRevenueTotal = timeline.reduce((acc, item) => acc + item.tokenRevenue, 0);
-
-  const totalOrders = Math.round(totalRevenue / 644000);
-  const packageOrders = Math.round(packageRevenueTotal / 1400000);
-  const tokenOrders = Math.max(0, totalOrders - packageOrders);
-
-  // Cơ cấu nguồn thu
-  const sourceComposition = [
-    {
-      source: 'EMPLOYER_PACKAGES',
-      name: 'Gói Dịch Vụ NTD',
-      amount: packageRevenueTotal,
-      percentage: totalRevenue > 0 ? Math.round((packageRevenueTotal / totalRevenue) * 100) : 0,
-      color: '#2563eb',
-    },
-    {
-      source: 'CANDIDATE_TOKENS',
-      name: 'Ví Token Ứng Viên',
-      amount: tokenRevenueTotal,
-      percentage: totalRevenue > 0 ? Math.round((tokenRevenueTotal / totalRevenue) * 100) : 0,
-      color: '#f59e0b',
-    },
-  ];
+  const sourceComposition = res.sources
+    .filter((item) => item.amount > 0)
+    .map((item) => ({
+      source: item.source,
+      name: REVENUE_SOURCES[item.source]?.name || item.source,
+      color: REVENUE_SOURCES[item.source]?.color || '#94a3b8',
+      amount: item.amount,
+      orders: item.orders,
+      percentage: totalRevenue > 0 ? Math.round((item.amount / totalRevenue) * 100) : 0,
+    }));
 
   return {
-    timeline,
-    sourceComposition: totalRevenue > 0 ? sourceComposition : [],
-    summary: {
-      totalRevenue,
-      packageRevenueTotal,
-      tokenRevenueTotal,
-      totalOrders,
-      packageOrders,
-      tokenOrders,
-      averageOrderValue: totalOrders > 0 ? Math.round(totalRevenue / totalOrders) : 0,
-    },
+    timeline: res.timeline,
+    sourceComposition,
+    summary: res.summary,
   };
 };

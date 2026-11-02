@@ -3,7 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { FiHome, FiChevronRight, FiCreditCard, FiClock, FiFileText } from 'react-icons/fi';
 import { useEmployerPackage } from '../../context/EmployerPackageContext.jsx';
 import { CurrentPackageCard } from '../../components/employer/CurrentPackageCard.jsx';
-import { getTransactions } from '../../services/paymentService.js';
+import { employerService } from '../../services/employerService.js';
+import { getErrorMessage } from '../../services/apiClient.js';
+import { toast } from 'react-toastify';
 import { StatusBadge } from '../../components/common/StatusBadge.jsx';
 import './EmployerSubscriptionPage.css';
 
@@ -13,24 +15,30 @@ import './EmployerSubscriptionPage.css';
  */
 export const EmployerSubscriptionPage = () => {
   const navigate = useNavigate();
-  const { subscription, loading: contextLoading } = useEmployerPackage();
+  const { subscription, loading: contextLoading, refreshSubscription } = useEmployerPackage();
   const [orders, setOrders] = useState([]);
   const [loadingOrders, setLoadingOrders] = useState(true);
 
   useEffect(() => {
+    // Tải lại gói (vừa thanh toán xong thì backend đã kích hoạt gói mới)
+    refreshSubscription();
     const fetchPackageOrders = async () => {
       try {
         setLoadingOrders(true);
-        const res = await getTransactions({ orderType: 'EMPLOYER_PACKAGE', page: 1, pageSize: 20 });
-        setOrders(res.data || []);
+        const list = await employerService.getOrders();
+        // Đơn đã thanh toán (PAID/FULFILLED) hiển thị là "Đã thanh toán"
+        setOrders(list.map((o) => ({
+          ...o,
+          status: o.status === 'PAID' || o.status === 'FULFILLED' ? 'SUCCESS' : o.status,
+        })));
       } catch (err) {
-        console.error('Lỗi khi tải lịch sử đơn mua gói:', err);
+        toast.error(getErrorMessage(err));
       } finally {
         setLoadingOrders(false);
       }
     };
     fetchPackageOrders();
-  }, []);
+  }, [refreshSubscription]);
 
   const handleRenew = () => {
     navigate('/employer/pricing');

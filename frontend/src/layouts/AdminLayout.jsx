@@ -1,4 +1,6 @@
+import { Navigate, useLocation } from 'react-router-dom';
 import { DashboardLayout } from './DashboardLayout';
+import { getAuthSession } from '../services/apiClient';
 import {
   LayoutDashboard,
   Users,
@@ -8,7 +10,6 @@ import {
   TrendingUp,
   Package,
   Coins,
-  FileText,
 } from 'lucide-react';
 
 const adminSidebarItems = [
@@ -18,11 +19,21 @@ const adminSidebarItems = [
   { path: '/admin/token-config', label: 'Cấu hình Token', icon: <Coins size={20} /> },
   { path: '/admin/payments', label: 'Quản lý giao dịch', icon: <CreditCard size={20} /> },
   { path: '/admin/users', label: 'Người dùng', icon: <Users size={20} /> },
-  { path: '/admin/cvs', label: 'Hồ sơ ứng viên', icon: <FileText size={20} /> },
   { path: '/admin/jobs', label: 'Tin tuyển dụng', icon: <Briefcase size={20} /> },
   { path: '/admin/companies', label: 'Doanh nghiệp', icon: <Building2 size={20} /> },
 ];
 
 export const AdminLayout = () => {
+  const location = useLocation();
+  const session = getAuthSession();
+
+  // Chỉ tài khoản ADMIN mới vào được khu vực quản trị
+  if (!session) {
+    return <Navigate to="/dang-nhap" replace state={{ from: location.pathname }} />;
+  }
+  if (session.role !== 'ADMIN') {
+    return <Navigate to="/" replace />;
+  }
+
   return <DashboardLayout title="Admin" sidebarItems={adminSidebarItems} />;
 };

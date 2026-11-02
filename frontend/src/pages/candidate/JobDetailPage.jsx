@@ -331,13 +331,7 @@ export const JobDetailPage = () => {
                   <span className="itv-recommend-label">Khuyến khích làm việc ở đây</span>
                 </div>
 
-                <div className="itv-top-employer-badge">
-                  <Trophy size={18} className="itv-trophy-icon" />
-                  <div>
-                    <strong>TOP EMPLOYER 2024</strong>
-                    <span>Vietnam Best Tech Companies</span>
-                  </div>
-                </div>
+                
               </div>
             </div>
           </div>
@@ -355,20 +349,8 @@ export const JobDetailPage = () => {
             >
               Giới thiệu & Mô tả
             </button>
-            <button
-              type="button"
-              className={`itv-subnav-tab ${activeTab === 'reviews' ? 'is-active' : ''}`}
-              onClick={() => scrollToSection('sec-reviews', 'reviews')}
-            >
-              Đánh giá <span className="itv-tab-counter">{reviewCount}</span>
-            </button>
-            <button
-              type="button"
-              className={`itv-subnav-tab ${activeTab === 'jobs' ? 'is-active' : ''}`}
-              onClick={() => scrollToSection('sec-jobs', 'jobs')}
-            >
-              Việc làm <span className="itv-tab-counter">{relatedJobs.length + 1}</span>
-            </button>
+            
+            
             <button
               type="button"
               className={`itv-subnav-tab ${activeTab === 'locations' ? 'is-active' : ''}`}
@@ -440,41 +422,7 @@ export const JobDetailPage = () => {
               </div>
             </section>
 
-            {/* THẺ 2: GIẢI THƯỞNG (ITVIEC AWARDS SHOWCASE) */}
-            <section className="itv-card itv-awards-card">
-              <div className="itv-awards-head">
-                <h2 className="itv-card-title">
-                  <Award size={20} className="itv-title-icon itv-award-gold" />
-                  Giải thưởng & Vinh danh
-                </h2>
-                <span className="itv-badge-sub">Được công nhận uy tín</span>
-              </div>
-
-              <div className="itv-awards-list">
-                {awards.map((item, idx) => (
-                  <div key={idx} className="itv-award-item">
-                    <div className="itv-award-badge-icon">
-                      <Trophy size={20} />
-                    </div>
-                    <div className="itv-award-info">
-                      <strong>{item.title}</strong>
-                      <div className="itv-award-metrics">
-                        <span className="itv-award-score">
-                          <Star size={13} fill="#F59E0B" color="#F59E0B" /> {item.score}
-                        </span>
-                        <span className="itv-award-divider">•</span>
-                        <span className="itv-award-recommend">
-                          <ThumbsUp size={13} /> {item.recommend} khuyến khích
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <p className="itv-awards-disclaimer">
-                * Giải thưởng Công ty IT tốt nhất Việt Nam được chứng thực dựa trên khảo sát đánh giá thực tế của cộng đồng kỹ sư và chuyên gia công nghệ.
-              </p>
-            </section>
+            
 
             {/* THẺ 3: MÔ TẢ CÔNG VIỆC */}
             <section className="itv-card itv-section-block">
@@ -512,7 +460,7 @@ export const JobDetailPage = () => {
             <section className="itv-card itv-section-block">
               <h2 className="itv-card-title">
                 <Code2 size={20} className="itv-title-icon" />
-                Chuyên môn của chúng tôi
+                Kĩ năng chúng tôi cần ở bạn
               </h2>
               <div className="itv-skills-chip-wrap">
                 {job.skills && job.skills.map((skill) => (
@@ -523,47 +471,7 @@ export const JobDetailPage = () => {
               </div>
             </section>
 
-            {/* THẺ 6: TẠI SAO BẠN SẼ YÊU THÍCH LÀM VIỆC TẠI ĐÂY? (BENEFITS & GALLERY) */}
-            <section className="itv-card itv-section-block">
-              <h2 className="itv-card-title">
-                <Sparkles size={20} className="itv-title-icon" />
-                Tại sao bạn sẽ yêu thích làm việc tại đây?
-              </h2>
-
-              <ul className="itv-checklist itv-benefits-list">
-                {job.benefits && job.benefits.map((line, index) => (
-                  <li key={index}>
-                    <CheckCircle2 size={18} className="itv-check-icon itv-check-green" />
-                    <span>{line}</span>
-                  </li>
-                ))}
-              </ul>
-
-              {/* 3 Ảnh thực tế văn phòng & văn hóa teambuilding */}
-              <div className="itv-gallery-block">
-                <h3 className="itv-gallery-heading">
-                  <ImageIcon size={17} />
-                  Hình ảnh môi trường & văn hóa làm việc
-                </h3>
-                <div className="itv-photo-grid">
-                  {photos.map((photo) => (
-                    <div
-                      key={photo.id}
-                      className="itv-photo-card"
-                      onClick={() => setPreviewPhoto(photo)}
-                      role="button"
-                      tabIndex={0}
-                      title="Xem ảnh phóng to"
-                    >
-                      <img src={photo.url} alt={photo.caption} loading="lazy" />
-                      <div className="itv-photo-overlay">
-                        <span>{photo.caption}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </section>
+            
 
             {/* THẺ 7: GIỚI THIỆU CÔNG TY */}
             <section className="itv-card itv-section-block">
@@ -612,89 +520,7 @@ export const JobDetailPage = () => {
               </div>
             </section>
 
-            {/* THẺ 8: ĐÁNH GIÁ TỪ NHÂN VIÊN */}
-            <section className="itv-card itv-section-block" id="sec-reviews">
-              <div className="itv-reviews-header">
-                <div>
-                  <h2 className="itv-card-title">
-                    <Star size={20} className="itv-title-icon itv-award-gold" />
-                    Đánh giá từ nhân viên ({reviewCount})
-                  </h2>
-                  <p className="itv-reviews-subtitle">Trải nghiệm thực tế từ các kỹ sư và chuyên gia đang làm việc</p>
-                  <Link
-                    to={companyId ? `/cong-ty/${companyId}#sec-reviews` : '/cong-ty'}
-                    style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.85rem', color: 'var(--color-primary, #10B981)', fontWeight: 600, textDecoration: 'none', marginTop: '6px' }}
-                  >
-                    <span>Xem đầy đủ nhận xét & viết đánh giá</span>
-                    <ChevronRight size={14} />
-                  </Link>
-                </div>
-                <div className="itv-overall-badge">
-                  <strong>{ratingScore.toFixed(1)}</strong>
-                  <span>/ 5.0</span>
-                </div>
-              </div>
-
-              <div className="itv-rating-bars-grid">
-                <div className="itv-rating-bar-item">
-                  <div className="itv-bar-label-row">
-                    <span>Lương thưởng & Phúc lợi</span>
-                    <strong>4.9</strong>
-                  </div>
-                  <div className="itv-bar-track">
-                    <div className="itv-bar-fill" style={{ width: '98%' }} />
-                  </div>
-                </div>
-
-                <div className="itv-rating-bar-item">
-                  <div className="itv-bar-label-row">
-                    <span>Đào tạo & Cơ hội phát triển</span>
-                    <strong>4.8</strong>
-                  </div>
-                  <div className="itv-bar-track">
-                    <div className="itv-bar-fill" style={{ width: '96%' }} />
-                  </div>
-                </div>
-
-                <div className="itv-rating-bar-item">
-                  <div className="itv-bar-label-row">
-                    <span>Đồng nghiệp & Văn hóa</span>
-                    <strong>5.0</strong>
-                  </div>
-                  <div className="itv-bar-track">
-                    <div className="itv-bar-fill" style={{ width: '100%' }} />
-                  </div>
-                </div>
-
-                <div className="itv-rating-bar-item">
-                  <div className="itv-bar-label-row">
-                    <span>Cân bằng công việc & Đời sống</span>
-                    <strong>4.8</strong>
-                  </div>
-                  <div className="itv-bar-track">
-                    <div className="itv-bar-fill" style={{ width: '96%' }} />
-                  </div>
-                </div>
-              </div>
-
-              {/* Trích dẫn nhận xét tiêu biểu */}
-              <div className="itv-reviews-quotes">
-                <div className="itv-review-card">
-                  <div className="itv-review-card-head">
-                    <div className="itv-stars-row">
-                      {[1, 2, 3, 4, 5].map((s) => (
-                        <Star key={s} size={13} fill="#F59E0B" color="#F59E0B" />
-                      ))}
-                    </div>
-                    <span className="itv-reviewer-role">Senior Software Engineer • Đang làm việc</span>
-                  </div>
-                  <h4 className="itv-review-headline">"Môi trường công nghệ hiện đại, trao quyền và lộ trình rõ ràng"</h4>
-                  <p className="itv-review-content">
-                    Được làm việc với stack công nghệ mới, hệ thống chịu tải cao. Đồng nghiệp cực kỳ hỗ trợ, văn hóa không OT vô lý và ban quản lý rất lắng nghe ý kiến đóng góp của kỹ sư.
-                  </p>
-                </div>
-              </div>
-            </section>
+            
 
             {/* THẺ 9: ĐỊA ĐIỂM & BẢN ĐỒ */}
             <section className="itv-card itv-section-block" id="sec-locations">

@@ -1,5 +1,11 @@
-import { useState, useEffect, useCallback } from 'react';
-import { getTransactions, getTransactionDetailWithWebhook } from '../../services/paymentService';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { toast } from 'react-toastify';
+import {
+  getTransactions,
+  getTransactionDetailWithWebhook,
+  getTransactionSummary,
+} from '../../services/paymentService';
+import { getErrorMessage } from '../../services/apiClient';
 import { StatusBadge } from '../../components/common/StatusBadge';
 import { WebhookLogModal } from '../../components/payment/WebhookLogModal';
 import { formatCurrencyVND } from '../../utils/formatCurrency';
@@ -21,11 +27,17 @@ import './AdminPayments.css';
  * - Thống kê nhanh tình trạng giao dịch
  * - Bộ lọc trạng thái, loại đơn và khoảng thời gian
  * - Bảng danh sách chi tiết
- * - Khung modal xem chi tiết đối soát & JSON Webhook log mẫu
+ * - Khung modal xem chi tiết đối soát
+ * Toàn bộ dữ liệu lấy từ database (bảng payments + orders).
  */
+const PAGE_SIZE = 20;
+
 export const AdminPayments = () => {
   const [transactions, setTransactions] = useState([]);
   const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
 
   // Bộ lọc
@@ -40,50 +52,79 @@ export const AdminPayments = () => {
   const [selectedDetail, setSelectedDetail] = useState(null);
   const [modalLoading, setModalLoading] = useState(false);
 
-  // Lấy danh sách giao dịch từ paymentService
+  // Ô tìm kiếm: chờ người dùng ngừng gõ 400ms mới gọi API
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery.trim());
+      setPage(1);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Đổi bộ lọc thì quay về trang 1 (cùng một lần cập nhật để không gọi API 2 lần)
+  const onFilterChange = (setter) => (value) => {
+    setter(value);
+    setPage(1);
+  };
+
+  // Chỉ nhận kết quả của lần gọi mới nhất (tránh phản hồi cũ về sau ghi đè)
+  const requestIdRef = useRef(0);
+
+  // Lấy danh sách giao dịch từ database
   const fetchTransactions = useCallback(async () => {
+    const requestId = ++requestIdRef.current;
     try {
       setLoading(true);
-      const res = await getTransactions({
-        status: statusFilter,
-        orderType: typeFilter,
-        search: searchQuery,
-        startDate,
-        endDate,
-        page: 1,
-        pageSize: 50,
-      });
+      const [res, sum] = await Promise.all([
+        getTransactions({
+          status: statusFilter,
+          orderType: typeFilter,
+          search: debouncedSearch,
+          startDate,
+          endDate,
+          page,
+          pageSize: PAGE_SIZE,
+        }),
+        getTransactionSummary(),
+      ]);
+      if (requestId !== requestIdRef.current) return;
       setTransactions(res.data);
       setTotal(res.total);
+      setTotalPages(res.totalPages);
+      setSummary(sum);
     } catch (err) {
-      console.error('Lỗi khi tải danh sách giao dịch:', err);
+      if (requestId === requestIdRef.current) toast.error(getErrorMessage(err));
     } finally {
-      setLoading(false);
+      if (requestId === requestIdRef.current) setLoading(false);
     }
-  }, [statusFilter, typeFilter, searchQuery, startDate, endDate]);
+  }, [statusFilter, typeFilter, debouncedSearch, startDate, endDate, page]);
 
   useEffect(() => {
     fetchTransactions();
   }, [fetchTransactions]);
 
   // Mở modal xem chi tiết một giao dịch
-  const handleOpenDetail = async (transactionId) => {
+  const handleOpenDetail = async (row) => {
     try {
       setModalLoading(true);
-      const detail = await getTransactionDetailWithWebhook(transactionId);
+      const detail = await getTransactionDetailWithWebhook(row);
       setSelectedDetail(detail);
       setModalOpen(true);
     } catch (err) {
-      alert(`Không thể lấy chi tiết giao dịch: ${err.message}`);
+      toast.error(getErrorMessage(err));
     } finally {
       setModalLoading(false);
     }
   };
 
-  // Thống kê nhanh
-  const successCount = transactions.filter((t) => t.status === 'SUCCESS').length;
-  const pendingCount = transactions.filter((t) => t.status === 'PENDING').length;
-  const wrongAmountCount = transactions.filter((t) => t.status === 'WRONG_AMOUNT').length;
+  // Thống kê nhanh trên toàn bộ giao dịch trong DB
+  const allCount = summary ? Object.entries(summary)
+    .filter(([key]) => key !== 'AMOUNT_MISMATCH')
+    .reduce((acc, [, n]) => acc + n, 0) : 0;
+  const successCount = summary?.SUCCESS ?? 0;
+  const pendingCount = summary?.PENDING ?? 0;
+  const wrongAmountCount = summary?.AMOUNT_MISMATCH ?? 0;
 
   return (
     <div className="admin-payments-page">
@@ -91,7 +132,7 @@ export const AdminPayments = () => {
         <div>
           <h2 className="page-title">Quản lý giao dịch</h2>
           <p className="page-subtitle">
-            Theo dõi, lọc trạng thái dòng tiền và đối soát log Webhook hệ thống
+            Theo dõi, lọc trạng thái dòng tiền và đối soát số tiền thanh toán
           </p>
         </div>
         <button
@@ -113,7 +154,7 @@ export const AdminPayments = () => {
           </div>
           <div className="stat-info">
             <span className="stat-label">Tổng giao dịch</span>
-            <span className="stat-value">{total}</span>
+            <span className="stat-value">{allCount}</span>
           </div>
         </div>
 
@@ -167,15 +208,14 @@ export const AdminPayments = () => {
             <FiFilter className="select-icon" />
             <select
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
+              onChange={(e) => onFilterChange(setStatusFilter)(e.target.value)}
               aria-label="Lọc theo trạng thái"
             >
               <option value="ALL">Tất cả trạng thái</option>
               <option value="SUCCESS">Đã thanh toán</option>
               <option value="PENDING">Chờ thanh toán</option>
-              <option value="WRONG_AMOUNT">Sai số tiền</option>
-              <option value="EXPIRED">Hết hạn</option>
-              <option value="CANCELLED">Đã huỷ</option>
+              <option value="FAILED">Thất bại</option>
+              <option value="REFUNDED">Đã hoàn tiền</option>
             </select>
           </div>
 
@@ -183,12 +223,12 @@ export const AdminPayments = () => {
           <div className="select-box">
             <select
               value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value)}
+              onChange={(e) => onFilterChange(setTypeFilter)(e.target.value)}
               aria-label="Lọc theo loại dịch vụ"
             >
               <option value="ALL">Tất cả loại giao dịch</option>
-              <option value="CANDIDATE_TOKEN">Nạp Token (Ứng viên)</option>
-              <option value="EMPLOYER_PACKAGE">Mua Gói (Nhà tuyển dụng)</option>
+              <option value="TOKEN">Nạp Token</option>
+              <option value="SUBSCRIPTION">Mua Gói (Nhà tuyển dụng)</option>
             </select>
           </div>
         </div>
@@ -200,14 +240,14 @@ export const AdminPayments = () => {
             <input
               type="date"
               value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
+              onChange={(e) => onFilterChange(setStartDate)(e.target.value)}
               title="Từ ngày"
             />
             <span className="date-sep">-</span>
             <input
               type="date"
               value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
+              onChange={(e) => onFilterChange(setEndDate)(e.target.value)}
               title="Đến ngày"
             />
           </div>
@@ -251,15 +291,14 @@ export const AdminPayments = () => {
                     </td>
                     <td>
                       <span className="badge-type-tag">
-                        {row.orderType === 'CANDIDATE_TOKEN' ? 'Token Ứng viên' : 'Gói Tuyển dụng'}
+                        {row.orderType === 'TOKEN' ? 'Nạp Token' : 'Gói Tuyển dụng'}
                       </span>
                       <div className="service-name-sub">{row.serviceName}</div>
                     </td>
                     <td className="bold">{formatCurrencyVND(row.expectedAmount)}</td>
                     <td
-                      className={`bold ${
-                        row.status === 'WRONG_AMOUNT' ? 'text-danger' : 'text-success'
-                      }`}
+                      className={`bold ${row.amountMismatch ? 'text-danger' : 'text-success'}`}
+                      title={row.amountMismatch ? 'Số tiền nhận khác số tiền đơn hàng' : undefined}
                     >
                       {formatCurrencyVND(row.actualAmount)}
                     </td>
@@ -274,9 +313,9 @@ export const AdminPayments = () => {
                     <td className="text-center">
                       <button
                         type="button"
-                        onClick={() => handleOpenDetail(row.transactionId)}
+                        onClick={() => handleOpenDetail(row)}
                         className="btn-action-view"
-                        title="Xem đối soát & log webhook"
+                        title="Xem chi tiết đối soát"
                         disabled={modalLoading}
                       >
                         <FiEye />
@@ -306,12 +345,21 @@ export const AdminPayments = () => {
         <div className="data-table-pagination">
           <span>
             Hiển thị <strong>{transactions.length}</strong> trong <strong>{total}</strong> giao dịch
+            {totalPages > 1 && <> • Trang {page}/{totalPages}</>}
           </span>
           <div className="pagination-controls">
-            <button className="btn btn-outline" disabled>
+            <button
+              className="btn btn-outline"
+              disabled={loading || page <= 1}
+              onClick={() => setPage((p) => p - 1)}
+            >
               Trang trước
             </button>
-            <button className="btn btn-outline" disabled>
+            <button
+              className="btn btn-outline"
+              disabled={loading || page >= totalPages}
+              onClick={() => setPage((p) => p + 1)}
+            >
               Trang sau
             </button>
           </div>

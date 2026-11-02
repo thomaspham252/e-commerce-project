@@ -84,8 +84,8 @@ export const WebhookLogModal = ({ isOpen, onClose, data }) => {
                 <div className="info-box">
                   <span className="info-lbl">Loại giao dịch</span>
                   <span className="info-val bold">
-                    {transaction.orderType === 'CANDIDATE_TOKEN'
-                      ? 'Nạp Token Ứng viên'
+                    {transaction.orderType === 'TOKEN'
+                      ? 'Nạp Token'
                       : 'Mua Gói Tuyển Dụng'}
                   </span>
                   <span className="info-sub">{transaction.serviceName}</span>
@@ -99,19 +99,15 @@ export const WebhookLogModal = ({ isOpen, onClose, data }) => {
                 <div className="info-box">
                   <span className="info-lbl">Số tiền thực tế nhận</span>
                   <span
-                    className={`info-val bold ${
-                      transaction.actualAmount !== transaction.expectedAmount &&
-                      transaction.status === 'WRONG_AMOUNT'
-                        ? 'text-danger'
-                        : 'text-success'
-                    }`}
+                    className={`info-val bold ${transaction.amountMismatch ? 'text-danger' : 'text-success'}`}
                   >
                     {formatCurrencyVND(transaction.actualAmount)}
                   </span>
                 </div>
                 <div className="info-box">
                   <span className="info-lbl">Mã tham chiếu ngân hàng</span>
-                  <span className="info-val mono">{transaction.referenceCode}</span>
+                  <span className="info-val mono">{transaction.referenceCode || '—'}</span>
+                  {transaction.gateway && <span className="info-sub">Cổng: {transaction.gateway}</span>}
                 </div>
                 <div className="info-box">
                   <span className="info-lbl">Thời gian ghi nhận</span>
@@ -153,9 +149,12 @@ export const WebhookLogModal = ({ isOpen, onClose, data }) => {
                 </pre>
               </div>
 
-              <p className="json-note">
-                💡 Bản tin mô phỏng cấu trúc Payload chuẩn SePay Webhook đẩy vào API endpoint đối soát.
-              </p>
+              {!webhookLog && (
+                <p className="json-note">
+                  Hệ thống hiện chưa lưu bản tin webhook gốc vào database. Thông tin đối soát xem ở tab
+                  &quot;Thông tin đối soát&quot; (lấy từ bảng payments và orders).
+                </p>
+              )}
             </div>
           )}
         </div>

@@ -16,6 +16,8 @@ public class PaymentHistoryResponse {
     private Integer id;
     private String orderCode;
     private String orderType;
+    /** Tên gói NTD hoặc mô tả gói Token đã mua. */
+    private String serviceName;
     private String userName;
     private String userEmail;
     private BigDecimal expectedAmount;

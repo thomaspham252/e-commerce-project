@@ -12,6 +12,7 @@ import { Sparkles } from 'lucide-react';
 
 import { useEmployerPackage } from '../../context/EmployerPackageContext.jsx';
 import { createPaymentOrder } from '../../services/paymentService.js';
+import { getAuthSession } from '../../services/apiClient.js';
 import { EmployerPackageCard } from '../../components/employer/EmployerPackageCard.jsx';
 
 import './EmployerPricingPage.css';
@@ -38,13 +39,15 @@ export const EmployerPricingPage = () => {
       const isSamePackage = subscription?.packageId === pkg.id;
       const orderActionName = isSamePackage ? 'Gia hạn' : 'Nâng cấp';
 
+      const session = getAuthSession();
       const order = await createPaymentOrder({
-        orderType: 'EMPLOYER_PACKAGE',
+        orderType: 'SUBSCRIPTION',
+        packageId: pkg.id, // id thật của gói trong bảng packages
         serviceName: `${orderActionName} ${pkg.name} (${pkg.durationDays} ngày)`,
         amount: pkg.priceVND,
-        userId: 'EMP-001',
-        userName: 'FPT Software Recruitment',
-        userEmail: 'hr@fpt.com',
+        userId: session?.id,
+        userName: subscription?.companyName || session?.email,
+        userEmail: session?.email,
         userRole: 'employer',
       });
 
@@ -90,11 +93,22 @@ export const EmployerPricingPage = () => {
             <div className="emp-current-plan-info">
               <FiShield className="plan-banner-icon" />
               <div>
-                <span className="plan-banner-label">Gói dịch vụ đang kích hoạt:</span>
+                <span className="plan-banner-label">
+                  {subscription.status === 'ACTIVE'
+                    ? 'Gói dịch vụ đang kích hoạt:'
+                    : subscription.status === 'EXPIRED'
+                      ? 'Gói đã hết hạn:'
+                      : 'Bạn đang dùng:'}
+                </span>
                 <strong className="plan-banner-name"> {subscription.packageName}</strong>
                 <span className="plan-banner-details">
-                  {' '}• Còn <strong>{subscription.remainingDays} ngày</strong> sử dụng • Đã đăng{' '}
-                  <strong>{subscription.usedJobPosts}/{subscription.maxJobPosts} tin</strong>
+                  {subscription.status === 'ACTIVE' && (
+                    <>{' '}• Còn <strong>{subscription.remainingDays} ngày</strong> sử dụng</>
+                  )}
+                  {' '}• Đã đăng{' '}
+                  <strong>
+                    {subscription.usedJobPosts}/{subscription.maxJobPosts ?? '∞'} tin
+                  </strong>
                 </span>
               </div>
             </div>
@@ -115,7 +129,7 @@ export const EmployerPricingPage = () => {
             <EmployerPackageCard
               key={pkg.id}
               pkg={pkg}
-              isCurrentPackage={subscription?.packageId === pkg.id}
+              isCurrentPackage={subscription?.status === 'ACTIVE' && subscription?.packageId === pkg.id}
               onSelectPackage={handleSelectPackage}
               loading={loadingOrder || contextLoading}
             />
@@ -136,7 +150,7 @@ export const EmployerPricingPage = () => {
             <FiInfo className="policy-box-icon text-blue" />
             <div>
               <h4>Quy Tắc Gia Hạn & Nâng Cấp</h4>
-              <p>Mua gói cùng loại sẽ cộng dồn số ngày và số tin đăng vào thời hạn cũ. Nâng cấp gói cao hơn sẽ kích hoạt gói mới ngay lập tức.</p>
+              <p>Mua thêm gói khi gói hiện tại còn hạn: gói mới tự động bắt đầu ngay khi gói hiện tại kết thúc. Hạn mức tin đăng tính riêng theo từng gói. Chưa mua gói được đăng miễn phí 3 tin.</p>
             </div>
           </div>
         </div>
