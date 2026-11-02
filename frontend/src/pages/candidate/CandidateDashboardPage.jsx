@@ -67,6 +67,15 @@ import {
   getCandidateTotalUnread,
   CANDIDATE_QUICK_QUESTIONS
 } from '../../services/candidateMessagesService';
+import {
+  getSocket,
+  joinConversationRoom,
+  leaveConversationRoom,
+  emitChatMessage,
+  emitTypingStatus,
+  onReceiveMessage,
+  onUserTyping
+} from '../../services/socketService';
 import './CandidateDashboardPage.css';
 
 export const CandidateDashboardPage = () => {
@@ -199,20 +208,40 @@ export const CandidateDashboardPage = () => {
     }
   }, [activeConvId]);
 
-  // Adaptive Polling 3.5s khi đang mở tab tin nhắn
+  // Socket.io Realtime kết nối và lắng nghe tin nhắn phía Ứng viên
   useEffect(() => {
     if (activeTab !== 'messages') return;
 
-    const intervalId = setInterval(async () => {
-      if (document.hidden) return;
-      await refreshConversations();
-      if (activeConvId) {
-        const msgs = await getCandidateMessages(activeConvId);
-        setChatMessages(msgs);
-      }
-    }, 3500);
+    // Đảm bảo socket kết nối
+    getSocket();
 
-    return () => clearInterval(intervalId);
+    if (activeConvId) {
+      joinConversationRoom({
+        conversationId: activeConvId,
+        userId: 'candidate',
+        role: 'candidate'
+      });
+    }
+
+    const unsubMsg = onReceiveMessage(({ conversationId, message }) => {
+      console.log('⚡ [Socket.io Candidate] Nhận tin nhắn mới:', conversationId, message);
+      if (String(conversationId) === String(activeConvId)) {
+        setChatMessages((prev) => {
+          if (prev.some((m) => String(m.id) === String(message.id))) return prev;
+          return [...prev, message];
+        });
+        markCandidateConversationRead(conversationId).catch(() => {});
+      }
+      refreshConversations().then(setConversations);
+      getCandidateTotalUnread().then(setTotalUnreadChat);
+    });
+
+    return () => {
+      if (activeConvId) {
+        leaveConversationRoom({ conversationId: activeConvId, userId: 'candidate' });
+      }
+      unsubMsg();
+    };
   }, [activeTab, activeConvId]);
 
   // Đảm bảo khi đổi tab hoặc URL, trang luôn giữ ở đầu trang, không bị giật xuống footer
@@ -255,19 +284,22 @@ export const CandidateDashboardPage = () => {
     setIsSendingMsg(true);
 
     try {
-      await sendCandidateMessage({ conversationId: activeConvId, content: textToSend });
-      const currentMsgs = await getCandidateMessages(activeConvId);
-      setChatMessages(currentMsgs);
+      const sentMsg = await sendCandidateMessage({ conversationId: activeConvId, content: textToSend });
+      if (sentMsg) {
+        setChatMessages((prev) => {
+          if (prev.some((m) => String(m.id) === String(sentMsg.id))) return prev;
+          return [...prev, sentMsg];
+        });
+        // Phát realtime tới Socket.io server
+        emitChatMessage({
+          conversationId: activeConvId,
+          message: sentMsg
+        });
+      } else {
+        const currentMsgs = await getCandidateMessages(activeConvId);
+        setChatMessages(currentMsgs);
+      }
       await refreshConversations();
-
-      // Phản hồi mô phỏng từ NTD sau 1.5s
-      simulateEmployerReply(activeConvId, textToSend).then(async (reply) => {
-        if (reply && reply.conversationId === activeConvId) {
-          const freshMsgs = await getCandidateMessages(activeConvId);
-          setChatMessages(freshMsgs);
-          await refreshConversations();
-        }
-      });
     } catch (err) {
       console.error('Lỗi khi gửi tin nhắn:', err);
     } finally {

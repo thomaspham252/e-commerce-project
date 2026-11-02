@@ -86,6 +86,18 @@ npm run dev
 3. Cấu hình file `src/main/resources/application.yml` (hoặc `.properties`) để kết nối Database.
 4. Chạy class chứa hàm main (`Application.java`) hoặc dùng lệnh `./mvnw spring-boot:run` để khởi động server (mặc định cổng 8080).
 
+### 3. Socket.io Realtime Service (Node.js)
+`ash
+# Di chuyển vào thư mục socket-service
+cd socket-service
+
+# Cài đặt thư viện (socket.io, cors, dotenv)
+npm install
+
+# Khởi chạy server realtime (mặc định cổng 5000)
+npm start
+`
+
 ### Biến môi trường cần cấu hình
 
 | Biến | Ý nghĩa |

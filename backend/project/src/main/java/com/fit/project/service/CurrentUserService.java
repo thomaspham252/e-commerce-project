@@ -38,9 +38,7 @@ public class CurrentUserService {
 
     public User requireUser(Integer userId) {
         if (userId == null) {
-            // Nếu không truyền X-User-Id trong lúc test dev, lấy user đầu tiên
-            return userRepository.findAll().stream().findFirst()
-                    .orElseThrow(() -> new ApiException(HttpStatus.UNAUTHORIZED, "Chưa có tài khoản nào trong hệ thống"));
+            throw new ApiException(HttpStatus.UNAUTHORIZED, "Chưa đăng nhập");
         }
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ApiException(HttpStatus.UNAUTHORIZED, "Tài khoản không tồn tại"));

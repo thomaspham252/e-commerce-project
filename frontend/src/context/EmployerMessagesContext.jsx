@@ -1,5 +1,15 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import * as messagesService from '../services/messagesService';
+import {
+  getSocket,
+  joinConversationRoom,
+  leaveConversationRoom,
+  emitChatMessage,
+  emitTypingStatus,
+  onReceiveMessage,
+  onUserTyping,
+  onMessagesMarkedRead
+} from '../services/socketService';
 
 const EmployerMessagesContext = createContext(null);
 
@@ -13,6 +23,8 @@ export const EmployerMessagesProvider = ({ children }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [totalUnreadCount, setTotalUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [isCandidateTyping, setIsCandidateTyping] = useState(false);
+  const prevActiveConvIdRef = useRef(null);
 
   // Tải danh sách hội thoại và tin nhắn mẫu khi khởi tạo
   const fetchConversations = useCallback(async (currentFilter = filter, currentSearch = searchQuery) => {
@@ -35,6 +47,9 @@ export const EmployerMessagesProvider = ({ children }) => {
     const init = async () => {
       setLoading(true);
       try {
+        // Kết nối socket.io
+        getSocket();
+
         const qr = await messagesService.getQuickReplies();
         setQuickReplies(qr);
         await fetchConversations();
@@ -45,19 +60,77 @@ export const EmployerMessagesProvider = ({ children }) => {
     init();
   }, [fetchConversations]);
 
-  // Adaptive Polling 3.5s tự động làm mới danh sách hội thoại và tin nhắn
+  // Quản lý tham gia / rời phòng Socket.IO khi đổi activeConversationId
   useEffect(() => {
-    const intervalId = setInterval(async () => {
-      if (document.hidden) return;
-      await fetchConversations();
-      if (activeConversationId) {
-        const msgs = await messagesService.getMessages(activeConversationId);
-        setMessages(msgs);
-      }
-    }, 3500);
+    if (prevActiveConvIdRef.current && prevActiveConvIdRef.current !== activeConversationId) {
+      leaveConversationRoom({ conversationId: prevActiveConvIdRef.current, userId: 'employer' });
+    }
 
-    return () => clearInterval(intervalId);
-  }, [fetchConversations, activeConversationId]);
+    if (activeConversationId) {
+      joinConversationRoom({
+        conversationId: activeConversationId,
+        userId: activeConversation?.companyId || 'employer',
+        role: 'employer'
+      });
+      prevActiveConvIdRef.current = activeConversationId;
+    }
+  }, [activeConversationId, activeConversation]);
+
+  // Lắng nghe tin nhắn Realtime qua Socket.IO
+  useEffect(() => {
+    const unsubMessage = onReceiveMessage(({ conversationId, message }) => {
+      console.log('⚡ [Socket.io Employer] Nhận tin nhắn mới:', conversationId, message);
+
+      if (String(conversationId) === String(activeConversationId)) {
+        setMessages((prev) => {
+          if (prev.some((m) => String(m.id) === String(message.id))) return prev;
+          return [...prev, message];
+        });
+
+        // Tự động đánh dấu đã đọc nếu đang mở đúng khung chat
+        messagesService.markAsRead(conversationId).catch(() => {});
+      }
+
+      // Cập nhật danh sách hội thoại theo thời gian thực
+      setConversations((prev) => {
+        const updated = prev.map((c) => {
+          if (String(c.id) === String(conversationId)) {
+            const isCurrent = String(conversationId) === String(activeConversationId);
+            return {
+              ...c,
+              lastMessage: message.content,
+              lastMessageTime: message.timestamp || new Date().toISOString(),
+              unreadCount: isCurrent ? 0 : (c.unreadCount || 0) + 1
+            };
+          }
+          return c;
+        });
+        return updated.sort((a, b) => new Date(b.lastMessageTime) - new Date(a.lastMessageTime));
+      });
+
+      messagesService.getTotalUnreadCount().then(setTotalUnreadCount).catch(() => {});
+    });
+
+    const unsubTyping = onUserTyping(({ conversationId, isTyping }) => {
+      if (String(conversationId) === String(activeConversationId)) {
+        setIsCandidateTyping(Boolean(isTyping));
+      }
+    });
+
+    const unsubMarkRead = onMessagesMarkedRead(({ conversationId }) => {
+      if (String(conversationId) === String(activeConversationId)) {
+        setMessages((prev) =>
+          prev.map((m) => (m.status !== 'read' ? { ...m, status: 'read' } : m))
+        );
+      }
+    });
+
+    return () => {
+      unsubMessage();
+      unsubTyping();
+      unsubMarkRead();
+    };
+  }, [activeConversationId]);
 
   // Chọn một cuộc hội thoại cụ thể
   const selectConversation = useCallback(async (conversationId) => {
@@ -65,11 +138,13 @@ export const EmployerMessagesProvider = ({ children }) => {
       setActiveConversationId(null);
       setActiveConversation(null);
       setMessages([]);
+      setIsCandidateTyping(false);
       return;
     }
 
     try {
       setActiveConversationId(conversationId);
+      setIsCandidateTyping(false);
       const conv = await messagesService.getConversationById(conversationId);
       setActiveConversation(conv);
 
@@ -79,7 +154,6 @@ export const EmployerMessagesProvider = ({ children }) => {
       // Nếu hội thoại có tin chưa đọc, đánh dấu đã đọc
       if (conv && conv.unreadCount > 0) {
         await messagesService.markAsRead(conversationId);
-        // Cập nhật lại state local
         setConversations((prev) =>
           prev.map((c) => (c.id === conversationId ? { ...c, unreadCount: 0 } : c))
         );
@@ -91,7 +165,7 @@ export const EmployerMessagesProvider = ({ children }) => {
     }
   }, []);
 
-  // Gửi tin nhắn mới
+  // Gửi tin nhắn mới & phát realtime qua Socket.IO
   const handleSendMessage = useCallback(async (content) => {
     if (!activeConversationId || !content || content.trim() === '') return;
 
@@ -103,17 +177,36 @@ export const EmployerMessagesProvider = ({ children }) => {
       });
 
       if (result.success) {
-        // Nối tin nhắn vào danh sách hiện tại
+        // 1. Cập nhật state local
         setMessages((prev) => [...prev, result.message]);
 
-        // Cập nhật lại danh sách hội thoại để đưa hội thoại này lên đầu
+        // 2. Phát qua Socket.IO cho ứng viên nhận tức thì
+        emitChatMessage({
+          conversationId: activeConversationId,
+          message: result.message,
+          recipientUserId: activeConversation?.candidateId
+        });
+
+        // 3. Đưa hội thoại này lên đầu danh sách
         await fetchConversations();
       }
     } catch (error) {
       console.error('Lỗi khi gửi tin nhắn:', error);
       throw error;
     }
-  }, [activeConversationId, fetchConversations]);
+  }, [activeConversationId, activeConversation, fetchConversations]);
+
+  // Báo trạng thái gõ phím của nhà tuyển dụng
+  const setEmployerTyping = useCallback((isTyping) => {
+    if (activeConversationId) {
+      emitTypingStatus({
+        conversationId: activeConversationId,
+        userId: activeConversation?.companyId || 'employer',
+        userName: activeConversation?.companyName || 'Nhà tuyển dụng',
+        isTyping
+      });
+    }
+  }, [activeConversationId, activeConversation]);
 
   // Mở hoặc tạo hội thoại cho ứng viên (từ Dashboard)
   const openConversationForCandidate = useCallback(async (candidateData) => {
@@ -152,6 +245,8 @@ export const EmployerMessagesProvider = ({ children }) => {
         searchQuery,
         totalUnreadCount,
         loading,
+        isCandidateTyping,
+        setEmployerTyping,
         setFilter: handleSetFilter,
         setSearchQuery: handleSetSearchQuery,
         selectConversation,

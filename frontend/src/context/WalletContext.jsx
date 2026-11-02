@@ -3,6 +3,7 @@ import {
   getWallet,
   consumeTokens as serviceConsume,
 } from '../services/walletService.js';
+import { getAuthSession } from '../services/apiClient.js';
 
 const WalletContext = createContext(null);
 
@@ -20,6 +21,18 @@ export const WalletProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   const fetchWalletData = useCallback(async () => {
+    const session = getAuthSession();
+    if (!session?.id) {
+      setWallet({
+        userId: null,
+        balance: 0,
+        totalDeposited: 0,
+        totalConsumed: 0,
+      });
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       const data = await getWallet();

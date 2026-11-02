@@ -1,0 +1,16 @@
+{
+  "name": "jobviet-socket-service",
+  "version": "1.0.0",
+  "description": "Realtime Socket.io chat microservice for JobViet E-commerce platform",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "socket.io": "^4.8.1"
+  }
+}
+
