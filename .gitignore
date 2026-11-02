@@ -78,7 +78,7 @@ env/
 # ========================
 # User Uploads
 # ========================
-uploads/*
-!uploads/**/.gitkeep
-**/uploads/*
+uploads/
+**/uploads/
+backend/project/uploads/
 !**/uploads/**/.gitkeep
