@@ -31,13 +31,15 @@ export const mapBackendJob = (item) => ({
   isNew: true,
   views: 120 + ((item.id * 17) % 85),
   applicants: item.applicationCount || 0,
-  skills: [item.title.split(' ')[0], item.level || 'Junior', 'Teamwork', 'Git'].filter(Boolean),
+  matchPercentage: item.matchPercentage || null,
+  matchedSkills: item.matchedSkills || [],
+  skills: item.skills ? (Array.isArray(item.skills) ? item.skills : item.skills.split(',').map(s => s.trim()).filter(Boolean)) : [item.title.split(' ')[0], item.level || 'Junior', 'Teamwork', 'Git'].filter(Boolean),
   description: Array.isArray(item.description)
     ? item.description
-    : (item.description ? item.description.split('\n').filter(Boolean) : ['Trao đổi chi tiết công việc trong buổi phỏng vấn.']),
+    : (item.description ? item.description.split(/\r?\n|\\n/).filter(Boolean) : ['Trao đổi chi tiết công việc trong buổi phỏng vấn.']),
   requirements: Array.isArray(item.requirements)
     ? item.requirements
-    : (item.requirements ? item.requirements.split('\n').filter(Boolean) : ['Đáp ứng các yêu cầu chuyên môn tương ứng với vị trí.']),
+    : (item.requirements ? item.requirements.split(/\r?\n|\\n/).filter(Boolean) : ['Đáp ứng các yêu cầu chuyên môn tương ứng với vị trí.']),
   benefits: [
     'Chế độ đãi ngộ cạnh tranh, thưởng dự án và tháng 13',
     'Đóng bảo hiểm đầy đủ theo quy định của pháp luật',
@@ -167,7 +169,15 @@ export const jobService = {
     }
   },
 
-  getRelatedJobs: async (jobId, limit = 3) => {
+  getRelatedJobs: async (jobId, limit = 4) => {
+    try {
+      const res = await apiClient.get('/jobs/' + jobId + '/related', { params: { limit } });
+      if (Array.isArray(res.data) && res.data.length > 0) {
+        return res.data.map(mapBackendJob);
+      }
+    } catch (err) {
+      console.warn('Lỗi gợi ý việc làm:', err);
+    }
     try {
       const all = await jobService.getJobs('', '', 'latest', 0, 10);
       return all.filter((job) => String(job.id) !== String(jobId)).slice(0, limit);

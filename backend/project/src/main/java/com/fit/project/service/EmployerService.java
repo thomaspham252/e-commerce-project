@@ -160,6 +160,7 @@ public class EmployerService {
         job.setTitle(req.title().trim());
         job.setDescription(req.description());
         job.setRequirements(req.requirements());
+        job.setSkills(blankToNull(req.skills()));
         job.setSalaryMin(req.salaryMin());
         job.setSalaryMax(req.salaryMax());
         job.setSalaryUnit(req.salaryUnit() != null ? req.salaryUnit() : SalaryUnit.MONTH);

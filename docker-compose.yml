@@ -1,0 +1,19 @@
+services:
+  job-ml-service:
+    build:
+      context: ./ml-service
+      dockerfile: Dockerfile
+    container_name: job_ml_service
+    ports:
+      - "8000:8000"
+    environment:
+      - DB_HOST=host.docker.internal
+      - DB_PORT=3306
+      - DB_NAME=job_portal_db
+      - DB_USERNAME=root
+      - DB_PASSWORD=
+      - PORT=8000
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+
