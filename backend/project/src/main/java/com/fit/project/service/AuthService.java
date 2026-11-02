@@ -1,5 +1,7 @@
 package com.fit.project.service;
 
+import com.fit.project.dto.auth.AuthMessageResponse;
+import com.fit.project.dto.auth.ChangePasswordRequest;
 import com.fit.project.dto.auth.LoginRequest;
 import com.fit.project.dto.auth.LoginResponse;
 import com.fit.project.dto.auth.RegisterRequest;
@@ -49,7 +51,7 @@ public class AuthService {
                 .build());
         emailVerificationService.sendVerificationCode(user);
 
-        return new LoginResponse(user.getId(), user.getEmail(), user.getRole());
+        return toLoginResponse(user);
     }
 
     @Transactional
@@ -69,7 +71,7 @@ public class AuthService {
             emailVerificationService.deleteVerificationCode(user);
         }
 
-        return new LoginResponse(user.getId(), user.getEmail(), user.getRole());
+        return toLoginResponse(user);
     }
 
     @Transactional(readOnly = true)
@@ -87,16 +89,33 @@ public class AuthService {
             throw ApiException.forbidden("Vui lòng xác minh email trước khi đăng nhập");
         }
 
-        return new LoginResponse(user.getId(), user.getEmail(), user.getRole());
+        return toLoginResponse(user);
     }
 
     public LoginResponse verifyEmail(String email, String code) {
         User user = emailVerificationService.verifyEmail(email, code);
-        return new LoginResponse(user.getId(), user.getEmail(), user.getRole());
+        return toLoginResponse(user);
     }
 
     public void resendVerificationCode(String email) {
         emailVerificationService.resendVerificationCode(email);
+    }
+
+    @Transactional
+    public AuthMessageResponse changePassword(User user, ChangePasswordRequest request) {
+        if (!user.isPasswordLoginEnabled()) {
+            throw ApiException.badRequest("Tài khoản đăng nhập bằng Google không thể đổi mật khẩu tại đây");
+        }
+        if (!passwordEncoder.matches(request.currentPassword(), user.getPasswordHash())) {
+            throw ApiException.badRequest("Mật khẩu hiện tại không chính xác");
+        }
+        if (passwordEncoder.matches(request.newPassword(), user.getPasswordHash())) {
+            throw ApiException.badRequest("Mật khẩu mới phải khác mật khẩu hiện tại");
+        }
+
+        user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
+        userRepository.save(user);
+        return new AuthMessageResponse("Đổi mật khẩu thành công.");
     }
 
     private ApiException invalidCredentials() {
@@ -110,6 +129,7 @@ public class AuthService {
                 .role(UserRole.CANDIDATE)
                 .status(UserStatus.ACTIVE)
                 .emailVerified(true)
+                .passwordLoginEnabled(false)
                 .build());
         String fullName = name == null || name.isBlank()
                 ? email.substring(0, email.indexOf('@'))
@@ -119,5 +139,9 @@ public class AuthService {
                 .fullName(fullName)
                 .build());
         return user;
+    }
+
+    private LoginResponse toLoginResponse(User user) {
+        return new LoginResponse(user.getId(), user.getEmail(), user.getRole(), user.isPasswordLoginEnabled());
     }
 }
