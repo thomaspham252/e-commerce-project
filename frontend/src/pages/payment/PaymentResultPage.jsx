@@ -116,7 +116,7 @@ export const PaymentResultPage = () => {
   const isPending = statusUpper === 'PENDING';
 
   const isEmployerOrder = order.orderType === 'EMPLOYER_PACKAGE' || order.orderType === 'SUBSCRIPTION';
-  const returnPath = isEmployerOrder ? '/nha-tuyen-dung/tin-tuyen-dung' : '/ung-vien/vi-token';
+  const returnPath = isEmployerOrder ? '/employer/dashboard' : '/ung-vien/vi-token';
   const returnLabel = isEmployerOrder ? 'Về trang Quản lý tuyển dụng' : 'Về ví token của tôi';
 
   return (
