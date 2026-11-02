@@ -28,6 +28,13 @@ export const saveAuthSession = (user, remember) => {
   window.dispatchEvent(new Event('auth-session-changed'));
 };
 
+export const updateAuthSession = (updates) => {
+  const session = getAuthSession();
+  if (!session) return;
+  const remember = localStorage.getItem(AUTH_SESSION_KEY) !== null;
+  saveAuthSession({ ...session, ...updates }, remember);
+};
+
 export const clearAuthSession = () => {
   localStorage.removeItem(AUTH_SESSION_KEY);
   sessionStorage.removeItem(AUTH_SESSION_KEY);
