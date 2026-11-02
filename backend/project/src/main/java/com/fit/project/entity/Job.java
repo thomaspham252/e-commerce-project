@@ -39,6 +39,9 @@ public class Job {
     @Column(columnDefinition = "TEXT")
     private String requirements;
 
+    @Column(columnDefinition = "TEXT")
+    private String skills;
+
     @Column(name = "salary_min", precision = 15, scale = 2)
     private BigDecimal salaryMin;
 

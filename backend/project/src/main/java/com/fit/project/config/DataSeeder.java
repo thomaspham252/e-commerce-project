@@ -56,6 +56,7 @@ public class DataSeeder implements CommandLineRunner {
     private final ChatMessageRepository chatMessageRepository;
     private final CompanyReviewRepository reviewRepository;
     private final ReviewReplyRepository replyRepository;
+    private final JobCatalogSeeder jobCatalogSeeder;
 
     private final Random random = new Random(42);
     private final LocalDateTime now = LocalDateTime.now();
@@ -66,6 +67,7 @@ public class DataSeeder implements CommandLineRunner {
         seedPackagesIfEmpty();
         seedChatIfEmpty();
         seedReviewsIfEmpty();
+        jobCatalogSeeder.seedCompaniesAndJobsIfIncomplete();
 
         if (userRepository.count() > 0) return;
 

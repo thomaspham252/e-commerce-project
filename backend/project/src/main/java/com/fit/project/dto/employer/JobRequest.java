@@ -10,6 +10,7 @@ public record JobRequest(
         @NotBlank(message = "Vui lòng nhập tên công việc") @Size(max = 255) String title,
         @NotBlank(message = "Vui lòng nhập mô tả công việc") String description,
         String requirements,
+        String skills,
         @PositiveOrZero(message = "Lương không được âm") BigDecimal salaryMin,
         @PositiveOrZero(message = "Lương không được âm") BigDecimal salaryMax,
         SalaryUnit salaryUnit,

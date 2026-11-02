@@ -813,12 +813,15 @@ export const JobDetailPage = () => {
               </div>
             </div>
 
-            {/* THẺ WIDGET 2: DANH SÁCH VIỆC LÀM ĐANG TUYỂN DỤNG (ITVIEC SIDEBAR STYLE) */}
+            {/* THẺ WIDGET 2: DANH SÁCH VIỆC LÀM TƯƠNG TỰ (AI GỢI Ý BẰNG MACHINE LEARNING) */}
             <div className="itv-sidebar-jobs-card">
               <div className="itv-sidebar-header">
-                <h3>
-                  {relatedJobs.length > 0 ? `${relatedJobs.length} việc làm đang tuyển dụng` : 'Việc làm khác'}
-                </h3>
+                <div className="itv-sb-header-title-wrap">
+                  <span className="itv-sb-ai-tag">
+                    <Sparkles size={13} /> AI Đề xuất
+                  </span>
+                  <h3>Việc làm liên quan</h3>
+                </div>
               </div>
 
               <div className="itv-sidebar-job-list">
@@ -838,7 +841,14 @@ export const JobDetailPage = () => {
                         />
                       </div>
                       <div className="itv-sb-job-head">
-                        <span className="itv-sb-posted-time">{item.timeAgo || 'Mới đăng'}</span>
+                        <div className="itv-sb-meta-row">
+                          <span className="itv-sb-posted-time">{item.timeAgo || 'Mới đăng'}</span>
+                          {item.matchPercentage && (
+                            <span className="itv-sb-match-pill" title={`Độ tương đồng thuật toán Cosine: ${item.matchPercentage}%`}>
+                              <Sparkles size={11} /> {item.matchPercentage}% Phù hợp
+                            </span>
+                          )}
+                        </div>
                         <h4 className="itv-sb-job-title">{item.title}</h4>
                         <span className="itv-sb-company-name">{item.companyName}</span>
                       </div>
@@ -856,11 +866,19 @@ export const JobDetailPage = () => {
                     </div>
 
                     <div className="itv-sb-job-skills">
-                      {item.skills && item.skills.slice(0, 3).map((sk) => (
-                        <span key={sk} className="itv-sb-skill-pill">
-                          {sk}
-                        </span>
-                      ))}
+                      {item.matchedSkills && item.matchedSkills.length > 0 ? (
+                        item.matchedSkills.slice(0, 3).map((sk) => (
+                          <span key={sk} className="itv-sb-skill-pill itv-sb-skill-matched" title="Kỹ năng trùng khớp với tin tuyển dụng hiện tại">
+                            ✓ {sk}
+                          </span>
+                        ))
+                      ) : (
+                        item.skills && item.skills.slice(0, 3).map((sk) => (
+                          <span key={sk} className="itv-sb-skill-pill">
+                            {sk}
+                          </span>
+                        ))
+                      )}
                     </div>
                   </Link>
                 ))}
