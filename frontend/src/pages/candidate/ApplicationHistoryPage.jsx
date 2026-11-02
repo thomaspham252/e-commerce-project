@@ -14,8 +14,8 @@ import {
 } from 'lucide-react';
 import { DataTable } from '../../components/common/DataTable';
 import { StatusBadge } from '../../components/common/StatusBadge';
-import { useApplications } from '../../context/ApplicationsContext';
-import { APPLICATION_STATUS } from '../../services/candidateData';
+import { useApplications, APPLICATION_STATUS } from '../../context/ApplicationsContext';
+
 import './CandidateShared.css';
 import './ApplicationHistoryPage.css';
 

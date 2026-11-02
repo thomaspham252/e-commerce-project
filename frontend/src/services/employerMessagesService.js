@@ -1,5 +1,11 @@
 import { apiClient } from './apiClient';
-import { QUICK_REPLIES } from './messagesMockData';
+export const QUICK_REPLIES = [
+  'Chào bạn, công ty đã nhận được hồ sơ của bạn và rất ấn tượng.',
+  'Bạn có thể sắp xếp thời gian phỏng vấn trực tuyến vào tuần này không?',
+  'Vui lòng gửi thêm bản CV chi tiết hoặc portfolio dự án gần đây của bạn.',
+  'Cảm ơn bạn đã quan tâm đến vị trí tuyển dụng của chúng tôi.',
+  'Công ty sẽ phản hồi kết quả vòng tuyển dụng trong vòng 3 ngày làm việc.'
+];
 
 /**
  * Dịch vụ xử lý Tin nhắn Tuyển dụng phía Nhà tuyển dụng (Employer Messages Service)

@@ -120,29 +120,27 @@ export const CandidateDashboardPage = () => {
       }
     }
     const session = getAuthSession();
-    const email = session?.email || '22130143@st.hcmuaf.edu.vn';
-    const isLinh = email === '22130143@st.hcmuaf.edu.vn' || email.includes('linh') || email === 'flack25.2@gmail.com';
     return {
-      fullName: session?.name || session?.fullName || (isLinh ? 'Linh Phạm Văn' : 'Ứng viên'),
-      title: 'Cập nhật chức danh',
-      email: email,
-      phone: '0393373094',
+      fullName: session?.name || session?.fullName || 'Ứng viên',
+      title: 'Chưa cập nhật chức danh',
+      email: session?.email || '',
+      phone: session?.phone || '',
       birthday: '',
       gender: '',
       address: '',
       personalLink: '',
-      desiredLocation: 'Ho Chi Minh',
+      desiredLocation: '',
       expertise: '',
       languages: '',
       experienceYears: '',
       currentLevel: '',
       workType: '',
-      expectedSalary: '10.000.000 VND/tháng',
+      expectedSalary: '',
       coverLetter: '',
-      cvFileName: 'Linh_Pham_Van_cv.pdf',
-      cvLastUpdated: '23/10/2026',
+      cvFileName: '',
+      cvLastUpdated: '',
       cvStatus: 'Fresher',
-      completionRate: 5,
+      completionRate: 0,
       isSearchable: true,
     };
   });
@@ -369,36 +367,15 @@ export const CandidateDashboardPage = () => {
     showToast('Cập nhật thông tin thành công!');
   };
 
-  // Danh sách việc làm đã xem gần đây (Khớp ảnh mẫu)
-  const recentViewedJobs = [
-    {
-      id: 'katalon-1',
-      title: 'Senior Database Administrator (PostgreSQL/AWS/Aurora)',
-      company: 'Katalon',
-      location: 'TP Hồ Chí Minh • Tại văn phòng',
-      perk: "You'll love it",
-      posted: 'Đăng 2 giờ trước (Hết hạn trong 14 ngày)',
-      logoText: 'katalon'
-    },
-    {
-      id: 'toshiba-2',
-      title: 'Fullstack Engineer (NodeJS, ReactJS, Javascript)',
-      company: 'Toshiba Software Development (Viet Nam) Co, Ltd',
-      location: 'Hà Nội • Tại văn phòng',
-      perk: "You'll love it",
-      posted: 'Đăng 3 ngày trước (Hết hạn trong 31 ngày)',
-      logoText: 'TOSHIBA'
-    },
-    {
-      id: 'mblife-3',
-      title: 'Data Governance Expert',
-      company: 'MB Life',
-      location: 'Hà Nội • Tại văn phòng',
-      salary: '2,000 - 4,000 USD',
-      posted: 'Đăng 3 ngày trước (Hết hạn trong 21 ngày)',
-      logoText: 'MBLife'
+    // Danh sách việc làm đã xem gần đây
+  const [recentViewedJobs] = useState(() => {
+    try {
+      const stored = localStorage.getItem('jobviet.recentJobs');
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
     }
-  ];
+  });
 
   const cvSections = [
     { id: 'intro', title: 'Giới thiệu bản thân', bump: '↑ 5%', desc: 'Giới thiệu điểm mạnh và số năm kinh nghiệm của bạn' },
@@ -975,6 +952,14 @@ export const CandidateDashboardPage = () => {
                 </div>
 
                 {/* Danh sách việc làm đã xem gần đây */}
+                {recentViewedJobs.length === 0 ? (
+                  <div className="itv-empty-robot-state" style={{ padding: '36px 16px' }}>
+                    <p className="itv-empty-text">Bạn chưa xem công việc nào gần đây.</p>
+                    <Link to="/viec-lam" className="btn btn-primary" style={{ marginTop: '12px', display: 'inline-block' }}>
+                      Khám phá việc làm ngay
+                    </Link>
+                  </div>
+                ) : (
                 <div className="itv-recent-jobs-list">
                   {recentViewedJobs.map((item) => (
                     <div key={item.id} className="itv-recent-job-item">
@@ -1020,6 +1005,7 @@ export const CandidateDashboardPage = () => {
                     </div>
                   ))}
                 </div>
+                )}
               </section>
             </div>
           )}

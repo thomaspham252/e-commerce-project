@@ -4,7 +4,7 @@ export const sendMessage = async (message, history) => {
   
   return new Promise((resolve, reject) => {
     setTimeout(() => {
-      // Mock logic
+      // Rule-based FAQ assistant logic
       const msg = message.toLowerCase();
       if (msg.includes('lỗi') || msg.includes('fail')) {
         reject(new Error('Network error'));
