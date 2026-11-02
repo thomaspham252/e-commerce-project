@@ -82,4 +82,56 @@ class EmailVerificationServiceTest {
 
         assertThrows(ApiException.class, () -> service.verifyEmail("candidate@example.com", "012345"));
     }
+
+    @Test
+    void resetPasswordValidatesCodeAndEnablesPasswordLogin() {
+        User user = User.builder()
+                .id(17)
+                .email("candidate@example.com")
+                .emailVerified(true)
+                .passwordHash("{bcrypt}old")
+                .passwordLoginEnabled(false)
+                .build();
+        EmailVerification verification = EmailVerification.builder()
+                .user(user)
+                .codeHash("hashed-code")
+                .expiresAt(LocalDateTime.now().plusMinutes(5))
+                .failedAttempts(0)
+                .build();
+        when(userRepository.findByEmailIgnoreCase("candidate@example.com")).thenReturn(Optional.of(user));
+        when(verificationRepository.findByUser_Id(17)).thenReturn(Optional.of(verification));
+        when(passwordEncoder.matches("012345", "hashed-code")).thenReturn(true);
+        when(passwordEncoder.encode("new-password")).thenReturn("{bcrypt}new");
+
+        service.resetPassword(" CANDIDATE@example.com ", "012345", "new-password");
+
+        assertEquals("{bcrypt}new", user.getPasswordHash());
+        assertTrue(user.isPasswordLoginEnabled());
+        verify(userRepository).save(user);
+        verify(verificationRepository).delete(verification);
+    }
+
+    @Test
+    void resetPasswordPersistsFailedCodeAttempts() {
+        User user = User.builder()
+                .id(17)
+                .email("candidate@example.com")
+                .emailVerified(true)
+                .build();
+        EmailVerification verification = EmailVerification.builder()
+                .user(user)
+                .codeHash("hashed-code")
+                .expiresAt(LocalDateTime.now().plusMinutes(5))
+                .failedAttempts(0)
+                .build();
+        when(userRepository.findByEmailIgnoreCase("candidate@example.com")).thenReturn(Optional.of(user));
+        when(verificationRepository.findByUser_Id(17)).thenReturn(Optional.of(verification));
+        when(passwordEncoder.matches("wrong1", "hashed-code")).thenReturn(false);
+
+        assertThrows(ApiException.class,
+                () -> service.resetPassword("candidate@example.com", "wrong1", "new-password"));
+
+        assertEquals(1, verification.getFailedAttempts());
+        verify(verificationRepository).save(verification);
+    }
 }

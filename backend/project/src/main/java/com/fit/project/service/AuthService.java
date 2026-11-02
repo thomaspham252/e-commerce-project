@@ -2,9 +2,11 @@ package com.fit.project.service;
 
 import com.fit.project.dto.auth.AuthMessageResponse;
 import com.fit.project.dto.auth.ChangePasswordRequest;
+import com.fit.project.dto.auth.ForgotPasswordRequest;
 import com.fit.project.dto.auth.LoginRequest;
 import com.fit.project.dto.auth.LoginResponse;
 import com.fit.project.dto.auth.RegisterRequest;
+import com.fit.project.dto.auth.ResetPasswordRequest;
 import com.fit.project.entity.CandidateProfile;
 import com.fit.project.entity.User;
 import com.fit.project.enums.UserRole;
@@ -99,6 +101,17 @@ public class AuthService {
 
     public void resendVerificationCode(String email) {
         emailVerificationService.resendVerificationCode(email);
+    }
+
+    public AuthMessageResponse requestPasswordReset(ForgotPasswordRequest request) {
+        emailVerificationService.requestPasswordReset(request.email());
+        return new AuthMessageResponse(
+                "Nếu email đã đăng ký và đã xác minh, mã đặt lại mật khẩu sẽ được gửi đến hộp thư của bạn.");
+    }
+
+    public AuthMessageResponse resetPassword(ResetPasswordRequest request) {
+        emailVerificationService.resetPassword(request.email(), request.code(), request.newPassword());
+        return new AuthMessageResponse("Đặt lại mật khẩu thành công. Bạn có thể đăng nhập bằng mật khẩu mới.");
     }
 
     @Transactional

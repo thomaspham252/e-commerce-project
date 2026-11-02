@@ -204,16 +204,21 @@ export const AuthPage = () => {
             </label>
 
             {isLogin ? (
-              <label className="auth-remember">
-                <input
-                  type="checkbox"
-                  name="remember"
-                  onChange={(event) => {
-                    rememberGoogleLogin.current = event.target.checked;
-                  }}
-                />
-                <span>Ghi nhớ đăng nhập</span>
-              </label>
+              <>
+                <div className="auth-login-options">
+                  <label className="auth-remember">
+                    <input
+                      type="checkbox"
+                      name="remember"
+                      onChange={(event) => {
+                        rememberGoogleLogin.current = event.target.checked;
+                      }}
+                    />
+                    <span>Ghi nhớ đăng nhập</span>
+                  </label>
+                  <Link to="/quen-mat-khau">Quên mật khẩu?</Link>
+                </div>
+              </>
             ) : (
               <label className="auth-remember">
                 <input type="checkbox" name="terms" required />

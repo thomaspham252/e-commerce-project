@@ -2,10 +2,12 @@ package com.fit.project.controller;
 
 import com.fit.project.dto.auth.AuthMessageResponse;
 import com.fit.project.dto.auth.ChangePasswordRequest;
+import com.fit.project.dto.auth.ForgotPasswordRequest;
 import com.fit.project.dto.auth.GoogleLoginRequest;
 import com.fit.project.dto.auth.LoginRequest;
 import com.fit.project.dto.auth.LoginResponse;
 import com.fit.project.dto.auth.RegisterRequest;
+import com.fit.project.dto.auth.ResetPasswordRequest;
 import com.fit.project.dto.auth.ResendVerificationRequest;
 import com.fit.project.dto.auth.VerifyEmailRequest;
 import com.fit.project.entity.User;
@@ -53,6 +55,16 @@ public class AuthController {
         authService.resendVerificationCode(request.email());
         return new AuthMessageResponse(
                 "Nếu email đã đăng ký và cần xác minh, mã mới sẽ được gửi đến hộp thư của bạn.");
+    }
+
+    @PostMapping("/forgot-password")
+    public AuthMessageResponse forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        return authService.requestPasswordReset(request);
+    }
+
+    @PostMapping("/reset-password")
+    public AuthMessageResponse resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        return authService.resetPassword(request);
     }
 
     @PostMapping("/change-password")
