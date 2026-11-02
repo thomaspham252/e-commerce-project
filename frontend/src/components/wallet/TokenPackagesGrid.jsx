@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
-import { FiCheck, FiZap, FiArrowRight, FiShield, FiPercent } from 'react-icons/fi';
-import { Sparkles, Coins } from 'lucide-react';
+import React from 'react';
 import './TokenPackagesGrid.css';
 
 /**
- * Lưới hiển thị các mốc nạp token của ứng viên.
- * Cho phép chọn mốc (50, 100, 200, 500) và tiến hành nạp tiền qua VietQR SePay.
+ * Danh sách mốc nạp token của ứng viên (4 thẻ card tinh gọn, không icon trang trí).
+ * - Bỏ toàn bộ icon trang trí (đồng xu, tia sét, lấp lánh, %, tick xanh, mũi tên).
+ * - Gói 120 token làm nổi bật bằng viền đậm và chữ "Phổ biến" (không nền màu).
+ * - Gói có thưởng hiển thị gọn: "+{bonus} token thưởng" màu xanh và "Nhận {total} token" màu xám.
+ * - Giá tiền định dạng chuẩn "X ₫", không gạch chân.
+ * - Chiều cao 4 thẻ bằng nhau, nút "Chọn gói này" thẳng hàng ở đáy thẻ.
  */
 export const TokenPackagesGrid = ({
   packages = [],
@@ -14,137 +16,89 @@ export const TokenPackagesGrid = ({
   onProceedPayment,
   loading = false,
 }) => {
-  const [internalSelectedId, setInternalSelectedId] = useState(
-    selectedPackageId || (packages.find((p) => p.isPopular)?.id || packages[1]?.id || 'pkg-100')
-  );
-
-  const activeId = selectedPackageId || internalSelectedId;
-
-  const handleSelect = (pkg) => {
-    setInternalSelectedId(pkg.id);
-    if (onSelectPackage) {
-      onSelectPackage(pkg);
-    }
-  };
-
   const handleProceed = (pkg) => {
-    handleSelect(pkg);
-    if (onProceedPayment) {
-      onProceedPayment(pkg);
-    }
+    onSelectPackage?.(pkg);
+    onProceedPayment?.(pkg);
   };
 
   return (
     <div className="token-packages-grid-container">
       <div className="token-packages-grid-header">
         <div className="token-packages-grid-title-area">
-          <h2 className="token-packages-grid-title">
-            <Coins className="inline-icon text-amber" />
-            Chọn Mốc Nạp Token
-          </h2>
+          <h2 className="token-packages-grid-title">Chọn mốc nạp token</h2>
           <p className="token-packages-grid-desc">
-            Quy đổi trực tiếp 1.000 ₫ = 1 Token. Nạp mốc càng cao, nhận thêm càng nhiều Token thưởng miễn phí.
+            Quy đổi trực tiếp 1.000 ₫ = 1 token.
           </p>
-        </div>
-        <div className="token-packages-grid-badge-info">
-          <FiZap /> Kích hoạt tự động ngay sau khi quét QR VietQR
+          <p className="token-packages-grid-note">
+            Token không có thời hạn sử dụng và được kích hoạt tự động ngay sau khi quét mã VietQR.
+          </p>
         </div>
       </div>
 
       <div className="token-packages-grid">
         {packages.map((pkg) => {
-          const isSelected = activeId === pkg.id;
-          const isPopular = pkg.isPopular;
+          const isPopular = pkg.isPopular || pkg.tokens === 120;
+          const bonus = pkg.bonusTokens || 0;
+          const total = pkg.totalTokens || (pkg.tokens + bonus);
+          const priceFormatted = Number(pkg.priceVND || pkg.price).toLocaleString('vi-VN');
 
           return (
             <div
               key={pkg.id}
-              className={`token-package-card ${isSelected ? 'token-package-card--selected' : ''} ${
-                isPopular ? 'token-package-card--popular' : ''
-              }`}
-              onClick={() => handleSelect(pkg)}
-              role="button"
-              tabIndex={0}
+              className={`token-package-card ${isPopular ? 'token-package-card--popular' : ''}`}
               id={`package-card-${pkg.id}`}
             >
-              {isPopular && (
-                <div className="token-package-badge token-package-badge--popular">
-                  <Sparkles size={14} /> Phổ biến nhất
+              <div className="token-package-card__top">
+                <div className="token-package-card__tag-row">
+                  {isPopular ? (
+                    <span className="pkg-text-popular">Phổ biến</span>
+                  ) : (
+                    <span className="pkg-text-placeholder" aria-hidden="true" />
+                  )}
                 </div>
-              )}
 
-              {pkg.bonusTokens > 0 && !isPopular && (
-                <div className="token-package-badge token-package-badge--bonus">
-                  <FiPercent size={13} /> Tặng +{pkg.bonusTokens} Token
-                </div>
-              )}
-
-              <div className="token-package-card__header">
-                <div className="token-package-card__amount">
+                <div className="token-package-card__amount-row">
                   <span className="token-package-card__tokens">{pkg.tokens}</span>
-                  <span className="token-package-card__unit">Token</span>
+                  <span className="token-package-card__unit">token</span>
                 </div>
-                {pkg.bonusTokens > 0 && (
-                  <div className="token-package-card__bonus-pill">
-                    +{pkg.bonusTokens} thưởng
-                  </div>
-                )}
-              </div>
 
-              <div className="token-package-card__total-receive">
-                Tổng nhận:{' '}
-                <strong>{pkg.totalTokens.toLocaleString('vi-VN')} Token</strong>
-              </div>
-
-              <div className="token-package-card__price">
-                <span className="token-package-card__price-value">
-                  {pkg.priceVND.toLocaleString('vi-VN')}
-                </span>
-                <span className="token-package-card__currency">₫</span>
-              </div>
-
-              <p className="token-package-card__desc">{pkg.description}</p>
-
-              <div className="token-package-card__features">
-                <div className="token-package-feature-item">
-                  <FiCheck className="feature-check" />
-                  <span>Cộng số dư tức thì</span>
+                <div className="token-package-card__reward-row">
+                  {bonus > 0 ? (
+                    <span className="pkg-reward-text">+{bonus} token thưởng</span>
+                  ) : (
+                    <span className="pkg-reward-placeholder" aria-hidden="true" />
+                  )}
                 </div>
-                <div className="token-package-feature-item">
-                  <FiCheck className="feature-check" />
-                  <span>Không thời hạn sử dụng</span>
+
+                <div className="token-package-card__total-row">
+                  {bonus > 0 ? (
+                    <span className="pkg-total-receive">
+                      Nhận {total.toLocaleString('vi-VN')} token
+                    </span>
+                  ) : (
+                    <span className="pkg-total-placeholder" aria-hidden="true" />
+                  )}
                 </div>
-                <div className="token-package-feature-item">
-                  <FiCheck className="feature-check" />
-                  <span>Thanh toán VietQR tiện lợi</span>
+
+                <div className="token-package-card__price">
+                  <span className="token-package-card__price-value">
+                    {priceFormatted} ₫
+                  </span>
                 </div>
               </div>
 
               <button
                 type="button"
-                className={`token-package-card__btn ${
-                  isSelected ? 'token-package-card__btn--active' : ''
-                }`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleProceed(pkg);
-                }}
+                className="token-package-card__btn"
+                onClick={() => handleProceed(pkg)}
                 disabled={loading}
                 id={`btn-select-pkg-${pkg.id}`}
               >
-                <span>{isSelected ? 'Tiếp tục thanh toán' : 'Chọn mốc này'}</span>
-                <FiArrowRight />
+                Chọn gói này
               </button>
             </div>
           );
         })}
-      </div>
-
-      <div className="token-packages-footer-note">
-        <FiShield className="footer-note-icon" />
-        <span>
-          Giao dịch được bảo vệ và xử lý tức thì qua cổng thanh toán SePay. Token sẽ được cộng tự động vào ví của bạn ngay khi giao dịch thành công.
-        </span>
       </div>
     </div>
   );

@@ -1,289 +1,237 @@
-/* Lưới mốc nạp Token Ứng Viên */
+/* Lưới mốc nạp token ứng viên - Thiết kế tối giản, sạch sẽ, không icon trang trí */
 .token-packages-grid-container {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 20px;
 }
 
 .token-packages-grid-header {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  flex-wrap: wrap;
-  gap: 16px;
+  flex-direction: column;
+}
+
+.token-packages-grid-title-area {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .token-packages-grid-title {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 1.45rem;
+  font-size: 1.25rem;
   font-weight: 700;
-  color: #0f172a;
-  margin: 0 0 6px 0;
-}
-
-.text-amber {
-  color: #d97706;
+  color: #111827;
+  margin: 0;
+  letter-spacing: -0.01em;
 }
 
 .token-packages-grid-desc {
   margin: 0;
-  font-size: 0.925rem;
-  color: #64748b;
-  max-width: 650px;
+  font-size: 0.875rem;
+  color: #4b5563;
   line-height: 1.5;
 }
 
-.token-packages-grid-badge-info {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: #f0fdf4;
-  color: #166534;
-  padding: 8px 16px;
-  border-radius: 999px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  border: 1px solid #bbf7d0;
+.token-packages-grid-note {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: #6b7280;
+  line-height: 1.45;
 }
 
+/* Lưới 4 thẻ ngang */
 .token-packages-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
+  gap: 16px;
+  align-items: stretch;
 }
 
+/* Thẻ card */
 .token-package-card {
-  position: relative;
   background: #ffffff;
-  border-radius: 16px;
-  padding: 24px;
-  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 22px 20px;
+  border: 2px solid #e5e7eb;
   display: flex;
   flex-direction: column;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  cursor: pointer;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  justify-content: space-between;
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
 
 .token-package-card:hover {
-  transform: translateY(-4px);
-  border-color: #cbd5e1;
-  box-shadow: 0 12px 24px -6px rgba(0, 0, 0, 0.1);
+  border-color: #0eb258;
 }
 
-.token-package-card--selected {
-  border-color: #3b82f6;
-  background: linear-gradient(180deg, #f8faff 0%, #ffffff 100%);
-  box-shadow: 0 12px 28px -6px rgba(59, 130, 246, 0.25);
-}
-
+/* Gói 120 token nổi bật bằng viền đậm và nền nhạt */
 .token-package-card--popular {
-  border-color: #f59e0b;
+  border: 2px solid #00b14f;
+  background-color: #fafdfa;
 }
 
-.token-package-card--popular.token-package-card--selected {
-  border-color: #d97706;
-  box-shadow: 0 12px 28px -6px rgba(217, 119, 6, 0.3);
+.token-package-card--popular:hover {
+  border-color: #009643;
 }
 
-.token-package-badge {
-  position: absolute;
-  top: -13px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: inline-flex;
+.token-package-card__top {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Dòng nhãn: chữ "Phổ biến" thuần túy, không icon, không nền màu */
+.token-package-card__tag-row {
+  min-height: 20px;
+  margin-bottom: 6px;
+  display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 14px;
-  border-radius: 999px;
-  font-size: 0.775rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  white-space: nowrap;
 }
 
-.token-package-badge--popular {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-  color: #ffffff;
-  box-shadow: 0 4px 10px rgba(217, 119, 6, 0.35);
-}
-
-.token-package-badge--bonus {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  color: #ffffff;
-  box-shadow: 0 4px 10px rgba(5, 150, 105, 0.3);
-}
-
-.token-package-card__header {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  margin-top: 8px;
-  margin-bottom: 8px;
-}
-
-.token-package-card__amount {
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
-}
-
-.token-package-card__tokens {
-  font-size: 2.25rem;
-  font-weight: 800;
-  color: #1e293b;
+.pkg-text-popular {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #00873c;
   line-height: 1;
 }
 
+.pkg-text-placeholder {
+  display: block;
+  min-height: 18px;
+}
+
+/* Dòng số token */
+.token-package-card__amount-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.token-package-card__tokens {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #111827;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
 .token-package-card__unit {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #64748b;
-}
-
-.token-package-card__bonus-pill {
-  background: #fef3c7;
-  color: #b45309;
-  font-size: 0.75rem;
-  font-weight: 700;
-  padding: 3px 8px;
-  border-radius: 6px;
-  border: 1px solid #fde68a;
-}
-
-.token-package-card__total-receive {
-  font-size: 0.875rem;
-  color: #0369a1;
-  background: #f0f9ff;
-  padding: 6px 10px;
-  border-radius: 8px;
-  margin-bottom: 16px;
+  font-size: 0.9375rem;
   font-weight: 500;
+  color: #4b5563;
 }
 
-.token-package-card__total-receive strong {
-  color: #0284c7;
-  font-weight: 700;
+/* Dòng token thưởng: chữ màu xanh, không nền, không viền */
+.token-package-card__reward-row {
+  min-height: 20px;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
 }
 
+.pkg-reward-text {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #059669;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.pkg-reward-placeholder {
+  display: block;
+  min-height: 18px;
+}
+
+/* Dòng tổng nhận: chữ xám */
+.token-package-card__total-row {
+  min-height: 20px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+}
+
+.pkg-total-receive {
+  font-size: 0.8125rem;
+  color: #6b7280;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.pkg-total-placeholder {
+  display: block;
+  min-height: 18px;
+}
+
+/* Giá thanh toán: có khoảng trắng trước ₫, không gạch chân */
 .token-package-card__price {
-  margin-bottom: 14px;
+  margin-bottom: 20px;
+  padding-top: 14px;
+  border-top: 1px solid #f3f4f6;
+  text-decoration: none;
 }
 
 .token-package-card__price-value {
-  font-size: 1.65rem;
-  font-weight: 800;
-  color: #0f172a;
-}
-
-.token-package-card__currency {
-  font-size: 1.1rem;
+  font-size: 1.375rem;
   font-weight: 700;
-  color: #64748b;
-  margin-left: 2px;
+  color: #111827;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+  text-decoration: none !important;
+  display: inline-block;
+  font-family: inherit;
 }
 
-.token-package-card__desc {
-  font-size: 0.825rem;
-  color: #64748b;
-  line-height: 1.45;
-  margin: 0 0 18px 0;
-  min-height: 38px;
-}
-
-.token-package-card__features {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-bottom: 24px;
-  border-top: 1px dashed #e2e8f0;
-  padding-top: 14px;
-}
-
-.token-package-feature-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.825rem;
-  color: #475569;
-}
-
-.feature-check {
-  color: #10b981;
-  flex-shrink: 0;
-  font-size: 0.95rem;
-}
-
+/* Nút chọn gói: Căn đáy thẻ, thẳng hàng ngang */
 .token-package-card__btn {
   margin-top: auto;
+  width: 100%;
+  height: 38px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 12px 18px;
-  background: #f1f5f9;
-  color: #334155;
-  border: 1px solid #cbd5e1;
-  border-radius: 10px;
-  font-weight: 600;
+  padding: 0 16px;
+  background-color: #ffffff;
+  color: #374151;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-weight: 500;
   font-size: 0.875rem;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  text-decoration: none;
 }
 
-.token-package-card:hover .token-package-card__btn {
-  background: #e2e8f0;
-  color: #0f172a;
+.token-package-card__btn:hover {
+  background-color: #00b14f;
+  border-color: #9ca3af;
+  color: #ffffff;
 }
 
-.token-package-card__btn--active {
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
-  color: #ffffff !important;
-  border-color: #1d4ed8 !important;
-  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35);
+.token-package-card--popular .token-package-card__btn {
+  border-color: #00b14f;
+  color: #00873c;
 }
 
-.token-package-card__btn--active:hover {
-  background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%) !important;
-  transform: translateY(-1px);
+.token-package-card--popular .token-package-card__btn:hover {
+  background-color: #00b14f;
+  color: #ffffff;
 }
 
-.token-packages-footer-note {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: #f8fafc;
-  padding: 14px 20px;
-  border-radius: 12px;
-  border: 1px solid #e2e8f0;
-  font-size: 0.85rem;
-  color: #64748b;
-  line-height: 1.45;
-}
-
-.footer-note-icon {
-  font-size: 1.25rem;
-  color: #3b82f6;
-  flex-shrink: 0;
+.token-package-card__btn:focus-visible {
+  outline: 2px solid #00b14f;
+  outline-offset: 2px;
 }
 
 /* Responsive quy chuẩn */
-@media (max-width: 1200px) {
+@media (max-width: 1024px) {
   .token-packages-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 580px) {
   .token-packages-grid {
     grid-template-columns: 1fr;
-    gap: 24px;
-  }
-  .token-packages-grid-header {
-    flex-direction: column;
-    align-items: flex-start;
+    gap: 16px;
   }
 }

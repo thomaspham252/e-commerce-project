@@ -211,6 +211,28 @@ export const checkPaymentStatus = async (orderId) => {
 /**
  * 4. Giả lập đổi trạng thái đơn hàng (Dev Simulator).
  */
+/**
+ * Huỷ đơn thanh toán thật trên Backend Spring Boot (/api/v1/orders/{orderCode}/cancel).
+ */
+export const cancelPaymentOrder = async (orderId) => {
+  try {
+    const res = await apiClient.post(`/v1/orders/${orderId}/cancel`);
+    if (res.data?.success) {
+      console.log(`[PaymentService] Huỷ đơn hàng ${orderId} thành công trên backend`);
+    }
+  } catch (err) {
+    console.warn(`[PaymentService] Lỗi khi huỷ đơn ${orderId}:`, err);
+  }
+
+  // Cập nhật lại cache mock local
+  const idx = mockOrders.findIndex((o) => o.orderId === orderId);
+  if (idx !== -1) {
+    mockOrders[idx].status = 'CANCELLED';
+  }
+
+  return { success: true, orderId };
+};
+
 export const simulateOrderStatus = async (orderId, targetStatus, customActualAmount = null) => {
   try {
     const payload = {

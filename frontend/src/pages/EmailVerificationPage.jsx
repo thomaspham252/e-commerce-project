@@ -22,7 +22,7 @@ export const EmailVerificationPage = () => {
       saveAuthSession(user, false);
       const destination = {
         ADMIN: '/admin',
-        EMPLOYER: '/employer',
+        EMPLOYER: '/employer/dashboard',
         CANDIDATE: '/',
       }[user.role] || '/';
       navigate(destination, { replace: true });
