@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
   AlertCircle,
@@ -8,6 +8,7 @@ import {
   ChevronRight,
   Clock,
   FileText,
+  Loader2,
   MapPin,
   PartyPopper,
   PenLine,
@@ -20,6 +21,7 @@ import { useApplications } from '../../context/ApplicationsContext';
 import { getAuthSession, getErrorMessage } from '../../services/apiClient';
 import { candidateService } from '../../services/candidateService';
 import { jobService } from '../../services/jobService';
+import { uploadService } from '../../services/uploadService';
 import { formatSalary } from '../../utils/formatSalary';
 import './CandidateShared.css';
 import './ApplyPage.css';
@@ -42,6 +44,8 @@ export const ApplyPage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState('');
+  const [uploadingCv, setUploadingCv] = useState(false);
+  const cvFileInputRef = useRef(null);
 
   const session = getAuthSession();
   const isCandidate = session?.role?.toString().toUpperCase() === 'CANDIDATE';
@@ -92,6 +96,49 @@ export const ApplyPage = () => {
 
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
+  };
+
+  const handleUploadNewCv = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 15 * 1024 * 1024) {
+      setErrors((prev) => ({ ...prev, cv: 'Kích thước tệp CV vượt quá 15MB.' }));
+      return;
+    }
+
+    setUploadingCv(true);
+    setErrors((prev) => ({ ...prev, cv: undefined }));
+    try {
+      const uploadRes = await uploadService.uploadFile(file);
+      if (uploadRes?.url) {
+        let newCv;
+        try {
+          newCv = await candidateService.createCv({
+            fileName: file.name,
+            fileUrl: uploadRes.url,
+            isDefault: cvs.length === 0,
+          });
+        } catch (saveErr) {
+          console.warn('Lưu CV vào backend thất bại, dùng tạm thời:', saveErr);
+          newCv = {
+            id: Date.now(),
+            name: file.name,
+            fileUrl: uploadRes.url,
+            isDefault: cvs.length === 0,
+            updatedAt: 'Vừa xong',
+          };
+        }
+        setCvs((prev) => [newCv, ...prev]);
+        setSelectedCvId(newCv.id);
+      }
+    } catch (err) {
+      console.error('Lỗi khi tải CV:', err);
+      setErrors((prev) => ({ ...prev, cv: err.message || 'Không thể tải tệp CV lên máy chủ.' }));
+    } finally {
+      setUploadingCv(false);
+      if (e.target) e.target.value = '';
+    }
   };
 
   const handleSubmit = async (event) => {
@@ -291,9 +338,31 @@ export const ApplyPage = () => {
                 )}
               </div>
 
-              <button className="ap-upload" type="button">
-                <Upload size={17} />
-                Tải lên CV mới từ máy tính
+              <input
+                type="file"
+                ref={cvFileInputRef}
+                accept=".pdf,.doc,.docx"
+                onChange={handleUploadNewCv}
+                style={{ display: 'none' }}
+              />
+
+              <button
+                className="ap-upload"
+                type="button"
+                onClick={() => cvFileInputRef.current?.click()}
+                disabled={uploadingCv}
+              >
+                {uploadingCv ? (
+                  <>
+                    <Loader2 size={17} className="fuf-spinner" />
+                    Đang tải CV lên dự án...
+                  </>
+                ) : (
+                  <>
+                    <Upload size={17} />
+                    Tải lên CV mới từ máy tính
+                  </>
+                )}
               </button>
 
               {errors.cv && (

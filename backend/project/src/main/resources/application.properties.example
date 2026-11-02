@@ -40,3 +40,8 @@ sepay.bank-code=${SEPAY_BANK_CODE}
 sepay.account-number=${SEPAY_ACCOUNT_NUMBER}
 sepay.account-holder=${SEPAY_ACCOUNT_HOLDER}
 app.dev-mode=${APP_DEV_MODE:false}
+
+# ===== Multipart File Upload =====
+spring.servlet.multipart.max-file-size=15MB
+spring.servlet.multipart.max-request-size=15MB
+

@@ -3,8 +3,12 @@ package com.fit.project.service;
 import com.fit.project.dto.candidate.ApplyRequest;
 import com.fit.project.dto.candidate.CandidateApplicationResponse;
 import com.fit.project.dto.candidate.CandidateCvResponse;
+import com.fit.project.dto.candidate.CandidateProfileResponse;
+import com.fit.project.dto.candidate.CreateCvRequest;
+import com.fit.project.dto.candidate.UpdateCandidateProfileRequest;
 import com.fit.project.entity.Application;
 import com.fit.project.entity.CandidateProfile;
+import com.fit.project.entity.Cv;
 import com.fit.project.entity.InterviewInvitation;
 import com.fit.project.entity.Job;
 import com.fit.project.entity.User;
@@ -47,6 +51,74 @@ public class CandidateApplicationService {
         return cvRepository.findByCandidateUserIdOrderByIsDefaultDescUploadedAtDesc(candidate.getId()).stream()
                 .map(CandidateCvResponse::of)
                 .toList();
+    }
+
+    @Transactional
+    public CandidateCvResponse createCv(User candidate, CreateCvRequest req) {
+        CandidateProfile profile = candidateProfileRepository.findById(candidate.getId())
+                .orElseGet(() -> candidateProfileRepository.save(CandidateProfile.builder()
+                        .user(candidate)
+                        .fullName("Ứng viên")
+                        .build()));
+
+        boolean hasAnyCv = cvRepository.existsByCandidateUserId(candidate.getId());
+        boolean shouldBeDefault = Boolean.TRUE.equals(req.isDefault()) || !hasAnyCv;
+
+        if (shouldBeDefault && hasAnyCv) {
+            cvRepository.findByCandidateUserIdAndIsDefaultTrue(candidate.getId())
+                    .ifPresent(oldDef -> {
+                        oldDef.setIsDefault(false);
+                        cvRepository.save(oldDef);
+                    });
+        }
+
+        Cv cv = Cv.builder()
+                .candidate(profile)
+                .fileName(req.fileName())
+                .fileUrl(req.fileUrl())
+                .isDefault(shouldBeDefault)
+                .build();
+        cv = cvRepository.save(cv);
+        return CandidateCvResponse.of(cv);
+    }
+
+    @Transactional
+    public void deleteCv(User candidate, Integer cvId) {
+        Cv cv = cvRepository.findByIdAndCandidateUserId(cvId, candidate.getId())
+                .orElseThrow(() -> ApiException.notFound("Không tìm thấy CV"));
+        cvRepository.delete(cv);
+    }
+
+    @Transactional(readOnly = true)
+    public CandidateProfileResponse getProfile(User candidate) {
+        CandidateProfile profile = candidateProfileRepository.findById(candidate.getId())
+                .orElseGet(() -> CandidateProfile.builder()
+                        .user(candidate)
+                        .fullName("Ứng viên")
+                        .build());
+        return CandidateProfileResponse.of(profile);
+    }
+
+    @Transactional
+    public CandidateProfileResponse updateProfile(User candidate, UpdateCandidateProfileRequest req) {
+        CandidateProfile profile = candidateProfileRepository.findById(candidate.getId())
+                .orElseGet(() -> candidateProfileRepository.save(CandidateProfile.builder()
+                        .user(candidate)
+                        .fullName("Ứng viên")
+                        .build()));
+
+        if (req.fullName() != null && !req.fullName().isBlank()) {
+            profile.setFullName(req.fullName().trim());
+        }
+        if (req.phone() != null) profile.setPhone(req.phone().trim());
+        if (req.dob() != null) profile.setDob(req.dob());
+        if (req.address() != null) profile.setAddress(req.address().trim());
+        if (req.avatar() != null) profile.setAvatar(req.avatar().trim());
+        if (req.summary() != null) profile.setSummary(req.summary().trim());
+        if (req.isSearchable() != null) profile.setIsSearchable(req.isSearchable());
+
+        profile = candidateProfileRepository.save(profile);
+        return CandidateProfileResponse.of(profile);
     }
 
     @Transactional(readOnly = true)

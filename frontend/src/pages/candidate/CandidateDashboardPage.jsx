@@ -79,6 +79,9 @@ import {
   onReceiveMessage,
   onUserTyping
 } from '../../services/socketService';
+import { uploadService } from '../../services/uploadService';
+import { candidateService } from '../../services/candidateService';
+import { FileUploadField } from '../../components/common/FileUploadField';
 import './CandidateDashboardPage.css';
 
 export const CandidateDashboardPage = () => {
@@ -364,28 +367,125 @@ export const CandidateDashboardPage = () => {
   const [modalForm, setModalForm] = useState(profile);
   const [toastMessage, setToastMessage] = useState('');
   const fileInputRef = useRef(null);
+  const chatAttachInputRef = useRef(null);
+
+  // Đồng bộ hồ sơ và CV từ backend khi mở Dashboard
+  useEffect(() => {
+    let active = true;
+    const fetchProfileAndCvs = async () => {
+      try {
+        const [profData, cvList] = await Promise.allSettled([
+          candidateService.getProfile(),
+          candidateService.getCvs(),
+        ]);
+
+        if (!active) return;
+
+        let updatedFields = {};
+        if (profData.status === 'fulfilled' && profData.value) {
+          const p = profData.value;
+          updatedFields = {
+            fullName: p.fullName || profile.fullName,
+            phone: p.phone || profile.phone,
+            desiredLocation: p.address || profile.desiredLocation,
+            avatarUrl: p.avatar || profile.avatarUrl || '',
+            summary: p.summary || profile.summary || '',
+            isSearchable: p.isSearchable ?? profile.isSearchable,
+          };
+        }
+
+        if (cvList.status === 'fulfilled' && Array.isArray(cvList.value) && cvList.value.length > 0) {
+          const defaultCv = cvList.value.find((c) => c.isDefault) || cvList.value[0];
+          updatedFields = {
+            ...updatedFields,
+            cvFileName: defaultCv.name,
+            cvFileUrl: defaultCv.fileUrl,
+            cvLastUpdated: defaultCv.updatedAt || new Date().toLocaleDateString('vi-VN'),
+            completionRate: Math.max(profile.completionRate, 40),
+          };
+        }
+
+        if (Object.keys(updatedFields).length > 0) {
+          setProfile((prev) => ({ ...prev, ...updatedFields }));
+        }
+      } catch (err) {
+        console.warn('Không thể đồng bộ hồ sơ ứng viên từ backend:', err);
+      }
+    };
+
+    fetchProfileAndCvs();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const showToast = (msg) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(''), 3000);
   };
 
-  const handleFileUpload = (e) => {
+  const handleFileUpload = async (e) => {
     const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 3 * 1024 * 1024) {
-        showToast('Kích thước tệp vượt quá 3MB. Vui lòng chọn tệp nhỏ hơn.');
-        return;
+    if (!file) return;
+
+    if (file.size > 15 * 1024 * 1024) {
+      showToast('Kích thước tệp vượt quá 15MB. Vui lòng chọn tệp nhỏ hơn.');
+      return;
+    }
+
+    try {
+      showToast('Đang tải tệp CV lên hệ thống...');
+      const uploadRes = await uploadService.uploadFile(file);
+      if (uploadRes?.url) {
+        try {
+          await candidateService.createCv({
+            fileName: file.name,
+            fileUrl: uploadRes.url,
+            isDefault: true,
+          });
+        } catch (dbErr) {
+          console.warn('Lưu CV vào backend thất bại:', dbErr);
+        }
+
+        const updated = {
+          ...profile,
+          cvFileName: file.name,
+          cvFileUrl: uploadRes.url,
+          cvLastUpdated: new Date().toLocaleDateString('vi-VN'),
+          completionRate: Math.min(100, Math.max(profile.completionRate, 40)),
+        };
+        setProfile(updated);
+        localStorage.setItem('jobviet.candidateProfile', JSON.stringify(updated));
+        showToast(`Tải lên CV thành công: ${file.name}`);
       }
-      const updated = {
-        ...profile,
-        cvFileName: file.name,
-        cvLastUpdated: new Date().toLocaleDateString('vi-VN'),
-        completionRate: Math.min(100, Math.max(profile.completionRate, 35)),
-      };
-      setProfile(updated);
-      localStorage.setItem('jobviet.candidateProfile', JSON.stringify(updated));
-      showToast(`Tải lên thành công: ${file.name}`);
+    } catch (err) {
+      console.error('Lỗi khi tải CV:', err);
+      showToast(err.message || 'Tải CV lên thất bại.');
+    } finally {
+      if (e.target) e.target.value = '';
+    }
+  };
+
+  const handleChatFileUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      showToast('Đang tải tệp đính kèm tin nhắn...');
+      const uploadRes = await uploadService.uploadFile(file);
+      if (uploadRes?.url) {
+        setInputMessage((prev) =>
+          prev
+            ? `${prev}\n[Tệp đính kèm: ${file.name}](${uploadRes.url})`
+            : `[Tệp đính kèm: ${file.name}](${uploadRes.url})`
+        );
+        showToast(`Đã đính kèm tệp: ${file.name}`);
+      }
+    } catch (err) {
+      console.error('Lỗi đính kèm tệp tin nhắn:', err);
+      showToast(err.message || 'Đính kèm tệp thất bại.');
+    } finally {
+      if (e.target) e.target.value = '';
     }
   };
 
@@ -398,10 +498,21 @@ export const CandidateDashboardPage = () => {
     setModalType(null);
   };
 
-  const handleSaveModal = (e) => {
+  const handleSaveModal = async (e) => {
     e.preventDefault();
     setProfile(modalForm);
     localStorage.setItem('jobviet.candidateProfile', JSON.stringify(modalForm));
+    try {
+      await candidateService.updateProfile({
+        fullName: modalForm.fullName,
+        phone: modalForm.phone,
+        address: modalForm.desiredLocation,
+        avatar: modalForm.avatarUrl,
+        summary: modalForm.title,
+      });
+    } catch (saveErr) {
+      console.warn('Lưu hồ sơ vào backend thất bại:', saveErr);
+    }
     closeModal();
     showToast('Cập nhật thông tin thành công!');
   };
@@ -553,8 +664,17 @@ export const CandidateDashboardPage = () => {
             <>
               <section className="itv-dash-card itv-profile-header-card">
                 <div className="itv-profile-head-left">
-                  <div className="itv-dash-avatar-circle">
-                    <span>{avatarLetter}</span>
+                  <div
+                    className="itv-dash-avatar-circle"
+                    onClick={() => openModal('basic')}
+                    style={{ cursor: 'pointer' }}
+                    title="Bấm để đổi ảnh đại diện"
+                  >
+                    {profile.avatarUrl ? (
+                      <img src={profile.avatarUrl} alt={profile.fullName} />
+                    ) : (
+                      <span>{avatarLetter}</span>
+                    )}
                   </div>
                   <div className="itv-dash-user-meta">
                     <h2 className="itv-dash-fullname">{profile.fullName}</h2>
@@ -606,14 +726,18 @@ export const CandidateDashboardPage = () => {
                   </div>
                   <div className="itv-resume-file-info">
                     <a
-                      href="#download-cv"
+                      href={profile.cvFileUrl || '#download-cv'}
+                      target={profile.cvFileUrl ? '_blank' : '_self'}
+                      rel="noreferrer"
                       className="itv-resume-file-name"
                       onClick={(e) => {
-                        e.preventDefault();
-                        showToast(`Đang tải xuống: ${profile.cvFileName}`);
+                        if (!profile.cvFileUrl) {
+                          e.preventDefault();
+                          showToast(`Đang tải xuống: ${profile.cvFileName}`);
+                        }
                       }}
                     >
-                      {profile.cvFileName}
+                      {profile.cvFileName || 'Chưa tải lên CV'}
                     </a>
                     <p className="itv-resume-updated-time">
                       Cập nhật lần cuối: {profile.cvLastUpdated}
@@ -691,7 +815,14 @@ export const CandidateDashboardPage = () => {
                       </div>
                     </div>
                     <div className="itv-resume-file-info">
-                      <a href="#download" className="itv-resume-file-name">{profile.cvFileName}</a>
+                      <a
+                        href={profile.cvFileUrl || '#download'}
+                        target={profile.cvFileUrl ? '_blank' : '_self'}
+                        rel="noreferrer"
+                        className="itv-resume-file-name"
+                      >
+                        {profile.cvFileName || 'Chưa tải lên CV'}
+                      </a>
                       <p className="itv-resume-updated-time">Cập nhật lần cuối: {profile.cvLastUpdated}</p>
                     </div>
                   </div>
@@ -822,8 +953,17 @@ export const CandidateDashboardPage = () => {
                   <div className="itv-cv-head-top">
                     <div className="itv-cv-avatar-wrap">
                       <span className="itv-bump-badge">↑ 10%</span>
-                      <div className="itv-dash-avatar-circle">
-                        <span>{avatarLetter}</span>
+                      <div
+                        className="itv-dash-avatar-circle"
+                        onClick={() => openModal('basic')}
+                        style={{ cursor: 'pointer' }}
+                        title="Bấm để đổi ảnh đại diện"
+                      >
+                        {profile.avatarUrl ? (
+                          <img src={profile.avatarUrl} alt={profile.fullName} />
+                        ) : (
+                          <span>{avatarLetter}</span>
+                        )}
                       </div>
                     </div>
                     <div className="itv-cv-head-info">
@@ -1373,18 +1513,18 @@ export const CandidateDashboardPage = () => {
 
                       {/* Ô nhập tin nhắn */}
                       <form className="itv-chat-input-bar" onSubmit={handleSendMessageSubmit}>
+                        <input
+                          type="file"
+                          ref={chatAttachInputRef}
+                          style={{ display: 'none' }}
+                          accept="image/*,.pdf,.doc,.docx"
+                          onChange={handleChatFileUpload}
+                        />
                         <button
                           type="button"
                           className="itv-chat-attach-btn"
-                          title={`Đính kèm file CV (${profile.cvFileName})`}
-                          onClick={() => {
-                            setInputMessage((prev) =>
-                              prev
-                                ? `${prev}\n[Đính kèm hồ sơ: ${profile.cvFileName}]`
-                                : `[Đính kèm hồ sơ: ${profile.cvFileName}]`
-                            );
-                            showToast(`Đã đính kèm ${profile.cvFileName}`);
-                          }}
+                          title="Tải tệp đính kèm từ máy tính"
+                          onClick={() => chatAttachInputRef.current?.click()}
                         >
                           <Paperclip size={18} />
                         </button>
@@ -1717,6 +1857,17 @@ export const CandidateDashboardPage = () => {
             </div>
 
             <form onSubmit={handleSaveModal} className="itv-modal-form">
+              <div className="itv-form-group">
+                <FileUploadField
+                  label="Ảnh đại diện"
+                  value={modalForm.avatarUrl}
+                  onChange={(url) => setModalForm({ ...modalForm, avatarUrl: url })}
+                  isImage={true}
+                  accept="image/*"
+                  helperText="Tải ảnh đại diện lên dự án (PNG, JPG, WebP)"
+                />
+              </div>
+
               <div className="itv-form-group">
                 <label>Họ và Tên</label>
                 <input

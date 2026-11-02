@@ -8,3 +8,4 @@ export const APPLICATION_STATUS = {
   REJECTED: 'Từ chối',
   HIRED: 'Đã tuyển',
 };
+

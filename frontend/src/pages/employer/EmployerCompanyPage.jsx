@@ -7,6 +7,7 @@ import { getErrorMessage } from '../../services/apiClient';
 import { COMPANY_STATUS_LABELS } from '../../utils/statusLabels';
 import '../../components/common/JobForm.css';
 import '../../components/common/Modal.css';
+import { FileUploadField } from '../../components/common/FileUploadField';
 
 const FIELDS = ['name', 'legalName', 'taxCode', 'industry', 'size', 'website', 'address',
   'logo', 'businessLicenseUrl', 'description'];
@@ -21,7 +22,7 @@ const STATUS_HINT = {
 export const EmployerCompanyPage = () => {
   const [company, setCompany] = useState(undefined);
   const [error, setError] = useState('');
-  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm();
+  const { register, handleSubmit, reset, watch, setValue, formState: { errors, isSubmitting } } = useForm();
 
   useEffect(() => {
     employerService.getCompany()
@@ -97,8 +98,14 @@ export const EmployerCompanyPage = () => {
                 <input placeholder="https://..." {...register('website')} />
               </div>
               <div className="form-group">
-                <label>Logo (URL)</label>
-                <input placeholder="https://..." {...register('logo')} />
+                <FileUploadField
+                  label="Logo doanh nghiệp"
+                  value={watch('logo')}
+                  onChange={(url) => setValue('logo', url, { shouldDirty: true, shouldValidate: true })}
+                  isImage={true}
+                  accept="image/*"
+                  helperText="Tải ảnh logo lên dự án (PNG, JPG, SVG)"
+                />
               </div>
             </div>
             <div className="form-group full-width">
@@ -127,8 +134,14 @@ export const EmployerCompanyPage = () => {
                 {errors.taxCode && <span className="error-message">{errors.taxCode.message}</span>}
               </div>
               <div className="form-group">
-                <label>Giấy phép kinh doanh (URL)</label>
-                <input placeholder="https://..." {...register('businessLicenseUrl')} />
+                <FileUploadField
+                  label="Giấy phép kinh doanh"
+                  value={watch('businessLicenseUrl')}
+                  onChange={(url) => setValue('businessLicenseUrl', url, { shouldDirty: true, shouldValidate: true })}
+                  isImage={false}
+                  accept="image/*,.pdf,.doc,.docx"
+                  helperText="Tải tệp giấy phép lên dự án (PDF, Ảnh)"
+                />
               </div>
             </div>
           </div>
