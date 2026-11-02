@@ -2,6 +2,7 @@ package com.fit.project.service;
 
 import com.fit.project.entity.EmailVerification;
 import com.fit.project.entity.User;
+import com.fit.project.enums.UserStatus;
 import com.fit.project.exception.ApiException;
 import com.fit.project.repository.EmailVerificationRepository;
 import com.fit.project.repository.UserRepository;
@@ -42,6 +43,42 @@ public class EmailVerificationService {
 
     @Transactional
     public void sendVerificationCode(User user) {
+        sendCode(user, "Mã xác minh email JobViet", "Mã xác minh email của bạn là: ");
+    }
+
+    @Transactional
+    public void requestPasswordReset(String email) {
+        Optional<User> candidate = userRepository.findByEmailIgnoreCase(normalizeEmail(email));
+        if (candidate.isEmpty() || !candidate.get().isEmailVerified()
+                || candidate.get().getStatus() == UserStatus.LOCKED) {
+            return;
+        }
+
+        User user = candidate.get();
+        Optional<EmailVerification> existing = verificationRepository.findByUser_Id(user.getId());
+        LocalDateTime now = LocalDateTime.now();
+        if (existing.isEmpty()
+                || !existing.get().getSentAt().plusSeconds(RESEND_COOLDOWN_SECONDS).isAfter(now)) {
+            sendCode(user, "Đặt lại mật khẩu JobViet", "Mã đặt lại mật khẩu của bạn là: ");
+        }
+    }
+
+    @Transactional(noRollbackFor = ApiException.class)
+    public void resetPassword(String email, String code, String newPassword) {
+        User user = userRepository.findByEmailIgnoreCase(normalizeEmail(email))
+                .filter(User::isEmailVerified)
+                .orElseThrow(this::invalidCode);
+        EmailVerification verification = verificationRepository.findByUser_Id(user.getId())
+                .orElseThrow(this::invalidCode);
+        validateCode(verification, code);
+
+        user.setPasswordHash(passwordEncoder.encode(newPassword));
+        user.setPasswordLoginEnabled(true);
+        userRepository.save(user);
+        verificationRepository.delete(verification);
+    }
+
+    private void sendCode(User user, String subject, String codePrefix) {
         String code = String.format(Locale.ROOT, "%06d", RANDOM.nextInt(1_000_000));
         LocalDateTime now = LocalDateTime.now();
         EmailVerification verification = verificationRepository.findByUser_Id(user.getId())
@@ -60,8 +97,8 @@ public class EmailVerificationService {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom(fromAddress);
         message.setTo(user.getEmail());
-        message.setSubject("Mã xác minh email JobViet");
-        message.setText("Mã xác minh email của bạn là: " + code
+        message.setSubject(subject);
+        message.setText(codePrefix + code
                 + "\nMã có hiệu lực trong " + CODE_VALIDITY_MINUTES + " phút."
                 + "\nNếu bạn không yêu cầu tạo tài khoản, hãy bỏ qua email này.");
         try {
@@ -82,6 +119,15 @@ public class EmailVerificationService {
 
         EmailVerification verification = verificationRepository.findByUser_Id(user.getId())
                 .orElseThrow(this::invalidCode);
+        validateCode(verification, code);
+
+        user.setEmailVerified(true);
+        userRepository.save(user);
+        verificationRepository.delete(verification);
+        return user;
+    }
+
+    private void validateCode(EmailVerification verification, String code) {
         LocalDateTime now = LocalDateTime.now();
         if (!verification.getExpiresAt().isAfter(now)
                 || verification.getFailedAttempts() >= MAX_FAILED_ATTEMPTS) {
@@ -93,11 +139,6 @@ public class EmailVerificationService {
             verificationRepository.save(verification);
             throw invalidCode();
         }
-
-        user.setEmailVerified(true);
-        userRepository.save(user);
-        verificationRepository.delete(verification);
-        return user;
     }
 
     @Transactional

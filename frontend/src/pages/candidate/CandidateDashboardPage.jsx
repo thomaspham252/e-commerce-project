@@ -7,6 +7,7 @@ import {
   Bell,
   Briefcase,
   Building2,
+  ClipboardList,
   Calendar,
   CheckCheck,
   CheckCircle2,
@@ -54,9 +55,11 @@ import {
   X,
   Zap
 } from 'lucide-react';
-import { getAuthSession } from '../../services/apiClient';
+import { getAuthSession, getErrorMessage, updateAuthSession } from '../../services/apiClient';
+import { authService } from '../../services/authService';
 import { useSavedJobs } from '../../context/SavedJobsContext';
 import { useApplications } from '../../context/ApplicationsContext';
+import { ApplicationHistoryContent } from './ApplicationHistoryPage';
 import {
   getCandidateConversations,
   getCandidateMessages,
@@ -87,6 +90,7 @@ export const CandidateDashboardPage = () => {
 
   // Xác định tab đang chọn: 'overview' | 'profile' | 'create-cv' | 'my-jobs' | 'invitations' | 'messages' | 'email' | 'notifications' | 'settings'
   const determineActiveTab = (pathname) => {
+    if (pathname.includes('/lich-su-ung-tuyen')) return 'applications';
     if (pathname.includes('/ho-so')) return 'profile';
     if (pathname.includes('/tao-cv') || pathname.includes('/cv')) return 'create-cv';
     if (pathname.includes('/viec-lam')) return 'my-jobs';
@@ -99,6 +103,41 @@ export const CandidateDashboardPage = () => {
   };
 
   const [activeTab, setActiveTab] = useState(() => determineActiveTab(location.pathname));
+  const [passwordLoginEnabled, setPasswordLoginEnabled] = useState(
+    () => getAuthSession()?.passwordLoginEnabled !== false,
+  );
+  const [passwordChange, setPasswordChange] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
+  const [passwordNotice, setPasswordNotice] = useState('');
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+
+  const handleChangePassword = async (event) => {
+    event.preventDefault();
+    setPasswordNotice('');
+    if (passwordChange.newPassword !== passwordChange.confirmPassword) {
+      setPasswordNotice('Mật khẩu xác nhận không khớp.');
+      return;
+    }
+
+    setIsChangingPassword(true);
+    try {
+      const result = await authService.changePassword({
+        currentPassword: passwordLoginEnabled ? passwordChange.currentPassword : undefined,
+        newPassword: passwordChange.newPassword,
+      });
+      setPasswordNotice(result.message);
+      setPasswordLoginEnabled(true);
+      updateAuthSession({ passwordLoginEnabled: true });
+      setPasswordChange({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    } catch (error) {
+      setPasswordNotice(getErrorMessage(error));
+    } finally {
+      setIsChangingPassword(false);
+    }
+  };
 
   useEffect(() => {
     setActiveTab(determineActiveTab(location.pathname));
@@ -448,14 +487,20 @@ export const CandidateDashboardPage = () => {
 
             <button
               type="button"
+              className={`itv-nav-item ${activeTab === 'applications' ? 'is-active' : ''}`}
+              onClick={() => changeTab('applications', '/ung-vien/lich-su-ung-tuyen')}
+            >
+              <ClipboardList size={18} className="itv-nav-icon" />
+              <span>Lịch sử ứng tuyển</span>
+            </button>
+
+            <button
+              type="button"
               className={`itv-nav-item ${activeTab === 'invitations' ? 'is-active' : ''}`}
               onClick={() => changeTab('invitations', '/ung-vien/loi-moi')}
             >
               <Inbox size={18} className="itv-nav-icon" />
-              <div className="itv-nav-item-content">
-                <span>Lời mời công việc</span>
-                <span className="itv-pill-count">0</span>
-              </div>
+              <span>Lời mời công việc</span>
             </button>
 
             <button
@@ -1010,6 +1055,14 @@ export const CandidateDashboardPage = () => {
             </div>
           )}
 
+          {/* TAB: LỊCH SỬ ỨNG TUYỂN (dữ liệu thật từ /api/candidate/applications) */}
+          {activeTab === 'applications' && (
+            <section className="itv-dash-card">
+              <h2 className="itv-section-heading">Lịch sử ứng tuyển</h2>
+              <ApplicationHistoryContent />
+            </section>
+          )}
+
           {/* TAB 5: LỜI MỜI CÔNG VIỆC (KHỚP ẢNH 3) */}
           {activeTab === 'invitations' && (
             <section className="itv-dash-card itv-invitations-card">
@@ -1529,9 +1582,53 @@ export const CandidateDashboardPage = () => {
               {/* Thẻ 2: Mật khẩu */}
               <section className="itv-dash-card itv-setting-section-card">
                 <h2 className="itv-section-heading">Mật khẩu</h2>
-                <p className="itv-setting-sub-hint">
-                  <Info size={14} /> Không có mật khẩu đối với tài khoản đăng ký bằng Google.
-                </p>
+                {!passwordLoginEnabled && (
+                  <p className="itv-setting-sub-hint">
+                    <Info size={14} /> Đặt mật khẩu để có thể đăng nhập bằng email, ngoài đăng nhập Google.
+                  </p>
+                )}
+                <form className="itv-password-form" onSubmit={handleChangePassword}>
+                  {passwordLoginEnabled && (
+                    <label className="itv-password-field">
+                      <span>Mật khẩu hiện tại</span>
+                      <input
+                        autoComplete="current-password"
+                        onChange={(event) => setPasswordChange((previous) => ({ ...previous, currentPassword: event.target.value }))}
+                        required
+                        type="password"
+                        value={passwordChange.currentPassword}
+                      />
+                    </label>
+                  )}
+                  <label className="itv-password-field">
+                    <span>Mật khẩu mới</span>
+                    <input
+                      autoComplete="new-password"
+                      minLength={8}
+                      onChange={(event) => setPasswordChange((previous) => ({ ...previous, newPassword: event.target.value }))}
+                      required
+                      type="password"
+                      value={passwordChange.newPassword}
+                    />
+                  </label>
+                  <label className="itv-password-field">
+                    <span>Xác nhận mật khẩu mới</span>
+                    <input
+                      autoComplete="new-password"
+                      minLength={8}
+                      onChange={(event) => setPasswordChange((previous) => ({ ...previous, confirmPassword: event.target.value }))}
+                      required
+                      type="password"
+                      value={passwordChange.confirmPassword}
+                    />
+                  </label>
+                  <button className="itv-password-submit" disabled={isChangingPassword} type="submit">
+                    {isChangingPassword
+                      ? (passwordLoginEnabled ? 'Đang cập nhật...' : 'Đang thiết lập...')
+                      : (passwordLoginEnabled ? 'Đổi mật khẩu' : 'Thiết lập mật khẩu')}
+                  </button>
+                  {passwordNotice && <p className="itv-password-notice" role="status">{passwordNotice}</p>}
+                </form>
               </section>
 
               {/* Thẻ 3: Cho phép tìm kiếm CV */}

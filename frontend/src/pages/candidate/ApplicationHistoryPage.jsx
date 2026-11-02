@@ -1,9 +1,8 @@
 import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import {
   CalendarClock,
   CheckCircle2,
-  ChevronRight,
   Clock,
   Eye,
   FileText,
@@ -12,10 +11,11 @@ import {
   Search,
   Trash2
 } from 'lucide-react';
+import { CompanyLogo } from '../../components/CompanyLogo';
 import { DataTable } from '../../components/common/DataTable';
 import { StatusBadge } from '../../components/common/StatusBadge';
 import { useApplications, APPLICATION_STATUS } from '../../context/ApplicationsContext';
-
+import { getErrorMessage } from '../../services/apiClient';
 import './CandidateShared.css';
 import './ApplicationHistoryPage.css';
 
@@ -28,10 +28,29 @@ const FILTERS = [
   { key: APPLICATION_STATUS.REJECTED, label: APPLICATION_STATUS.REJECTED }
 ];
 
-export const ApplicationHistoryPage = () => {
-  const { applications, loading, withdrawApplication } = useApplications();
+/**
+ * Nội dung lịch sử ứng tuyển (thống kê, bộ lọc, bảng). Dùng trong tab
+ * "Lịch sử ứng tuyển" của trang /ung-vien (CandidateDashboardPage).
+ */
+export const ApplicationHistoryContent = () => {
+  const { applications, loading, error, withdrawApplication } = useApplications();
   const [activeFilter, setActiveFilter] = useState('all');
   const [keyword, setKeyword] = useState('');
+  const [withdrawingId, setWithdrawingId] = useState(null);
+  const [actionError, setActionError] = useState('');
+
+  const handleWithdraw = async (row) => {
+    if (!window.confirm(`Rút hồ sơ ứng tuyển vị trí "${row.jobTitle}"? Thao tác này không thể hoàn tác.`)) return;
+    setWithdrawingId(row.id);
+    setActionError('');
+    try {
+      await withdrawApplication(row.id);
+    } catch (err) {
+      setActionError(getErrorMessage(err));
+    } finally {
+      setWithdrawingId(null);
+    }
+  };
 
   const counts = useMemo(() => {
     const result = { all: applications.length };
@@ -60,17 +79,9 @@ export const ApplicationHistoryPage = () => {
       width: '32%',
       render: row => (
         <div className="ah-job-cell">
-          <div className="ah-job-logo">
-            <img
-              src={row.companyLogo}
-              alt={row.companyName}
-              onError={event => {
-                // Gỡ handler trước khi đổi src để tránh lặp vô hạn nếu ảnh dự phòng cũng lỗi
-                event.currentTarget.onerror = null;
-                event.currentTarget.src = '/images/companies/default.svg';
-              }}
-            />
-          </div>
+          {/* Công ty chưa có logo hoặc ảnh lỗi → hiện chữ viết tắt tên công ty */}
+          <CompanyLogo logoUrl={row.companyLogo} companyName={row.companyName} size={44} />
+
           <div className="ah-job-text">
             <Link to={`/viec-lam/${row.jobId}`} className="ah-job-title">
               {row.jobTitle}
@@ -123,15 +134,16 @@ export const ApplicationHistoryPage = () => {
             <Eye size={16} />
             Xem tin
           </Link>
-          {row.status !== APPLICATION_STATUS.HIRED && (
+          {row.canWithdraw && (
             <button
               className="ah-action-btn ah-action-danger"
               type="button"
               title="Rút hồ sơ ứng tuyển"
-              onClick={() => withdrawApplication(row.id)}
+              disabled={withdrawingId === row.id}
+              onClick={() => handleWithdraw(row)}
             >
               <Trash2 size={16} />
-              Rút hồ sơ
+              {withdrawingId === row.id ? 'Đang rút...' : 'Rút hồ sơ'}
             </button>
           )}
         </div>
@@ -140,19 +152,7 @@ export const ApplicationHistoryPage = () => {
   ];
 
   return (
-    <div className="cd-page application-history-page">
-      <div className="container">
-        <nav className="cd-breadcrumb" aria-label="Đường dẫn">
-          <Link to="/">Trang chủ</Link>
-          <ChevronRight size={14} />
-          <span className="cd-breadcrumb-current">Lịch sử ứng tuyển</span>
-        </nav>
-
-        <div className="cd-page-head">
-          <h1>Lịch sử ứng tuyển</h1>
-          <p>Theo dõi trạng thái từng hồ sơ bạn đã gửi tới nhà tuyển dụng.</p>
-        </div>
-
+    <div className="application-history-page">
         {/* Thống kê nhanh theo trạng thái */}
         <div className="ah-stats">
           <div className="ah-stat">
@@ -223,6 +223,19 @@ export const ApplicationHistoryPage = () => {
           </div>
         </div>
 
+        {actionError && (
+          <p className="ah-note" role="alert" style={{ color: '#dc2626', marginBottom: 12 }}>
+            {actionError}
+          </p>
+        )}
+
+        {!loading && error && (
+          <div className="cd-state cd-state-error">
+            <h3>Không tải được lịch sử ứng tuyển</h3>
+            <p>{getErrorMessage(error)}</p>
+          </div>
+        )}
+
         {loading && (
           <div className="cd-state">
             <div className="cd-state-icon">
@@ -234,7 +247,7 @@ export const ApplicationHistoryPage = () => {
         )}
 
         {/* Chưa từng ứng tuyển */}
-        {!loading && applications.length === 0 && (
+        {!loading && !error && applications.length === 0 && (
           <div className="cd-state">
             <div className="cd-state-icon">
               <Inbox size={30} />
@@ -253,7 +266,9 @@ export const ApplicationHistoryPage = () => {
         {!loading && applications.length > 0 && (
           <DataTable columns={columns} data={visibleApplications} searchable={false} />
         )}
-      </div>
     </div>
   );
 };
+
+/** Đường dẫn cũ /lich-su-ung-tuyen → chuyển sang tab trong trang ứng viên. */
+export const ApplicationHistoryPage = () => <Navigate to="/ung-vien/lich-su-ung-tuyen" replace />;

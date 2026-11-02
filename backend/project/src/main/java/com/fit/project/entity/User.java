@@ -37,6 +37,10 @@ public class User {
     @Builder.Default
     private boolean emailVerified = true;
 
+    @Column(name = "password_login_enabled", columnDefinition = "TINYINT(1) NOT NULL DEFAULT 1")
+    @Builder.Default
+    private boolean passwordLoginEnabled = true;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 

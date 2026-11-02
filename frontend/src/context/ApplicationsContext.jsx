@@ -1,19 +1,11 @@
-import { createContext, useContext, useEffect, useState } from 'react';
-import { jobService } from '../services/jobService';
-export const APPLICATION_STATUS = {
-  SUBMITTED: 'Đã ứng tuyển',
-  REVIEWING: 'Đang xem xét',
-  INTERVIEW: 'Phỏng vấn',
-  REJECTED: 'Từ chối',
-  HIRED: 'Đã tuyển',
-};
+import { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { getAuthSession } from '../services/apiClient';
+import { candidateService } from '../services/candidateService';
+import { APPLICATION_STATUS } from '../constants/applicationStatus';
+
+export { APPLICATION_STATUS };
 
 const ApplicationsContext = createContext();
-
-// Hồ sơ do người dùng tự gửi được lưu riêng ở localStorage rồi ghép với dữ liệu
-// seed từ service, nhờ vậy ứng tuyển xong tải lại trang vẫn thấy hồ sơ của mình.
-const STORAGE_KEY = 'jobviet.myApplications';
-const WITHDRAWN_KEY = 'jobviet.withdrawnApplicationIds';
 
 export const useApplications = () => {
   const context = useContext(ApplicationsContext);
@@ -21,108 +13,67 @@ export const useApplications = () => {
     return {
       applications: [],
       loading: false,
+      error: null,
       hasApplied: () => false,
-      addApplication: () => {},
-      withdrawApplication: () => {},
+      addApplication: async () => { },
+      withdrawApplication: async () => { },
+      reload: async () => { },
     };
   }
   return context;
 };
 
-const readStored = (key, fallback) => {
-  try {
-    const raw = window.localStorage.getItem(key);
-    if (!raw) return fallback;
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : fallback;
-  } catch {
-    return fallback;
-  }
-};
+const isCandidate = () => getAuthSession()?.role?.toString().toUpperCase() === 'CANDIDATE';
 
-const writeStored = (key, value) => {
-  try {
-    window.localStorage.setItem(key, JSON.stringify(value));
-  } catch {
-    // Bỏ qua khi trình duyệt chặn localStorage (chế độ ẩn danh, hết dung lượng)
-  }
-};
-
-const formatToday = () => {
-  const now = new Date();
-  const pad = (value) => String(value).padStart(2, '0');
-  return `${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()}`;
-};
-
+/** Lịch sử ứng tuyển của ứng viên đang đăng nhập, lấy từ backend (/api/candidate/applications). */
 export const ApplicationsProvider = ({ children }) => {
-  const [seeded, setSeeded] = useState([]);
-  const [mine, setMine] = useState(() => readStored(STORAGE_KEY, []));
-  const [withdrawnIds, setWithdrawnIds] = useState(() => readStored(WITHDRAWN_KEY, []));
+  const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  useEffect(() => {
-    let active = true;
-
-    const loadApplications = async () => {
-      try {
-        const data = await jobService.getApplications();
-        if (active) setSeeded(data);
-      } catch (err) {
-        console.error('Không tải được lịch sử ứng tuyển', err);
-      } finally {
-        if (active) setLoading(false);
-      }
-    };
-
-    loadApplications();
-    return () => {
-      active = false;
-    };
+  const reload = useCallback(async () => {
+    if (!isCandidate()) {
+      setApplications([]);
+      setError(null);
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    try {
+      setApplications(await candidateService.getApplications());
+      setError(null);
+    } catch (err) {
+      console.error('Không tải được lịch sử ứng tuyển', err);
+      setError(err);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
-    writeStored(STORAGE_KEY, mine);
-  }, [mine]);
+    reload();
+    // Đăng nhập / đăng xuất / đổi tài khoản → tải lại danh sách
+    window.addEventListener('auth-session-changed', reload);
+    return () => window.removeEventListener('auth-session-changed', reload);
+  }, [reload]);
 
-  useEffect(() => {
-    writeStored(WITHDRAWN_KEY, withdrawnIds);
-  }, [withdrawnIds]);
+  const hasApplied = (jobId) => applications.some(item => String(item.jobId) === String(jobId));
 
-  // Hồ sơ mới nhất lên đầu; hồ sơ đã rút thì ẩn đi
-  const applications = [...mine, ...seeded].filter(item => !withdrawnIds.includes(item.id));
-
-  const hasApplied = (jobId) => {
-    return applications.some(item => item.jobId === jobId);
+  /** Nộp đơn; lỗi từ backend (đã ứng tuyển, tin hết hạn...) được ném ra cho trang xử lý. */
+  const addApplication = async ({ jobId, cvId, coverLetter }) => {
+    const created = await candidateService.apply({ jobId, cvId, coverLetter });
+    setApplications(prev => [created, ...prev]);
+    return created;
   };
 
-  const addApplication = ({ job, cvName, coverLetter }) => {
-    const newApplication = {
-      id: `app-${Date.now()}`,
-      jobId: job.id,
-      jobTitle: job.title,
-      companyName: job.companyName,
-      companyLogo: job.companyLogo,
-      location: job.location,
-      salary: job.salary,
-      cvName,
-      coverLetter,
-      appliedAt: formatToday(),
-      status: APPLICATION_STATUS.SUBMITTED,
-      note: 'Hồ sơ đã được gửi, chờ nhà tuyển dụng xem xét.'
-    };
-
-    setMine(prev => [newApplication, ...prev]);
-    return newApplication;
-  };
-
-  const withdrawApplication = (applicationId) => {
-    setMine(prev => prev.filter(item => item.id !== applicationId));
-    setWithdrawnIds(prev => (prev.includes(applicationId) ? prev : [...prev, applicationId]));
+  const withdrawApplication = async (applicationId) => {
+    await candidateService.withdraw(applicationId);
+    setApplications(prev => prev.filter(item => item.id !== applicationId));
   };
 
   return (
     <ApplicationsContext.Provider
-      value={{ applications, loading, hasApplied, addApplication, withdrawApplication }}
+      value={{ applications, loading, error, hasApplied, addApplication, withdrawApplication, reload }}
     >
       {children}
     </ApplicationsContext.Provider>

@@ -2095,6 +2095,56 @@
   padding: 24px;
 }
 
+.itv-password-form {
+  display: grid;
+  gap: 14px;
+  max-width: 440px;
+}
+
+.itv-password-field {
+  display: grid;
+  gap: 6px;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.itv-password-field input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #CBD5E1;
+  border-radius: 8px;
+  color: #0F172A;
+  font: inherit;
+}
+
+.itv-password-field input:focus {
+  outline: 2px solid #93C5FD;
+  border-color: #2563EB;
+}
+
+.itv-password-submit {
+  justify-self: start;
+  padding: 10px 16px;
+  border: 0;
+  border-radius: 8px;
+  background: #2563EB;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.itv-password-submit:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.itv-password-notice {
+  margin: 0;
+  color: #334155;
+  font-size: 13px;
+}
+
 .itv-df-col {
   display: flex;
   flex-direction: column;
@@ -3215,5 +3265,4 @@
     align-items: flex-start;
   }
 }
-
 

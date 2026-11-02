@@ -188,6 +188,23 @@
   accent-color: var(--color-primary);
 }
 
+.auth-login-options {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.auth-login-options a {
+  color: var(--color-primary-hover);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.auth-login-options a:hover {
+  text-decoration: underline;
+}
+
 .auth-submit {
   display: flex;
   align-items: center;
