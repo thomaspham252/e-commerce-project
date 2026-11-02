@@ -49,6 +49,17 @@ public interface ApplicationRepository extends JpaRepository<Application, Intege
         return result;
     }
 
+    /** Lịch sử ứng tuyển của một ứng viên, mới nhất trước. */
+    @EntityGraph(attributePaths = {"job", "job.company", "cv"})
+    @Query("select a from Application a where a.candidate.userId = :candidateId order by a.appliedAt desc")
+    List<Application> findByCandidateWithJob(@Param("candidateId") Integer candidateId);
+
+    @EntityGraph(attributePaths = {"job", "job.company", "cv"})
+    @Query("select a from Application a where a.id = :id and a.candidate.userId = :candidateId")
+    Optional<Application> findByIdAndCandidate(@Param("id") Integer id, @Param("candidateId") Integer candidateId);
+
+    boolean existsByJobIdAndCandidateUserId(Integer jobId, Integer candidateId);
+
     long countByJobId(Integer jobId);
 
     boolean existsByJobId(Integer jobId);

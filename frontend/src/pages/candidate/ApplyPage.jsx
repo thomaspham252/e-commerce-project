@@ -17,6 +17,8 @@ import {
   Wallet
 } from 'lucide-react';
 import { useApplications } from '../../context/ApplicationsContext';
+import { getAuthSession, getErrorMessage } from '../../services/apiClient';
+import { candidateService } from '../../services/candidateService';
 import { jobService } from '../../services/jobService';
 import { formatSalary } from '../../utils/formatSalary';
 import './CandidateShared.css';
@@ -39,6 +41,10 @@ export const ApplyPage = () => {
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState('');
+
+  const session = getAuthSession();
+  const isCandidate = session?.role?.toString().toUpperCase() === 'CANDIDATE';
 
   useEffect(() => {
     let active = true;
@@ -48,7 +54,7 @@ export const ApplyPage = () => {
       try {
         const [detail, cvList] = await Promise.all([
           jobService.getJobById(id),
-          jobService.getCvs()
+          isCandidate ? candidateService.getCvs() : Promise.resolve([])
         ]);
         if (!active) return;
         setJob(detail);
@@ -69,7 +75,7 @@ export const ApplyPage = () => {
     return () => {
       active = false;
     };
-  }, [id]);
+  }, [id, isCandidate]);
 
   const validate = () => {
     const nextErrors = {};
@@ -93,19 +99,20 @@ export const ApplyPage = () => {
     if (!validate()) return;
 
     setSubmitting(true);
-    // Mô phỏng thời gian gọi API gửi hồ sơ
-    await new Promise(resolve => setTimeout(resolve, 700));
-
-    const selectedCv = cvs.find(cv => cv.id === selectedCvId);
-    addApplication({
-      job,
-      cvName: selectedCv.name,
-      coverLetter: coverLetter.trim()
-    });
-
-    setSubmitting(false);
-    setSubmitted(true);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setSubmitError('');
+    try {
+      await addApplication({
+        jobId: job.id,
+        cvId: selectedCvId,
+        coverLetter: coverLetter.trim()
+      });
+      setSubmitted(true);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (err) {
+      setSubmitError(getErrorMessage(err));
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (loading) {
@@ -143,6 +150,26 @@ export const ApplyPage = () => {
     );
   }
 
+  /* Chưa đăng nhập bằng tài khoản ứng viên */
+  if (!isCandidate) {
+    return (
+      <div className="cd-page">
+        <div className="container">
+          <div className="cd-state">
+            <div className="cd-state-icon">
+              <AlertCircle size={30} />
+            </div>
+            <h3>Bạn cần đăng nhập tài khoản ứng viên</h3>
+            <p>Đăng nhập bằng tài khoản ứng viên để gửi hồ sơ cho vị trí {job.title}.</p>
+            <Link to="/dang-nhap" className="btn btn-primary">
+              Đăng nhập
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   /* Đã gửi hồ sơ thành công */
   if (submitted) {
     return (
@@ -159,7 +186,7 @@ export const ApplyPage = () => {
               email trong vòng 3 - 5 ngày làm việc.
             </p>
             <div className="ap-success-actions">
-              <Link to="/lich-su-ung-tuyen" className="btn btn-primary">
+              <Link to="/ung-vien/lich-su-ung-tuyen" className="btn btn-primary">
                 Xem lịch sử ứng tuyển
               </Link>
               <Link to="/" className="cd-btn-ghost">
@@ -186,7 +213,7 @@ export const ApplyPage = () => {
               Mỗi tin tuyển dụng chỉ nhận một hồ sơ từ bạn. Hãy theo dõi trạng thái trong lịch sử
               ứng tuyển.
             </p>
-            <Link to="/lich-su-ung-tuyen" className="btn btn-primary">
+            <Link to="/ung-vien/lich-su-ung-tuyen" className="btn btn-primary">
               Xem lịch sử ứng tuyển
             </Link>
           </div>
@@ -254,11 +281,14 @@ export const ApplyPage = () => {
                         {cv.isDefault && <span className="ap-cv-default">Mặc định</span>}
                       </span>
                       <span className="ap-cv-meta">
-                        Cập nhật {cv.updatedAt} · {cv.size}
+                        Tải lên {cv.updatedAt}
                       </span>
                     </span>
                   </label>
                 ))}
+                {cvs.length === 0 && (
+                  <p className="ap-hint">Bạn chưa có CV nào trên hệ thống.</p>
+                )}
               </div>
 
               <button className="ap-upload" type="button">
@@ -372,6 +402,13 @@ export const ApplyPage = () => {
                 <p className="ap-error" role="alert">
                   <AlertCircle size={15} />
                   {errors.confirmed}
+                </p>
+              )}
+
+              {submitError && (
+                <p className="ap-error" role="alert">
+                  <AlertCircle size={15} />
+                  {submitError}
                 </p>
               )}
 

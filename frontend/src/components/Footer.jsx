@@ -49,6 +49,7 @@ export const Footer = () => {
             <li><a href="#candidate-tools-section">Tạo CV chuyên nghiệp</a></li>
             <li><a href="#companies-section">Công ty tiêu biểu</a></li>
             <li><Link to="/viec-lam-da-luu">Việc làm đã lưu</Link></li>
+            <li><Link to="/ung-vien/lich-su-ung-tuyen">Lịch sử ứng tuyển</Link></li>
             <li><Link to="/candidate/wallet">Ví Token ứng viên</Link></li>
           </ul>
         </div>

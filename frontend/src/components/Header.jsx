@@ -17,7 +17,8 @@ import {
   Bell,
   Settings,
   MessageSquare,
-  Star
+  Star,
+  ClipboardList
 } from 'lucide-react';
 import { useSavedJobs } from '../context/SavedJobsContext';
 import { useWallet } from '../context/WalletContext.jsx';
@@ -284,6 +285,15 @@ export const Header = () => {
                     >
                       <Briefcase size={18} className="dropdown-item-icon" />
                       <span>Việc làm của tôi</span>
+                    </Link>
+
+                    <Link
+                      to="/ung-vien/lich-su-ung-tuyen"
+                      className="header-dropdown-item"
+                      onClick={() => setDropdownOpen(false)}
+                    >
+                      <ClipboardList size={18} className="dropdown-item-icon" />
+                      <span>Lịch sử ứng tuyển</span>
                     </Link>
 
                     <Link

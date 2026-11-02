@@ -65,6 +65,7 @@ export const AppRoutes = () => {
           <Route path="/ung-vien/tao-cv" element={<CandidateDashboardPage />} />
           <Route path="/ung-vien/cv" element={<CandidateDashboardPage />} />
           <Route path="/ung-vien/viec-lam" element={<CandidateDashboardPage />} />
+          <Route path="/ung-vien/lich-su-ung-tuyen" element={<CandidateDashboardPage />} />
           <Route path="/ung-vien/viec-lam-cua-toi" element={<CandidateDashboardPage />} />
           <Route path="/ung-vien/loi-moi" element={<CandidateDashboardPage />} />
           <Route path="/ung-vien/tin-nhan" element={<CandidateDashboardPage />} />
