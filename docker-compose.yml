@@ -11,7 +11,7 @@ services:
       - DB_PORT=3306
       - DB_NAME=job_portal_db
       - DB_USERNAME=root
-      - DB_PASSWORD=
+      - DB_PASSWORD=0393373094
       - PORT=8000
     extra_hosts:
       - "host.docker.internal:host-gateway"
