@@ -3,20 +3,13 @@ import axios from 'axios';
 /** Axios dùng chung cho backend Spring Boot. Vite proxy /api → backend (xem vite.config.js). */
 export const apiClient = axios.create({ baseURL: '/api' });
 
-apiClient.interceptors.request.use((config) => {
-  const session = getAuthSession();
-  if (session?.id && !config.headers['X-User-Id']) {
-    config.headers['X-User-Id'] = session.id;
-  }
-  return config;
-});
-
-const AUTH_SESSION_KEY = 'jobviet.authSession';
-
 export const DEV_USER_IDS = {
   admin: import.meta.env.VITE_DEV_ADMIN_ID || '1',
   employer: import.meta.env.VITE_DEV_EMPLOYER_ID || '2',
+  candidate: import.meta.env.VITE_DEV_CANDIDATE_ID || '35',
 };
+
+const AUTH_SESSION_KEY = 'jobviet.authSession';
 
 export const getAuthSession = () => {
   try {
@@ -47,6 +40,14 @@ export const clearAuthSession = () => {
   sessionStorage.removeItem(AUTH_SESSION_KEY);
   window.dispatchEvent(new Event('auth-session-changed'));
 };
+
+apiClient.interceptors.request.use((config) => {
+  const session = getAuthSession();
+  if (session?.id && !config.headers['X-User-Id']) {
+    config.headers['X-User-Id'] = session.id;
+  }
+  return config;
+});
 
 export const asUser = (userId) => ({
   headers: { 'X-User-Id': getAuthSession()?.id ?? userId },

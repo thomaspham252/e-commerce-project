@@ -34,6 +34,9 @@ import { AdminPackagesPage } from '../pages/admin/AdminPackagesPage.jsx';
 import { AdminTokenConfigPage } from '../pages/admin/AdminTokenConfigPage.jsx';
 
 // Employer Imports
+import { EmployerLandingPage } from '../pages/employer/EmployerLandingPage';
+import { EmployerRegisterPage } from '../pages/employer/EmployerRegisterPage';
+import { EmployerLoginPage } from '../pages/employer/EmployerLoginPage';
 import { EmployerLayout } from '../layouts/EmployerLayout';
 import { EmployerDashboard } from '../pages/employer/EmployerDashboard';
 import { EmployerJobs } from '../pages/employer/EmployerJobs';
@@ -52,6 +55,12 @@ export const AppRoutes = () => {
         <Route path="/dang-nhap" element={<AuthPage />} />
         <Route path="/xac-thuc-email" element={<EmailVerificationPage />} />
         <Route path="/quen-mat-khau" element={<ForgotPasswordPage />} />
+
+        {/* Public Employer Portal Routes */}
+        <Route path="/employer" element={<EmployerLandingPage />} />
+        <Route path="/employer/register" element={<EmployerRegisterPage />} />
+        <Route path="/employer/login" element={<EmployerLoginPage />} />
+
         <Route element={<MainLayout />}>
           <Route path="/" element={<HomePage />} />
           <Route path="/viec-lam" element={<JobsPage />} />
@@ -67,6 +76,7 @@ export const AppRoutes = () => {
           <Route path="/ung-vien/tao-cv" element={<CandidateDashboardPage />} />
           <Route path="/ung-vien/cv" element={<CandidateDashboardPage />} />
           <Route path="/ung-vien/viec-lam" element={<CandidateDashboardPage />} />
+          <Route path="/ung-vien/lich-su-ung-tuyen" element={<CandidateDashboardPage />} />
           <Route path="/ung-vien/viec-lam-cua-toi" element={<CandidateDashboardPage />} />
           <Route path="/ung-vien/loi-moi" element={<CandidateDashboardPage />} />
           <Route path="/ung-vien/tin-nhan" element={<CandidateDashboardPage />} />
@@ -95,9 +105,9 @@ export const AppRoutes = () => {
           <Route path="/admin/companies" element={<AdminCompanies />} />
         </Route>
 
-        {/* Employer Routes */}
+        {/* Employer Authenticated Workspace Routes */}
         <Route element={<EmployerLayout />}>
-          <Route path="/employer" element={<EmployerDashboard />} />
+          <Route path="/employer/dashboard" element={<EmployerDashboard />} />
           <Route path="/employer/pricing" element={<EmployerPricingPage />} />
           <Route path="/employer/subscription" element={<EmployerSubscriptionPage />} />
           <Route path="/employer/jobs" element={<EmployerJobs />} />

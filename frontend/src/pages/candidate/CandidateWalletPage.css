@@ -1,17 +1,19 @@
 /* Trang Quản lý Ví Token của Ứng viên */
 .candidate-wallet-page {
   min-height: calc(100vh - 72px);
-  background: #f8fafc;
-  padding: 32px 20px 80px 20px;
+  background: #f9fafb;
+  padding: 24px 20px 64px 20px;
   position: relative;
+  font-family: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: #111827;
 }
 
 .candidate-wallet-container {
-  max-width: 1200px;
+  max-width: 1120px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: 24px;
 }
 
 /* Breadcrumb */
@@ -19,8 +21,8 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.85rem;
-  color: #64748b;
+  font-size: 0.8125rem;
+  color: #6b7280;
 }
 
 .wallet-breadcrumb-link {
@@ -29,7 +31,7 @@
   gap: 6px;
   background: none;
   border: none;
-  color: #64748b;
+  color: #6b7280;
   cursor: pointer;
   padding: 0;
   font-size: inherit;
@@ -37,137 +39,127 @@
 }
 
 .wallet-breadcrumb-link:hover {
-  color: #2563eb;
+  color: #00b14f;
 }
 
 .breadcrumb-separator {
   font-size: 0.75rem;
-  color: #94a3b8;
+  color: #9ca3af;
 }
 
 .wallet-breadcrumb-current {
-  color: #0f172a;
-  font-weight: 600;
+  color: #111827;
+  font-weight: 500;
 }
 
 /* Tiêu đề trang */
 .wallet-page-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
+  align-items: flex-start;
 }
 
 .wallet-page-title {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 2rem;
-  font-weight: 800;
-  color: #0f172a;
-  margin: 0 0 8px 0;
-  letter-spacing: -0.02em;
-}
-
-.title-coin-icon {
-  width: 36px;
-  height: 36px;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 6px 0;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
 }
 
 .wallet-page-subtitle {
   margin: 0;
-  font-size: 1rem;
-  color: #64748b;
-  max-width: 720px;
+  font-size: 0.875rem;
+  color: #4b5563;
+  max-width: 680px;
   line-height: 1.5;
 }
 
-/* Thanh chuyển tab */
+/* Khối số dư */
+.wallet-balance-section {
+  width: 100%;
+}
+
+/* Thanh chuyển tab phân hệ */
 .wallet-tabs-nav {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   background: #ffffff;
-  padding: 8px;
-  border-radius: 14px;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+  padding: 6px;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
   overflow-x: auto;
 }
 
 .wallet-tab-btn {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 18px;
-  border-radius: 10px;
+  padding: 8px 16px;
+  border-radius: 8px;
   border: none;
   background: transparent;
-  color: #64748b;
-  font-size: 0.9rem;
-  font-weight: 600;
+  color: #4b5563;
+  font-size: 0.875rem;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background-color 0.15s, color 0.15s;
   white-space: nowrap;
 }
 
 .wallet-tab-btn:hover {
-  background: #f1f5f9;
-  color: #0f172a;
+  background: #f3f4f6;
+  color: #111827;
+}
+
+.wallet-tab-btn:focus-visible {
+  outline: 2px solid #00b14f;
+  outline-offset: 1px;
 }
 
 .wallet-tab-btn--active {
-  background: #2563eb !important;
+  background: #00b14f !important;
   color: #ffffff !important;
-  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);
+  font-weight: 600;
 }
 
-.wallet-tab-btn--demo {
-  color: #7c3aed;
+/* Nội dung tab */
+.wallet-tab-content {
+  width: 100%;
 }
 
-.wallet-tab-btn--demo:hover {
-  background: #f5f3ff;
-  color: #6d28d9;
-}
-
-.wallet-tab-btn--demo.wallet-tab-btn--active {
-  background: #7c3aed !important;
-  color: #ffffff !important;
-  box-shadow: 0 4px 10px rgba(124, 58, 237, 0.25);
-}
-
-/* Tab panes */
 .wallet-tab-pane {
   display: flex;
   flex-direction: column;
-  gap: 36px;
-  animation: fadeIn 0.25s ease-out;
+  gap: 24px;
 }
 
 .section-intro {
-  margin-bottom: -16px;
+  margin-bottom: -8px;
 }
 
 .section-intro h2 {
-  font-size: 1.35rem;
-  font-weight: 700;
-  color: #0f172a;
-  margin: 0 0 6px 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 4px 0;
 }
 
 .section-intro p {
   margin: 0;
-  font-size: 0.9rem;
-  color: #64748b;
+  font-size: 0.875rem;
+  color: #6b7280;
 }
 
+/* Xem trước giao dịch gần nhất */
 .wallet-recent-transactions-preview {
   display: flex;
   flex-direction: column;
   gap: 16px;
   background: #ffffff;
   padding: 24px;
-  border-radius: 16px;
-  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
 }
 
 .recent-tx-header {
@@ -178,165 +170,32 @@
 
 .recent-tx-header h3 {
   margin: 0;
-  font-size: 1.15rem;
-  font-weight: 700;
-  color: #0f172a;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
 }
 
 .btn-view-all-tx {
   background: none;
   border: none;
-  color: #2563eb;
-  font-weight: 600;
-  font-size: 0.875rem;
+  color: #00b14f;
+  font-weight: 500;
+  font-size: 0.8125rem;
   cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 4px;
+  transition: opacity 0.15s;
 }
 
 .btn-view-all-tx:hover {
   text-decoration: underline;
 }
 
-/* Demo Feature Runner */
-.demo-feature-runner {
-  background: #ffffff;
-  padding: 32px;
-  border-radius: 18px;
-  border: 1px solid #e2e8f0;
+.btn-view-all-tx:focus-visible {
+  outline: 2px solid #00b14f;
 }
 
-.demo-header-box {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-bottom: 24px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid #f1f5f9;
-}
-
-.demo-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  align-self: flex-start;
-  background: #f5f3ff;
-  color: #7c3aed;
-  padding: 4px 12px;
-  border-radius: 999px;
-  font-size: 0.775rem;
-  font-weight: 700;
-  border: 1px solid #ddd6fe;
-}
-
-.demo-header-box h2 {
-  margin: 0;
-  font-size: 1.4rem;
-  font-weight: 700;
-  color: #0f172a;
-}
-
-.demo-header-box p {
-  margin: 0;
-  font-size: 0.925rem;
-  color: #64748b;
-  line-height: 1.5;
-  max-width: 800px;
-}
-
-.demo-cards-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
-}
-
-.demo-feature-card {
-  background: #f8fafc;
-  border-radius: 14px;
-  padding: 20px;
-  border: 1px solid #e2e8f0;
-  display: flex;
-  flex-direction: column;
-  transition: all 0.2s ease;
-}
-
-.demo-feature-card:hover {
-  border-color: #cbd5e1;
-  background: #ffffff;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
-}
-
-.demo-feature-card--high-cost {
-  background: #fffbeb;
-  border-color: #fde68a;
-}
-
-.demo-feature-card--high-cost:hover {
-  border-color: #f59e0b;
-}
-
-.demo-feature-top {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 8px;
-}
-
-.demo-fee-pill {
-  background: #dbeafe;
-  color: #1e40af;
-  font-size: 0.8rem;
-  font-weight: 700;
-  padding: 4px 10px;
-  border-radius: 999px;
-}
-
-.demo-fee-pill--high {
-  background: #fee2e2;
-  color: #b91c1c;
-}
-
-.demo-feature-card h4 {
-  margin: 0 0 6px 0;
-  font-size: 1rem;
-  font-weight: 700;
-  color: #0f172a;
-}
-
-.demo-feature-card p {
-  margin: 0 0 16px 0;
-  font-size: 0.825rem;
-  color: #64748b;
-  line-height: 1.45;
-  flex-grow: 1;
-}
-
-.demo-btn-trigger {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 10px 16px;
-  background: #2563eb;
-  color: #ffffff;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.demo-btn-trigger:hover {
-  background: #1d4ed8;
-}
-
-.demo-btn-trigger--warning {
-  background: #dc2626;
-}
-
-.demo-btn-trigger--warning:hover {
-  background: #b91c1c;
-}
-
-/* Toast Banner */
+/* Thông báo toast */
 .wallet-toast-banner {
   position: fixed;
   top: 84px;
@@ -344,13 +203,13 @@
   z-index: 2000;
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 14px 20px;
-  border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-  font-size: 0.9rem;
-  font-weight: 600;
-  animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  gap: 8px;
+  padding: 12px 18px;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+  animation: slideInRight 0.25s ease-out;
 }
 
 @keyframes slideInRight {
@@ -365,46 +224,51 @@
 }
 
 .wallet-toast-banner--success {
-  background: #15803d;
+  background: #111827;
   color: #ffffff;
+  border-left: 4px solid #00b14f;
 }
 
 .wallet-toast-banner--error {
-  background: #b91c1c;
+  background: #111827;
   color: #ffffff;
+  border-left: 4px solid #dc2626;
 }
 
 .toast-icon {
-  font-size: 1.25rem;
+  font-size: 1.125rem;
   flex-shrink: 0;
 }
 
-/* Responsive quy chuẩn: 1280px, 768px, 360px */
-@media (max-width: 992px) {
-  .demo-cards-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+.wallet-toast-banner--success .toast-icon {
+  color: #00b14f;
 }
 
+.wallet-toast-banner--error .toast-icon {
+  color: #ef4444;
+}
+
+/* Responsive quy chuẩn */
 @media (max-width: 640px) {
   .candidate-wallet-page {
-    padding: 16px 12px 60px 12px;
+    padding: 16px 12px 48px 12px;
+  }
+  .candidate-wallet-container {
+    gap: 16px;
   }
   .wallet-page-title {
-    font-size: 1.5rem;
+    font-size: 1.25rem;
+  }
+  .wallet-page-subtitle {
+    font-size: 0.8125rem;
   }
   .wallet-tabs-nav {
     border-radius: 10px;
+    padding: 4px;
   }
   .wallet-tab-btn {
-    padding: 8px 12px;
-    font-size: 0.8rem;
-  }
-  .demo-cards-grid {
-    grid-template-columns: 1fr;
-  }
-  .demo-feature-runner {
-    padding: 20px 16px;
+    padding: 7px 12px;
+    font-size: 0.8125rem;
   }
   .wallet-recent-transactions-preview {
     padding: 16px;

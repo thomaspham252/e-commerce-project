@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
-import { getPaymentOrder, simulateOrderStatus } from '../../services/paymentService';
+import { getPaymentOrder, simulateOrderStatus, cancelPaymentOrder } from '../../services/paymentService';
 import { getAuthSession } from '../../services/apiClient';
 import { QRCodeCard } from '../../components/payment/QRCodeCard';
 import { TransferInfoCard } from '../../components/payment/TransferInfoCard';
@@ -99,7 +99,7 @@ export const PaymentPage = () => {
   const handleCancelOrder = async () => {
     if (!order) return;
     try {
-      await simulateOrderStatus(order.orderId, 'CANCELLED');
+      await cancelPaymentOrder(order.orderId);
       setShowCancelModal(false);
       navigate(`/thanh-toan/ket-qua/${order.orderId}`);
     } catch (err) {

@@ -143,7 +143,7 @@ public class WalletController {
                     "amount", o.getTotalAmount(),
                     "actualAmount", o.getTotalAmount(),
                     "status", statusStr,
-                    "serviceName", "Nạp Token Ứng viên",
+                    "serviceName", "Nạp token ứng viên",
                     "createdAt", o.getCreatedAt().toString(),
                     "paidAt", o.getPaidAt() != null ? o.getPaidAt().toString() : ""
             );

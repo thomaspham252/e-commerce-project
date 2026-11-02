@@ -1,8 +1,9 @@
-package com.fit.project.controller;
+ package com.fit.project.controller;
 
 import com.fit.project.dto.auth.AuthMessageResponse;
 import com.fit.project.dto.auth.ChangePasswordRequest;
 import com.fit.project.dto.auth.ForgotPasswordRequest;
+import com.fit.project.dto.auth.EmployerRegisterRequest;
 import com.fit.project.dto.auth.GoogleLoginRequest;
 import com.fit.project.dto.auth.LoginRequest;
 import com.fit.project.dto.auth.LoginResponse;
@@ -42,6 +43,11 @@ public class AuthController {
     @PostMapping("/register")
     public LoginResponse register(@Valid @RequestBody RegisterRequest request) {
         return authService.register(request);
+    }
+
+    @PostMapping("/employer/register")
+    public LoginResponse registerEmployer(@Valid @RequestBody EmployerRegisterRequest request) {
+        return authService.registerEmployer(request);
     }
 
     @PostMapping("/verify-email")

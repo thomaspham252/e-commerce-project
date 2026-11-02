@@ -7,6 +7,7 @@ import {
   Bell,
   Briefcase,
   Building2,
+  ClipboardList,
   Calendar,
   CheckCheck,
   CheckCircle2,
@@ -58,6 +59,7 @@ import { getAuthSession, getErrorMessage, updateAuthSession } from '../../servic
 import { authService } from '../../services/authService';
 import { useSavedJobs } from '../../context/SavedJobsContext';
 import { useApplications } from '../../context/ApplicationsContext';
+import { ApplicationHistoryContent } from './ApplicationHistoryPage';
 import {
   getCandidateConversations,
   getCandidateMessages,
@@ -88,6 +90,7 @@ export const CandidateDashboardPage = () => {
 
   // Xác định tab đang chọn: 'overview' | 'profile' | 'create-cv' | 'my-jobs' | 'invitations' | 'messages' | 'email' | 'notifications' | 'settings'
   const determineActiveTab = (pathname) => {
+    if (pathname.includes('/lich-su-ung-tuyen')) return 'applications';
     if (pathname.includes('/ho-so')) return 'profile';
     if (pathname.includes('/tao-cv') || pathname.includes('/cv')) return 'create-cv';
     if (pathname.includes('/viec-lam')) return 'my-jobs';
@@ -507,14 +510,20 @@ export const CandidateDashboardPage = () => {
 
             <button
               type="button"
+              className={`itv-nav-item ${activeTab === 'applications' ? 'is-active' : ''}`}
+              onClick={() => changeTab('applications', '/ung-vien/lich-su-ung-tuyen')}
+            >
+              <ClipboardList size={18} className="itv-nav-icon" />
+              <span>Lịch sử ứng tuyển</span>
+            </button>
+
+            <button
+              type="button"
               className={`itv-nav-item ${activeTab === 'invitations' ? 'is-active' : ''}`}
               onClick={() => changeTab('invitations', '/ung-vien/loi-moi')}
             >
               <Inbox size={18} className="itv-nav-icon" />
-              <div className="itv-nav-item-content">
-                <span>Lời mời công việc</span>
-                <span className="itv-pill-count">0</span>
-              </div>
+              <span>Lời mời công việc</span>
             </button>
 
             <button
@@ -1058,6 +1067,14 @@ export const CandidateDashboardPage = () => {
                 </div>
               </section>
             </div>
+          )}
+
+          {/* TAB: LỊCH SỬ ỨNG TUYỂN (dữ liệu thật từ /api/candidate/applications) */}
+          {activeTab === 'applications' && (
+            <section className="itv-dash-card">
+              <h2 className="itv-section-heading">Lịch sử ứng tuyển</h2>
+              <ApplicationHistoryContent />
+            </section>
           )}
 
           {/* TAB 5: LỜI MỜI CÔNG VIỆC (KHỚP ẢNH 3) */}
