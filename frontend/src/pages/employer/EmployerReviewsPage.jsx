@@ -32,6 +32,7 @@ export const EmployerReviewsPage = () => {
   // Filters
   const [selectedRating, setSelectedRating] = useState('all');
   const [replyStatus, setReplyStatus] = useState('all');
+  const [sentimentFilter, setSentimentFilter] = useState('all');
   const [keyword, setKeyword] = useState('');
 
   // Inline Reply state
@@ -47,6 +48,7 @@ export const EmployerReviewsPage = () => {
       const res = await employerService.getReviews({
         rating: selectedRating !== 'all' ? Number(selectedRating) : undefined,
         replyStatus: replyStatus !== 'all' ? replyStatus : undefined,
+        sentiment: sentimentFilter !== 'all' ? sentimentFilter : undefined,
         keyword: keyword.trim() || undefined,
         size: 50
       });
@@ -61,7 +63,7 @@ export const EmployerReviewsPage = () => {
 
   useEffect(() => {
     fetchReviews();
-  }, [selectedRating, replyStatus]);
+  }, [selectedRating, replyStatus, sentimentFilter]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -279,6 +281,26 @@ export const EmployerReviewsPage = () => {
             );
           })}
         </div>
+
+        {/* Thống kê phân tích cảm xúc từ AI PhoBERT */}
+        {data?.sentimentBreakdown && (
+          <div className="emp-sentiment-summary-bar">
+            <span className="emp-sentiment-title">
+              <Sparkles size={15} color="#059669" /> Phân tích AI PhoBERT:
+            </span>
+            <div className="emp-sentiment-pills-row">
+              <span className="sentiment-badge sentiment-positive">
+                 {data.sentimentBreakdown.positive || 0} Tích cực
+              </span>
+              <span className="sentiment-badge sentiment-neutral">
+                 {data.sentimentBreakdown.neutral || 0} Trung tính
+              </span>
+              <span className="sentiment-badge sentiment-negative">
+                 {data.sentimentBreakdown.negative || 0} Tiêu cực
+              </span>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* 4. TOOLBAR VÀ BỘ LỌC */}
@@ -315,6 +337,17 @@ export const EmployerReviewsPage = () => {
             <option value="all">💬 Tất cả trạng thái</option>
             <option value="unreplied">⏳ Chưa phản hồi ({unrepliedCount})</option>
             <option value="replied">✅ Đã phản hồi ({repliedCount})</option>
+          </select>
+
+          <select
+            className="emp-select-filter"
+            value={sentimentFilter}
+            onChange={(e) => setSentimentFilter(e.target.value)}
+          >
+            <option value="all">🤖 Tất cả cảm xúc AI</option>
+            <option value="positive">🟢 Tích cực</option>
+            <option value="neutral">🟡 Trung tính</option>
+            <option value="negative">🔴 Tiêu cực</option>
           </select>
         </div>
       </div>
@@ -355,6 +388,19 @@ export const EmployerReviewsPage = () => {
                   </div>
 
                   <div className="emp-review-meta">
+                    {review.sentimentLabel && (
+                      <span className={`sentiment-badge sentiment-${review.sentimentLabel}`}>
+                        <span className="sentiment-dot">
+                          {review.sentimentLabel === 'positive' ? '🟢' : review.sentimentLabel === 'neutral' ? '🟡' : '🔴'}
+                        </span>
+                        <span>
+                          {review.sentimentLabel === 'positive' ? 'Tích cực' : review.sentimentLabel === 'neutral' ? 'Trung tính' : 'Tiêu cực'}
+                        </span>
+                        {review.sentimentScore && (
+                          <span className="sentiment-pct">{Math.round(review.sentimentScore * 100)}%</span>
+                        )}
+                      </span>
+                    )}
                     <div className="emp-stars-row">
                       {[1, 2, 3, 4, 5].map((s) => (
                         <Star

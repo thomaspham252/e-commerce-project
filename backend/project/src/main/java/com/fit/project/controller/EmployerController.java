@@ -130,11 +130,12 @@ public class EmployerController {
             @RequestHeader(CurrentUserService.HEADER) Integer userId,
             @RequestParam(required = false) Integer rating,
             @RequestParam(required = false) String replyStatus,
+            @RequestParam(required = false) String sentiment,
             @RequestParam(required = false) String keyword,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        return companyPublicService.getEmployerReviews(employer(userId).getId(), rating, replyStatus, keyword, page, size);
+        return companyPublicService.getEmployerReviews(employer(userId).getId(), rating, replyStatus, sentiment, keyword, page, size);
     }
 
     @PostMapping("/reviews/{reviewId}/reply")

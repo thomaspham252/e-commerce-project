@@ -21,6 +21,6 @@ public class EmployerReviewsSummaryResponse {
     private long unrepliedCount;
     private int responseRate;
     private Map<Integer, Long> ratingBreakdown;
+    private Map<String, Long> sentimentBreakdown;
     private PageResponse<CompanyReviewResponse> reviews;
 }
-

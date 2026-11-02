@@ -7,6 +7,7 @@ import {
   Building2,
   CalendarClock,
   CheckCircle2,
+  ChevronLeft,
   ChevronRight,
   Clock,
   ExternalLink,
@@ -58,6 +59,14 @@ export const CompanyDetailPage = () => {
   // Related Companies
   const [relatedCompanies, setRelatedCompanies] = useState([]);
 
+  // Phân trang Việc làm đang tuyển dụng (5 việc làm / trang)
+  const [jobsPage, setJobsPage] = useState(1);
+  const jobsPerPage = 5;
+
+  // Phân trang Đánh giá & Bình luận (4 đánh giá / trang)
+  const [reviewsPage, setReviewsPage] = useState(1);
+  const reviewsPerPage = 4;
+
   useEffect(() => {
     let active = true;
 
@@ -71,6 +80,8 @@ export const CompanyDetailPage = () => {
 
         if (!active) return;
         setCompany(compData);
+        setJobsPage(1);
+        setReviewsPage(1);
 
         const others = (allCompRes.content || []).filter(
           (c) => String(c.id) !== String(id)
@@ -99,6 +110,26 @@ export const CompanyDetailPage = () => {
       setTimeout(() => setCopied(false), 2200);
     } catch {
       setCopied(false);
+    }
+  };
+
+  const handleJobsPageChange = (newPage) => {
+    setJobsPage(newPage);
+    const el = document.getElementById('sec-jobs');
+    if (el) {
+      const yOffset = -90;
+      const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
+      window.scrollTo({ top: y, behavior: 'smooth' });
+    }
+  };
+
+  const handleReviewsPageChange = (newPage) => {
+    setReviewsPage(newPage);
+    const el = document.getElementById('sec-reviews');
+    if (el) {
+      const yOffset = -90;
+      const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
+      window.scrollTo({ top: y, behavior: 'smooth' });
     }
   };
 
@@ -135,6 +166,7 @@ export const CompanyDetailPage = () => {
         reviewCount: (prev.reviewCount || 0) + 1,
         reviews: [newReview, ...(prev.reviews || [])],
       }));
+      setReviewsPage(1);
 
       setReviewContent('');
       setReviewSuccessMsg('Cảm ơn bạn! Đánh giá của bạn đã được đăng thành công.');
@@ -216,6 +248,13 @@ export const CompanyDetailPage = () => {
   const openJobs = company.openJobs || [];
   const openJobsCount = company.openJobsCount || openJobs.length;
   const reviews = company.reviews || [];
+
+  // Tính toán phân trang
+  const totalJobsPages = Math.ceil(openJobs.length / jobsPerPage) || 1;
+  const paginatedJobs = openJobs.slice((jobsPage - 1) * jobsPerPage, jobsPage * jobsPerPage);
+
+  const totalReviewsPages = Math.ceil(reviews.length / reviewsPerPage) || 1;
+  const paginatedReviews = reviews.slice((reviewsPage - 1) * reviewsPerPage, reviewsPage * reviewsPerPage);
   const offices = company.offices || [
     {
       city: 'Trụ sở chính',
@@ -361,13 +400,7 @@ export const CompanyDetailPage = () => {
                   <span className="itv-recommend-label">Khuyến khích làm việc ở đây</span>
                 </div>
 
-                <div className="itv-top-employer-badge">
-                  <Trophy size={18} className="itv-trophy-icon" />
-                  <div className="itv-badge-text-cluster">
-                    <strong>TOP EMPLOYER 2024</strong>
-                    <span>Vietnam Best Tech Companies</span>
-                  </div>
-                </div>
+                
               </div>
             </div>
           </div>
@@ -467,37 +500,7 @@ export const CompanyDetailPage = () => {
               </div>
             </section>
 
-            {/* THẺ 3: GIẢI THƯỞNG ĐẠT ĐƯỢC */}
-            {company.awards && company.awards.length > 0 && (
-              <section className="itv-card itv-section-block">
-                <h2 className="itv-card-title">
-                  <Trophy size={20} className="itv-title-icon" />
-                  Giải thưởng & Chứng nhận
-                </h2>
-                <div className="itv-awards-list">
-                  {company.awards.map((award, idx) => (
-                    <div key={idx} className="itv-award-item">
-                      <div className="itv-award-badge-col">
-                        <Award size={28} className="itv-award-ribbon" />
-                        <span className="itv-award-year">{award.year}</span>
-                      </div>
-                      <div className="itv-award-details">
-                        <h4 className="itv-award-name">{award.title}</h4>
-                        <div className="itv-award-metrics">
-                          <span>
-                            Điểm đánh giá: <strong>{award.score} / 5.0</strong>
-                          </span>
-                          <span>•</span>
-                          <span>
-                            Khuyến khích: <strong>{award.recommend}</strong>
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </section>
-            )}
+            
 
             {/* THẺ 4: HÌNH ẢNH MÔI TRƯỜNG LÀM VIỆC */}
             {company.photos && company.photos.length > 0 && (
@@ -544,8 +547,9 @@ export const CompanyDetailPage = () => {
                   </Link>
                 </div>
               ) : (
+                <>
                 <div className="company-jobs-list">
-                  {openJobs.map((j) => (
+                  {paginatedJobs.map((j) => (
                     <div key={j.id} className="company-job-card">
                       <div className="company-job-left">
                         <div className="company-job-badges">
@@ -579,6 +583,46 @@ export const CompanyDetailPage = () => {
                     </div>
                   ))}
                 </div>
+
+                {totalJobsPages > 1 && (
+                  <div className="company-pagination-wrapper">
+                    <button
+                      type="button"
+                      className="pagination-btn pagination-prev"
+                      disabled={jobsPage <= 1}
+                      onClick={() => handleJobsPageChange(jobsPage - 1)}
+                      aria-label="Trang việc làm trước"
+                    >
+                      <ChevronLeft size={16} />
+                      <span>Trước</span>
+                    </button>
+
+                    <div className="pagination-numbers">
+                      {Array.from({ length: totalJobsPages }, (_, i) => i + 1).map((p) => (
+                        <button
+                          key={p}
+                          type="button"
+                          className={`page-number-btn ${jobsPage === p ? 'is-active' : ''}`}
+                          onClick={() => handleJobsPageChange(p)}
+                        >
+                          {p}
+                        </button>
+                      ))}
+                    </div>
+
+                    <button
+                      type="button"
+                      className="pagination-btn pagination-next"
+                      disabled={jobsPage >= totalJobsPages}
+                      onClick={() => handleJobsPageChange(jobsPage + 1)}
+                      aria-label="Trang việc làm sau"
+                    >
+                      <span>Sau</span>
+                      <ChevronRight size={16} />
+                    </button>
+                  </div>
+                )}
+                </>
               )}
             </section>
 
@@ -588,7 +632,7 @@ export const CompanyDetailPage = () => {
                 <div>
                   <h2 className="itv-card-title">
                     <Star size={20} className="itv-title-icon" />
-                    Đánh giá & Bình luận từ nhân viên ({reviewCount})
+                    Đánh giá & Bình luận ({reviewCount})
                   </h2>
                   <p className="itv-card-subtitle">
                     Chia sẻ thực tế về môi trường làm việc, chế độ đãi ngộ và văn hóa tại {companyName}
@@ -692,48 +736,7 @@ export const CompanyDetailPage = () => {
                 </div>
               )}
 
-              {/* Bảng phân tích điểm tiêu chí */}
-              <div className="itv-rating-bars-box">
-                <div className="itv-rating-bar-item">
-                  <div className="itv-bar-label-row">
-                    <span>Lương thưởng & Phúc lợi</span>
-                    <strong>4.9</strong>
-                  </div>
-                  <div className="itv-bar-track">
-                    <div className="itv-bar-fill" style={{ width: '98%' }} />
-                  </div>
-                </div>
-
-                <div className="itv-rating-bar-item">
-                  <div className="itv-bar-label-row">
-                    <span>Cơ hội đào tạo & Phát triển</span>
-                    <strong>4.8</strong>
-                  </div>
-                  <div className="itv-bar-track">
-                    <div className="itv-bar-fill" style={{ width: '96%' }} />
-                  </div>
-                </div>
-
-                <div className="itv-rating-bar-item">
-                  <div className="itv-bar-label-row">
-                    <span>Đồng nghiệp & Văn hóa làm việc</span>
-                    <strong>5.0</strong>
-                  </div>
-                  <div className="itv-bar-track">
-                    <div className="itv-bar-fill" style={{ width: '100%' }} />
-                  </div>
-                </div>
-
-                <div className="itv-rating-bar-item">
-                  <div className="itv-bar-label-row">
-                    <span>Cân bằng công việc & Đời sống</span>
-                    <strong>4.8</strong>
-                  </div>
-                  <div className="itv-bar-track">
-                    <div className="itv-bar-fill" style={{ width: '96%' }} />
-                  </div>
-                </div>
-              </div>
+              
 
               {/* Danh sách bình luận & đánh giá */}
               <div className="company-reviews-feed">
@@ -750,7 +753,7 @@ export const CompanyDetailPage = () => {
                     </button>
                   </div>
                 ) : (
-                  reviews.map((r) => (
+                  paginatedReviews.map((r) => (
                     <article key={r.id} className="itv-review-card company-feed-review-card">
                       <div className="itv-review-card-head">
                         <div className="review-user-info">
@@ -761,6 +764,31 @@ export const CompanyDetailPage = () => {
                             <strong className="review-user-name">
                               {r.candidateName || 'Ứng viên JobViet'}
                             </strong>
+                            {r.sentimentLabel && (
+                              <div className="review-sentiment-wrap" style={{ marginTop: 4 }}>
+                                {r.sentimentLabel === 'positive' && (
+                                  <span className="sentiment-badge sentiment-positive" title={`AI PhoBERT: Tích cực (${Math.round((r.sentimentScore || 0.9) * 100)}%)`}>
+                                    <span className="sentiment-dot">🟢</span>
+                                    <span>Tích cực</span>
+                                    {r.sentimentScore && <span className="sentiment-pct">{Math.round(r.sentimentScore * 100)}%</span>}
+                                  </span>
+                                )}
+                                {r.sentimentLabel === 'neutral' && (
+                                  <span className="sentiment-badge sentiment-neutral" title={`AI PhoBERT: Trung tính (${Math.round((r.sentimentScore || 0.9) * 100)}%)`}>
+                                    <span className="sentiment-dot">🟡</span>
+                                    <span>Trung tính</span>
+                                    {r.sentimentScore && <span className="sentiment-pct">{Math.round(r.sentimentScore * 100)}%</span>}
+                                  </span>
+                                )}
+                                {r.sentimentLabel === 'negative' && (
+                                  <span className="sentiment-badge sentiment-negative" title={`AI PhoBERT: Tiêu cực (${Math.round((r.sentimentScore || 0.9) * 100)}%)`}>
+                                    <span className="sentiment-dot">🔴</span>
+                                    <span>Tiêu cực</span>
+                                    {r.sentimentScore && <span className="sentiment-pct">{Math.round(r.sentimentScore * 100)}%</span>}
+                                  </span>
+                                )}
+                              </div>
+                            )}
                           </div>
                         </div>
 
@@ -802,6 +830,45 @@ export const CompanyDetailPage = () => {
                   ))
                 )}
               </div>
+
+              {totalReviewsPages > 1 && (
+                <div className="company-pagination-wrapper">
+                  <button
+                    type="button"
+                    className="pagination-btn pagination-prev"
+                    disabled={reviewsPage <= 1}
+                    onClick={() => handleReviewsPageChange(reviewsPage - 1)}
+                    aria-label="Trang đánh giá trước"
+                  >
+                    <ChevronLeft size={16} />
+                    <span>Trước</span>
+                  </button>
+
+                  <div className="pagination-numbers">
+                    {Array.from({ length: totalReviewsPages }, (_, i) => i + 1).map((p) => (
+                      <button
+                        key={p}
+                        type="button"
+                        className={`page-number-btn ${reviewsPage === p ? 'is-active' : ''}`}
+                        onClick={() => handleReviewsPageChange(p)}
+                      >
+                        {p}
+                      </button>
+                    ))}
+                  </div>
+
+                  <button
+                    type="button"
+                    className="pagination-btn pagination-next"
+                    disabled={reviewsPage >= totalReviewsPages}
+                    onClick={() => handleReviewsPageChange(reviewsPage + 1)}
+                    aria-label="Trang đánh giá sau"
+                  >
+                    <span>Sau</span>
+                    <ChevronRight size={16} />
+                  </button>
+                </div>
+              )}
             </section>
 
             {/* THẺ 7: ĐỊA ĐIỂM & BẢN ĐỒ VĂN PHÒNG */}
