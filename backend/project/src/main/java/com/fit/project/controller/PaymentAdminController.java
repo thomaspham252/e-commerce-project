@@ -1,6 +1,8 @@
 package com.fit.project.controller;
 
 import com.fit.project.dto.payment.PaymentHistoryResponse;
+import com.fit.project.enums.UserRole;
+import com.fit.project.service.CurrentUserService;
 import com.fit.project.service.PaymentAdminService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -19,14 +21,17 @@ import java.util.Map;
 public class PaymentAdminController {
 
     private final PaymentAdminService paymentAdminService;
+    private final CurrentUserService currentUserService;
 
     @GetMapping
     public ResponseEntity<Map<String, Object>> getPayments(
+            @RequestHeader(value = CurrentUserService.HEADER, required = false) Integer userId,
             @RequestParam(required = false, defaultValue = "ALL") String status,
             @RequestParam(required = false, defaultValue = "ALL") String orderType,
             @RequestParam(required = false) String search,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
+        currentUserService.require(userId, UserRole.ADMIN);
 
         Page<PaymentHistoryResponse> result = paymentAdminService.getPayments(status, orderType, search, PageRequest.of(page, size));
 
