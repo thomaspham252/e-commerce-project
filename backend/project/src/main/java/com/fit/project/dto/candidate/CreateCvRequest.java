@@ -11,3 +11,4 @@ public record CreateCvRequest(
 
         Boolean isDefault
 ) {}
+

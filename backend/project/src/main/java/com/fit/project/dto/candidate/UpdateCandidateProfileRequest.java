@@ -11,3 +11,4 @@ public record UpdateCandidateProfileRequest(
         String summary,
         Boolean isSearchable
 ) {}
+
