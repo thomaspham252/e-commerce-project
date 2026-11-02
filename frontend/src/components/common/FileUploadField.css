@@ -1,0 +1,212 @@
+.file-upload-field-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.fuf-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.fuf-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.fuf-toggle-btn {
+  background: none;
+  border: none;
+  color: #10b981;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+  transition: color 0.15s;
+}
+
+.fuf-toggle-btn:hover {
+  color: #059669;
+}
+
+.fuf-dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 20px 16px;
+  border: 2px dashed #d1d5db;
+  border-radius: 8px;
+  background-color: #f9fafb;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  text-align: center;
+}
+
+.fuf-dropzone:hover {
+  border-color: #10b981;
+  background-color: #f0fdf4;
+}
+
+.fuf-dropzone.is-uploading {
+  cursor: not-allowed;
+  opacity: 0.75;
+  border-color: #10b981;
+}
+
+.fuf-icon-circle {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background-color: #e5e7eb;
+  color: #4b5563;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.fuf-dropzone:hover .fuf-icon-circle {
+  background-color: #d1fae5;
+  color: #10b981;
+}
+
+.fuf-prompt-main {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #1f2937;
+}
+
+.fuf-prompt-highlight {
+  color: #10b981;
+}
+
+.fuf-prompt-hint {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+/* Preview đã có file */
+.fuf-preview-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background-color: #ffffff;
+}
+
+.fuf-preview-thumb {
+  width: 52px;
+  height: 52px;
+  border-radius: 6px;
+  object-fit: cover;
+  border: 1px solid #e5e7eb;
+  background-color: #f3f4f6;
+  flex-shrink: 0;
+}
+
+.fuf-preview-file-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 6px;
+  background-color: #eff6ff;
+  color: #3b82f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.fuf-preview-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.fuf-preview-url {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #111827;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-decoration: none;
+}
+
+.fuf-preview-url:hover {
+  color: #10b981;
+  text-decoration: underline;
+}
+
+.fuf-preview-status {
+  font-size: 0.75rem;
+  color: #10b981;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.fuf-preview-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.fuf-btn-action {
+  padding: 6px 10px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  background-color: #ffffff;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.fuf-btn-action:hover {
+  background-color: #f3f4f6;
+  border-color: #9ca3af;
+}
+
+.fuf-btn-delete {
+  color: #ef4444;
+  border-color: #fca5a5;
+  background-color: #fef2f2;
+}
+
+.fuf-btn-delete:hover {
+  background-color: #fee2e2;
+  border-color: #f87171;
+}
+
+.fuf-error-text {
+  font-size: 0.75rem;
+  color: #ef4444;
+  margin-top: 2px;
+}
+
+.fuf-spinner {
+  animation: fuf-spin 1s linear infinite;
+}
+
+@keyframes fuf-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

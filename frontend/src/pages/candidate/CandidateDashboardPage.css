@@ -564,6 +564,14 @@
   font-weight: 800;
   flex-shrink: 0;
   box-shadow: 0 4px 10px rgba(234, 67, 53, 0.35);
+  overflow: hidden;
+}
+
+.itv-dash-avatar-circle img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
 }
 
 .itv-dash-user-meta {

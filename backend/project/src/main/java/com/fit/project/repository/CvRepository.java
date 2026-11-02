@@ -10,6 +10,10 @@ public interface CvRepository extends JpaRepository<Cv, Integer> {
 
     long countByCandidateUserId(Integer candidateId);
 
+    boolean existsByCandidateUserId(Integer candidateId);
+
+    Optional<Cv> findByCandidateUserIdAndIsDefaultTrue(Integer candidateId);
+
     /** CV của ứng viên, CV mặc định lên đầu rồi tới CV mới tải. */
     List<Cv> findByCandidateUserIdOrderByIsDefaultDescUploadedAtDesc(Integer candidateId);
 

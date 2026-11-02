@@ -10,6 +10,7 @@ export default defineConfig(({ mode }) => {
       // Gọi /api/... sẽ được chuyển tới backend Spring Boot (đổi bằng VITE_API_TARGET trong frontend/.env)
       proxy: {
         '/api': env.VITE_API_TARGET || 'http://localhost:8080',
+        '/uploads': env.VITE_API_TARGET || 'http://localhost:8080',
       },
     },
   }

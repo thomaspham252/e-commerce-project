@@ -80,6 +80,21 @@ export const candidateService = {
     const { data } = await apiClient.get('/candidate/cvs');
     return data.map(mapCv);
   },
+  createCv: async ({ fileName, fileUrl, isDefault = false }) => {
+    const { data } = await apiClient.post('/candidate/cvs', { fileName, fileUrl, isDefault });
+    return mapCv(data);
+  },
+  deleteCv: async (id) => {
+    await apiClient.delete(`/candidate/cvs/${id}`);
+  },
+  getProfile: async () => {
+    const { data } = await apiClient.get('/candidate/profile');
+    return data;
+  },
+  updateProfile: async (profileData) => {
+    const { data } = await apiClient.put('/candidate/profile', profileData);
+    return data;
+  },
   getApplications: async () => {
     const { data } = await apiClient.get('/candidate/applications');
     return data.map(mapApplication);
