@@ -116,19 +116,23 @@ public class AuthService {
 
     @Transactional
     public AuthMessageResponse changePassword(User user, ChangePasswordRequest request) {
-        if (!user.isPasswordLoginEnabled()) {
-            throw ApiException.badRequest("Tài khoản đăng nhập bằng Google không thể đổi mật khẩu tại đây");
-        }
-        if (!passwordEncoder.matches(request.currentPassword(), user.getPasswordHash())) {
-            throw ApiException.badRequest("Mật khẩu hiện tại không chính xác");
-        }
-        if (passwordEncoder.matches(request.newPassword(), user.getPasswordHash())) {
-            throw ApiException.badRequest("Mật khẩu mới phải khác mật khẩu hiện tại");
+        boolean isFirstPassword = !user.isPasswordLoginEnabled();
+        if (!isFirstPassword) {
+            if (request.currentPassword() == null || request.currentPassword().isBlank()
+                    || !passwordEncoder.matches(request.currentPassword(), user.getPasswordHash())) {
+                throw ApiException.badRequest("Mật khẩu hiện tại không chính xác");
+            }
+            if (passwordEncoder.matches(request.newPassword(), user.getPasswordHash())) {
+                throw ApiException.badRequest("Mật khẩu mới phải khác mật khẩu hiện tại");
+            }
         }
 
         user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
+        user.setPasswordLoginEnabled(true);
         userRepository.save(user);
-        return new AuthMessageResponse("Đổi mật khẩu thành công.");
+        return new AuthMessageResponse(isFirstPassword
+                ? "Đặt mật khẩu thành công. Bạn có thể đăng nhập bằng email hoặc Google."
+                : "Đổi mật khẩu thành công.");
     }
 
     private ApiException invalidCredentials() {

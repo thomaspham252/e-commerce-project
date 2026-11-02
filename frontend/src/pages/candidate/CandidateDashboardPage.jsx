@@ -54,7 +54,7 @@ import {
   X,
   Zap
 } from 'lucide-react';
-import { getAuthSession, getErrorMessage } from '../../services/apiClient';
+import { getAuthSession, getErrorMessage, updateAuthSession } from '../../services/apiClient';
 import { authService } from '../../services/authService';
 import { useSavedJobs } from '../../context/SavedJobsContext';
 import { useApplications } from '../../context/ApplicationsContext';
@@ -100,7 +100,9 @@ export const CandidateDashboardPage = () => {
   };
 
   const [activeTab, setActiveTab] = useState(() => determineActiveTab(location.pathname));
-  const [passwordLoginEnabled] = useState(() => getAuthSession()?.passwordLoginEnabled !== false);
+  const [passwordLoginEnabled, setPasswordLoginEnabled] = useState(
+    () => getAuthSession()?.passwordLoginEnabled !== false,
+  );
   const [passwordChange, setPasswordChange] = useState({
     currentPassword: '',
     newPassword: '',
@@ -120,10 +122,12 @@ export const CandidateDashboardPage = () => {
     setIsChangingPassword(true);
     try {
       const result = await authService.changePassword({
-        currentPassword: passwordChange.currentPassword,
+        currentPassword: passwordLoginEnabled ? passwordChange.currentPassword : undefined,
         newPassword: passwordChange.newPassword,
       });
       setPasswordNotice(result.message);
+      setPasswordLoginEnabled(true);
+      updateAuthSession({ passwordLoginEnabled: true });
       setPasswordChange({ currentPassword: '', newPassword: '', confirmPassword: '' });
     } catch (error) {
       setPasswordNotice(getErrorMessage(error));
@@ -1575,8 +1579,13 @@ export const CandidateDashboardPage = () => {
               {/* Thẻ 2: Mật khẩu */}
               <section className="itv-dash-card itv-setting-section-card">
                 <h2 className="itv-section-heading">Mật khẩu</h2>
-                {passwordLoginEnabled ? (
-                  <form className="itv-password-form" onSubmit={handleChangePassword}>
+                {!passwordLoginEnabled && (
+                  <p className="itv-setting-sub-hint">
+                    <Info size={14} /> Đặt mật khẩu để có thể đăng nhập bằng email, ngoài đăng nhập Google.
+                  </p>
+                )}
+                <form className="itv-password-form" onSubmit={handleChangePassword}>
+                  {passwordLoginEnabled && (
                     <label className="itv-password-field">
                       <span>Mật khẩu hiện tại</span>
                       <input
@@ -1587,38 +1596,36 @@ export const CandidateDashboardPage = () => {
                         value={passwordChange.currentPassword}
                       />
                     </label>
-                    <label className="itv-password-field">
-                      <span>Mật khẩu mới</span>
-                      <input
-                        autoComplete="new-password"
-                        minLength={8}
-                        onChange={(event) => setPasswordChange((previous) => ({ ...previous, newPassword: event.target.value }))}
-                        required
-                        type="password"
-                        value={passwordChange.newPassword}
-                      />
-                    </label>
-                    <label className="itv-password-field">
-                      <span>Xác nhận mật khẩu mới</span>
-                      <input
-                        autoComplete="new-password"
-                        minLength={8}
-                        onChange={(event) => setPasswordChange((previous) => ({ ...previous, confirmPassword: event.target.value }))}
-                        required
-                        type="password"
-                        value={passwordChange.confirmPassword}
-                      />
-                    </label>
-                    <button className="itv-password-submit" disabled={isChangingPassword} type="submit">
-                      {isChangingPassword ? 'Đang cập nhật...' : 'Đổi mật khẩu'}
-                    </button>
-                    {passwordNotice && <p className="itv-password-notice" role="status">{passwordNotice}</p>}
-                  </form>
-                ) : (
-                  <p className="itv-setting-sub-hint">
-                    <Info size={14} /> Tài khoản đăng nhập bằng Google không có mật khẩu để thay đổi.
-                  </p>
-                )}
+                  )}
+                  <label className="itv-password-field">
+                    <span>Mật khẩu mới</span>
+                    <input
+                      autoComplete="new-password"
+                      minLength={8}
+                      onChange={(event) => setPasswordChange((previous) => ({ ...previous, newPassword: event.target.value }))}
+                      required
+                      type="password"
+                      value={passwordChange.newPassword}
+                    />
+                  </label>
+                  <label className="itv-password-field">
+                    <span>Xác nhận mật khẩu mới</span>
+                    <input
+                      autoComplete="new-password"
+                      minLength={8}
+                      onChange={(event) => setPasswordChange((previous) => ({ ...previous, confirmPassword: event.target.value }))}
+                      required
+                      type="password"
+                      value={passwordChange.confirmPassword}
+                    />
+                  </label>
+                  <button className="itv-password-submit" disabled={isChangingPassword} type="submit">
+                    {isChangingPassword
+                      ? (passwordLoginEnabled ? 'Đang cập nhật...' : 'Đang thiết lập...')
+                      : (passwordLoginEnabled ? 'Đổi mật khẩu' : 'Thiết lập mật khẩu')}
+                  </button>
+                  {passwordNotice && <p className="itv-password-notice" role="status">{passwordNotice}</p>}
+                </form>
               </section>
 
               {/* Thẻ 3: Cho phép tìm kiếm CV */}

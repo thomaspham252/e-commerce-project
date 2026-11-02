@@ -225,16 +225,18 @@ class AuthServiceTest {
     }
 
     @Test
-    void changePasswordRejectsGoogleOnlyAccount() {
+    void googleOnlyAccountCanSetItsFirstPasswordWithoutCurrentPassword() {
         User user = User.builder()
                 .id(17)
                 .passwordHash("{bcrypt}random")
                 .passwordLoginEnabled(false)
                 .build();
+        when(passwordEncoder.encode("new-password")).thenReturn("{bcrypt}new");
 
-        ApiException exception = assertThrows(ApiException.class,
-                () -> authService.changePassword(user, new ChangePasswordRequest("old-password", "new-password")));
+        authService.changePassword(user, new ChangePasswordRequest(null, "new-password"));
 
-        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+        assertEquals("{bcrypt}new", user.getPasswordHash());
+        assertEquals(true, user.isPasswordLoginEnabled());
+        verify(userRepository).save(user);
     }
 }
