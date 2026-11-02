@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { toast } from 'react-toastify';
 import {
   getTransactions,
@@ -52,20 +52,35 @@ export const AdminPayments = () => {
   const [selectedDetail, setSelectedDetail] = useState(null);
   const [modalLoading, setModalLoading] = useState(false);
 
-  // Đổi bộ lọc thì quay về trang 1
+  // Ô tìm kiếm: chờ người dùng ngừng gõ 400ms mới gọi API
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery.trim());
+      setPage(1);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Đổi bộ lọc thì quay về trang 1 (cùng một lần cập nhật để không gọi API 2 lần)
+  const onFilterChange = (setter) => (value) => {
+    setter(value);
     setPage(1);
-  }, [statusFilter, typeFilter, searchQuery, startDate, endDate]);
+  };
+
+  // Chỉ nhận kết quả của lần gọi mới nhất (tránh phản hồi cũ về sau ghi đè)
+  const requestIdRef = useRef(0);
 
   // Lấy danh sách giao dịch từ database
   const fetchTransactions = useCallback(async () => {
+    const requestId = ++requestIdRef.current;
     try {
       setLoading(true);
       const [res, sum] = await Promise.all([
         getTransactions({
           status: statusFilter,
           orderType: typeFilter,
-          search: searchQuery,
+          search: debouncedSearch,
           startDate,
           endDate,
           page,
@@ -73,16 +88,17 @@ export const AdminPayments = () => {
         }),
         getTransactionSummary(),
       ]);
+      if (requestId !== requestIdRef.current) return;
       setTransactions(res.data);
       setTotal(res.total);
       setTotalPages(res.totalPages);
       setSummary(sum);
     } catch (err) {
-      toast.error(getErrorMessage(err));
+      if (requestId === requestIdRef.current) toast.error(getErrorMessage(err));
     } finally {
-      setLoading(false);
+      if (requestId === requestIdRef.current) setLoading(false);
     }
-  }, [statusFilter, typeFilter, searchQuery, startDate, endDate, page]);
+  }, [statusFilter, typeFilter, debouncedSearch, startDate, endDate, page]);
 
   useEffect(() => {
     fetchTransactions();
@@ -192,7 +208,7 @@ export const AdminPayments = () => {
             <FiFilter className="select-icon" />
             <select
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
+              onChange={(e) => onFilterChange(setStatusFilter)(e.target.value)}
               aria-label="Lọc theo trạng thái"
             >
               <option value="ALL">Tất cả trạng thái</option>
@@ -207,7 +223,7 @@ export const AdminPayments = () => {
           <div className="select-box">
             <select
               value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value)}
+              onChange={(e) => onFilterChange(setTypeFilter)(e.target.value)}
               aria-label="Lọc theo loại dịch vụ"
             >
               <option value="ALL">Tất cả loại giao dịch</option>
@@ -224,14 +240,14 @@ export const AdminPayments = () => {
             <input
               type="date"
               value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
+              onChange={(e) => onFilterChange(setStartDate)(e.target.value)}
               title="Từ ngày"
             />
             <span className="date-sep">-</span>
             <input
               type="date"
               value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
+              onChange={(e) => onFilterChange(setEndDate)(e.target.value)}
               title="Đến ngày"
             />
           </div>

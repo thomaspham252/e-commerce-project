@@ -22,18 +22,24 @@ export const AdminRevenuePage = () => {
   const [analyticsData, setAnalyticsData] = useState(null);
   const [recentOrders, setRecentOrders] = useState([]);
 
+  // Ngày yyyy-MM-dd theo giờ địa phương (toISOString là giờ UTC → trước 7h sáng ở VN sẽ lệch về hôm qua)
+  const localDateStr = (d) =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const daysAgo = (n) => {
+    const d = new Date();
+    d.setDate(d.getDate() - n);
+    return d;
+  };
+
   const applyPreset = (type) => {
     setPreset(type);
-    const end = new Date();
-    const endStr = end.toISOString().slice(0, 10);
+    const endStr = localDateStr(new Date());
     let startStr = '';
 
     if (type === '7d') {
-      const start = new Date(Date.now() - 6 * 86400 * 1000);
-      startStr = start.toISOString().slice(0, 10);
+      startStr = localDateStr(daysAgo(6));
     } else if (type === '30d') {
-      const start = new Date(Date.now() - 29 * 86400 * 1000);
-      startStr = start.toISOString().slice(0, 10);
+      startStr = localDateStr(daysAgo(29));
     } else if (type === 'all') {
       startStr = '';
     }

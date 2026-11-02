@@ -56,7 +56,12 @@ public class ServiceFeeController {
         }
 
         if (payload.containsKey("tokenCost") && payload.get("tokenCost") != null) {
-            int cost = Integer.parseInt(payload.get("tokenCost").toString());
+            int cost;
+            try {
+                cost = new java.math.BigDecimal(payload.get("tokenCost").toString().trim()).intValueExact();
+            } catch (NumberFormatException | ArithmeticException e) {
+                throw new ApiException(HttpStatus.BAD_REQUEST, "Mức trừ Token phải là số nguyên hợp lệ");
+            }
             if (cost <= 0) {
                 throw new ApiException(HttpStatus.BAD_REQUEST, "Mức trừ Token phải lớn hơn 0");
             }

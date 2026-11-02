@@ -88,9 +88,12 @@ public class TokenPackageController {
             @RequestHeader(value = CurrentUserService.HEADER, required = false) Integer userId,
             @RequestBody Map<String, Object> payload) {
         currentUserService.require(userId, UserRole.ADMIN);
-        int tokens = Integer.parseInt(payload.get("tokens").toString());
-        BigDecimal price = new BigDecimal(payload.get("priceVND") != null ? payload.get("priceVND").toString() : payload.get("price").toString());
-        int bonus = payload.get("bonusTokens") != null ? Integer.parseInt(payload.get("bonusTokens").toString()) : 0;
+        Integer tokens = intField(payload, "tokens", "Số Token", 1);
+        BigDecimal price = priceField(payload);
+        if (tokens == null) throw ApiException.badRequest("Vui lòng nhập số Token");
+        if (price == null) throw ApiException.badRequest("Vui lòng nhập giá bán");
+        Integer bonusValue = intField(payload, "bonusTokens", "Số Token tặng thêm", 0);
+        int bonus = bonusValue != null ? bonusValue : 0;
         String badge = payload.get("badgeLabel") != null ? payload.get("badgeLabel").toString() : null;
         String desc = payload.get("description") != null ? payload.get("description").toString() : null;
         boolean popular = payload.get("isPopular") != null && Boolean.parseBoolean(payload.get("isPopular").toString());
@@ -118,16 +121,17 @@ public class TokenPackageController {
         TokenPackage pkg = tokenPackageRepository.findById(id)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Không tìm thấy gói Token ID: " + id));
 
-        if (payload.containsKey("tokens") && payload.get("tokens") != null) {
-            pkg.setTokens(Integer.parseInt(payload.get("tokens").toString()));
+        Integer tokens = intField(payload, "tokens", "Số Token", 1);
+        if (tokens != null) {
+            pkg.setTokens(tokens);
         }
-        if (payload.containsKey("priceVND") && payload.get("priceVND") != null) {
-            pkg.setPrice(new BigDecimal(payload.get("priceVND").toString()));
-        } else if (payload.containsKey("price") && payload.get("price") != null) {
-            pkg.setPrice(new BigDecimal(payload.get("price").toString()));
+        BigDecimal price = priceField(payload);
+        if (price != null) {
+            pkg.setPrice(price);
         }
-        if (payload.containsKey("bonusTokens") && payload.get("bonusTokens") != null) {
-            pkg.setBonusTokens(Integer.parseInt(payload.get("bonusTokens").toString()));
+        Integer bonus = intField(payload, "bonusTokens", "Số Token tặng thêm", 0);
+        if (bonus != null) {
+            pkg.setBonusTokens(bonus);
         }
         if (payload.containsKey("badgeLabel")) {
             pkg.setBadgeLabel(payload.get("badgeLabel") != null ? payload.get("badgeLabel").toString() : null);
@@ -141,6 +145,38 @@ public class TokenPackageController {
 
         TokenPackage saved = tokenPackageRepository.save(pkg);
         return ResponseEntity.ok(Map.of("success", true, "data", saved));
+    }
+
+    /** Đọc số nguyên từ payload; null nếu không gửi. Sai định dạng hoặc nhỏ hơn min → 400. */
+    private static Integer intField(Map<String, Object> payload, String key, String label, int min) {
+        Object raw = payload.get(key);
+        if (raw == null || raw.toString().isBlank()) return null;
+        int value;
+        try {
+            value = new BigDecimal(raw.toString().trim()).intValueExact();
+        } catch (NumberFormatException | ArithmeticException e) {
+            throw ApiException.badRequest(label + " phải là số nguyên hợp lệ");
+        }
+        if (value < min) {
+            throw ApiException.badRequest(label + (min > 0 ? " phải lớn hơn 0" : " không được âm"));
+        }
+        return value;
+    }
+
+    /** Giá bán (nhận priceVND hoặc price); null nếu không gửi. Sai định dạng hoặc ≤ 0 → 400. */
+    private static BigDecimal priceField(Map<String, Object> payload) {
+        Object raw = payload.get("priceVND") != null ? payload.get("priceVND") : payload.get("price");
+        if (raw == null || raw.toString().isBlank()) return null;
+        BigDecimal price;
+        try {
+            price = new BigDecimal(raw.toString().trim());
+        } catch (NumberFormatException e) {
+            throw ApiException.badRequest("Giá bán phải là số hợp lệ");
+        }
+        if (price.signum() <= 0) {
+            throw ApiException.badRequest("Giá bán phải lớn hơn 0");
+        }
+        return price;
     }
 
     @PatchMapping("/{id}/toggle-status")
