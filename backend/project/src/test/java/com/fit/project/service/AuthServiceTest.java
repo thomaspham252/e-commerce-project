@@ -9,6 +9,7 @@ import com.fit.project.enums.UserRole;
 import com.fit.project.enums.UserStatus;
 import com.fit.project.exception.ApiException;
 import com.fit.project.repository.CandidateProfileRepository;
+import com.fit.project.repository.CompanyRepository;
 import com.fit.project.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -28,11 +29,12 @@ class AuthServiceTest {
 
     private final UserRepository userRepository = mock(UserRepository.class);
     private final CandidateProfileRepository candidateProfileRepository = mock(CandidateProfileRepository.class);
+    private final CompanyRepository companyRepository = mock(CompanyRepository.class);
     private final PasswordEncoder passwordEncoder = mock(PasswordEncoder.class);
     private final GoogleIdentityService googleIdentityService = mock(GoogleIdentityService.class);
     private final EmailVerificationService emailVerificationService = mock(EmailVerificationService.class);
     private final AuthService authService = new AuthService(
-            userRepository, candidateProfileRepository, passwordEncoder, googleIdentityService,
+            userRepository, candidateProfileRepository, companyRepository, passwordEncoder, googleIdentityService,
             emailVerificationService);
 
     @Test
