@@ -1,6 +1,6 @@
 import React from 'react';
 import { FileText, Sparkles, Banknote, ArrowRight, Wrench } from 'lucide-react';
-import { CANDIDATE_TOOLS } from '../../data/homeCandidateMockData';
+import { CANDIDATE_TOOLS } from '../../data/homeConstants';
 import './CandidateToolsHome.css';
 
 const ICON_MAP = {

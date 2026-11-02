@@ -30,7 +30,7 @@ import {
 } from 'lucide-react';
 import { CompanyLogo } from '../../components/CompanyLogo';
 import { companyService } from '../../services/companyService';
-import { getAuthSession } from '../../services/apiClient';
+import { getAuthSession, getErrorMessage } from '../../services/apiClient';
 import { formatSalary } from '../../utils/formatSalary';
 import './CandidateShared.css';
 import './JobDetailPage.css';
@@ -176,29 +176,7 @@ export const CompanyDetailPage = () => {
       }, 2500);
     } catch (err) {
       console.error('Lỗi khi gửi đánh giá:', err);
-      // Fallback local UI update nếu mock hoặc có lỗi
-      const session = getAuthSession();
-      const mockReview = {
-        id: Date.now(),
-        candidateName: session?.email ? session.email.split('@')[0] : 'Bạn (Ứng viên)',
-        rating: ratingInput,
-        content: reviewContent.trim(),
-        createdAt: new Date().toISOString(),
-        reply: null,
-      };
-
-      setCompany((prev) => ({
-        ...prev,
-        reviewCount: (prev.reviewCount || 0) + 1,
-        reviews: [mockReview, ...(prev.reviews || [])],
-      }));
-
-      setReviewContent('');
-      setReviewSuccessMsg('Cảm ơn bạn! Đánh giá đã được ghi nhận.');
-      setTimeout(() => {
-        setShowReviewForm(false);
-        setReviewSuccessMsg('');
-      }, 2500);
+      setReviewErrorMsg(getErrorMessage(err) || 'Không thể gửi đánh giá. Vui lòng thử lại sau.');
     } finally {
       setSubmittingReview(false);
     }

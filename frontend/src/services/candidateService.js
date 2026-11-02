@@ -1,6 +1,6 @@
 import { apiClient } from './apiClient';
 import { formatSalaryRange } from '../utils/formatSalary';
-import { APPLICATION_STATUS } from './candidateData';
+import { APPLICATION_STATUS } from '../constants/applicationStatus';
 
 /** Trạng thái đơn ở backend → nhãn hiển thị cho ứng viên. */
 const STATUS_LABEL = {

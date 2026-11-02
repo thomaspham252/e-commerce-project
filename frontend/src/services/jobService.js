@@ -1,8 +1,6 @@
 import { apiClient, cleanParams } from './apiClient';
 import { formatSalaryRange } from '../utils/formatSalary';
 import { formatDate, formatTimeAgo } from '../utils/formatDate';
-import { JOBS, CATEGORIES, EMPLOYERS } from './mockData';
-import { JOB_DETAILS, COMPANY_PROFILES, CVS, APPLICATIONS } from './candidateData';
 
 export const mapBackendJob = (item) => ({
   id: item.id,
@@ -33,7 +31,9 @@ export const mapBackendJob = (item) => ({
   applicants: item.applicationCount || 0,
   matchPercentage: item.matchPercentage || null,
   matchedSkills: item.matchedSkills || [],
-  skills: item.skills ? (Array.isArray(item.skills) ? item.skills : item.skills.split(',').map(s => s.trim()).filter(Boolean)) : [item.title.split(' ')[0], item.level || 'Junior', 'Teamwork', 'Git'].filter(Boolean),
+  skills: item.skills
+    ? (Array.isArray(item.skills) ? item.skills : item.skills.split(',').map(s => s.trim()).filter(Boolean))
+    : [item.title.split(' ')[0], item.level || 'Junior', 'Teamwork', 'Git'].filter(Boolean),
   description: Array.isArray(item.description)
     ? item.description
     : (item.description ? item.description.split(/\r?\n|\\n/).filter(Boolean) : ['Trao đổi chi tiết công việc trong buổi phỏng vấn.']),
@@ -60,7 +60,7 @@ export const mapBackendJob = (item) => ({
 });
 
 export const jobService = {
-  /** Lấy danh sách việc làm có đầy đủ metadata phân trang và bộ lọc chi tiết */
+  /** Lấy danh sách việc làm có đầy đủ metadata phân trang và bộ lọc chi tiết từ backend */
   getJobsPaged: async (filters = {}) => {
     try {
       const {
@@ -101,20 +101,11 @@ export const jobService = {
     } catch (err) {
       console.warn('Lỗi khi gọi getJobsPaged từ backend:', err);
       return {
-        content: JOBS.map((j) => ({
-          ...j,
-          companyLogo: j.companyLogo || j.logoUrl,
-          timeAgo: 'Mới đăng',
-          skills: [j.title.split(' ')[0], 'Git'],
-          description: ['Mô tả công việc mẫu'],
-          requirements: ['Yêu cầu công việc mẫu'],
-          benefits: ['Chế độ đãi ngộ tốt'],
-          company: { name: j.companyName, logo: j.companyLogo, address: j.location },
-        })),
+        content: [],
         page: 0,
-        size: 9,
-        totalElements: JOBS.length,
-        totalPages: 1,
+        size: filters.size || 9,
+        totalElements: 0,
+        totalPages: 0,
       };
     }
   },
@@ -125,13 +116,13 @@ export const jobService = {
     return res.content;
   },
 
-  /** Lấy danh sách việc làm công khai (trả về mảng việc làm cho các component cần mảng đơn giản) */
+  /** Lấy danh sách việc làm công khai */
   getJobs: async (keyword = '', location = '', sort = 'latest', page = 0, size = 12) => {
     const res = await jobService.getJobsPaged({ keyword, location, sort, page, size });
     return res.content;
   },
 
-  /** Lấy chi tiết tin tuyển dụng theo ID từ backend (có fallback sang mock data) */
+  /** Lấy chi tiết tin tuyển dụng theo ID từ backend Spring Boot */
   getJobById: async (jobId) => {
     const numId = Number(jobId);
     if (!Number.isNaN(numId)) {
@@ -141,22 +132,10 @@ export const jobService = {
           return mapBackendJob(response.data);
         }
       } catch (err) {
-        console.warn(`Không tìm thấy tin ${jobId} từ backend, kiểm tra mock data`, err);
+        console.warn(`Không tìm thấy tin ${jobId} từ backend:`, err);
       }
     }
-
-    const mock = JOBS.find((item) => String(item.id) === String(jobId));
-    if (!mock) return null;
-
-    return {
-      ...mock,
-      ...JOB_DETAILS[jobId],
-      company: {
-        name: mock.companyName,
-        logo: mock.companyLogo,
-        ...COMPANY_PROFILES[mock.companyName],
-      },
-    };
+    return null;
   },
 
   getJobsByIds: async (jobIds) => {
@@ -165,7 +144,7 @@ export const jobService = {
       const all = await jobService.getJobs('', '', 'latest', 0, 50);
       return all.filter((job) => wanted.has(String(job.id)));
     } catch {
-      return JOBS.filter((job) => wanted.has(String(job.id)));
+      return [];
     }
   },
 
@@ -182,23 +161,43 @@ export const jobService = {
       const all = await jobService.getJobs('', '', 'latest', 0, 10);
       return all.filter((job) => String(job.id) !== String(jobId)).slice(0, limit);
     } catch {
-      return JOBS.filter((job) => String(job.id) !== String(jobId)).slice(0, limit);
+      return [];
     }
   },
 
   getCategories: async () => {
-    return CATEGORIES;
+    return [];
   },
 
   getCompanies: async () => {
-    return EMPLOYERS;
+    return [];
   },
 
   getCvs: async () => {
-    return CVS;
+    // Trả về CV thực tế do ứng viên đã tải lên trong hồ sơ
+    try {
+      const saved = localStorage.getItem('jobviet.candidateProfile');
+      if (saved) {
+        const profile = JSON.parse(saved);
+        if (profile?.cvFileName) {
+          return [
+            {
+              id: 'cv-candidate-1',
+              name: profile.cvFileName,
+              updatedAt: profile.cvLastUpdated || 'Hôm nay',
+              size: 'PDF',
+              isDefault: true,
+            },
+          ];
+        }
+      }
+    } catch {
+      // ignore
+    }
+    return [];
   },
 
   getApplications: async () => {
-    return APPLICATIONS;
+    return [];
   },
 };
