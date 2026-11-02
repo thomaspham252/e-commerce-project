@@ -27,6 +27,9 @@ public interface CompanyReviewRepository extends JpaRepository<CompanyReview, In
     @Query("select r.rating, count(r) from CompanyReview r where r.company.id = :companyId and r.status = :status group by r.rating")
     List<Object[]> countGroupByRating(@Param("companyId") Integer companyId, @Param("status") ReviewStatus status);
 
+    @Query("select r.sentimentLabel, count(r) from CompanyReview r where r.company.id = :companyId and r.status = :status group by r.sentimentLabel")
+    List<Object[]> countGroupBySentimentLabel(@Param("companyId") Integer companyId, @Param("status") ReviewStatus status);
+
     @Query("select count(r) from CompanyReview r where r.company.id = :companyId and r.status = :status and r.reply is not null")
     long countRepliedReviews(@Param("companyId") Integer companyId, @Param("status") ReviewStatus status);
 
@@ -39,6 +42,7 @@ public interface CompanyReviewRepository extends JpaRepository<CompanyReview, In
               and (:replyStatus is null
                    or (:replyStatus = 'replied' and r.reply is not null)
                    or (:replyStatus = 'unreplied' and r.reply is null))
+              and (:sentiment is null or r.sentimentLabel = :sentiment)
               and (:kw is null
                    or lower(r.content) like :kw
                    or lower(r.candidate.fullName) like :kw)
@@ -48,6 +52,7 @@ public interface CompanyReviewRepository extends JpaRepository<CompanyReview, In
             @Param("status") ReviewStatus status,
             @Param("rating") Integer rating,
             @Param("replyStatus") String replyStatus,
+            @Param("sentiment") String sentiment,
             @Param("kw") String keywordPattern,
             Pageable pageable
     );

@@ -20,7 +20,7 @@ const EmployerLayoutContent = () => {
   const { totalUnreadCount } = useEmployerMessages();
 
   const employerSidebarItems = [
-    { path: '/employer', label: 'Dashboard', icon: <LayoutDashboard size={20} />, end: true },
+    { path: '/employer/dashboard', label: 'Dashboard', icon: <LayoutDashboard size={20} />, end: true },
     { path: '/employer/jobs', label: 'Tin tuyển dụng của tôi', icon: <Briefcase size={20} />, end: true },
     { path: '/employer/jobs/create', label: 'Đăng tin mới', icon: <PlusCircle size={20} /> },
     { path: '/employer/applications', label: 'Hồ sơ ứng viên', icon: <Users size={20} /> },

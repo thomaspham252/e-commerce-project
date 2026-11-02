@@ -13,6 +13,8 @@ public record CompanyReviewResponse(
         String candidateAvatar,
         Integer rating,
         String content,
+        String sentimentLabel,
+        Double sentimentScore,
         LocalDateTime createdAt,
         ReviewReplyDto reply
 ) {
@@ -41,9 +43,10 @@ public record CompanyReviewResponse(
                 avatar,
                 r.getRating(),
                 r.getContent(),
+                r.getSentimentLabel(),
+                r.getSentimentScore(),
                 r.getCreatedAt(),
                 ReviewReplyDto.of(r.getReply())
         );
     }
 }
-

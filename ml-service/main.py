@@ -2,21 +2,25 @@ import os
 import re
 import logging
 from contextlib import asynccontextmanager
-from typing import List, Dict, Any, Optional, Set
+from typing import List, Dict, Any, Optional
 
 from dotenv import load_dotenv
 import pymysql
 import pymysql.cursors
 import pandas as pd
 import numpy as np
+from pydantic import BaseModel
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
+import torch
+from transformers import AutoTokenizer, AutoModelForSequenceClassification
+
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
-logger = logging.getLogger("JobRecommender")
+logger = logging.getLogger("JobPortalML")
 
 load_dotenv()
 
@@ -27,14 +31,21 @@ DB_USERNAME = os.getenv("DB_USERNAME", "root")
 DB_PASSWORD = os.getenv("DB_PASSWORD", "")
 PORT = int(os.getenv("PORT", "8000"))
 
-class ModelStore:
+# Path to the fine-tuned review sentiment classification model
+MODEL_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "company_review_model")
+
+# ==============================================================================
+# 1. JOB RECOMMENDATION ENGINE STORE & LOGIC
+# ==============================================================================
+
+class RecommendationStore:
     jobs_df: pd.DataFrame = pd.DataFrame()
     cosine_sim_matrix: np.ndarray = np.empty((0, 0))
     id_to_idx: Dict[int, int] = {}
     idx_to_id: Dict[int, int] = {}
     is_ready: bool = False
 
-store = ModelStore()
+rec_store = RecommendationStore()
 
 def normalize_tech_tokens(text: str) -> str:
     """Preserve technology acronyms that standard tokenizers would split or drop."""
@@ -42,20 +53,16 @@ def normalize_tech_tokens(text: str) -> str:
         return ""
     
     t = text.lower()
-    # Mask C++ and C#
     t = re.sub(r'\bc\+\+\b', 'cpp', t)
     t = re.sub(r'\bc#\b', 'csharp', t)
-    # Mask .NET / ASP.NET
     t = re.sub(r'\basp\.net\b', 'aspdotnet', t)
     t = re.sub(r'\b\.net\b', 'dotnet', t)
-    # Mask Node.js, Vue.js, React.js, Next.js, Nuxt.js
     t = re.sub(r'\bnode\.js\b', 'nodejs', t)
     t = re.sub(r'\bvue\.js\b', 'vuejs', t)
     t = re.sub(r'\breact\.js\b', 'reactjs', t)
     t = re.sub(r'\bnext\.js\b', 'nextjs', t)
     t = re.sub(r'\bnuxt\.js\b', 'nuxtjs', t)
     
-    # Remove unwanted punctuation but keep alphanumeric and spaces
     t = re.sub(r'[\r\n\t]+', ' ', t)
     t = re.sub(r'[-–—•\*\/:,;(){}\[\]"\'`~_!?]', ' ', t)
     t = re.sub(r'\s+', ' ', t).strip()
@@ -99,11 +106,11 @@ def build_recommendation_matrix():
     df = fetch_jobs_from_db()
     if df.empty:
         logger.warning("No OPEN jobs found in database! Recommendation matrix is empty.")
-        store.jobs_df = df
-        store.cosine_sim_matrix = np.empty((0, 0))
-        store.id_to_idx = {}
-        store.idx_to_id = {}
-        store.is_ready = True
+        rec_store.jobs_df = df
+        rec_store.cosine_sim_matrix = np.empty((0, 0))
+        rec_store.id_to_idx = {}
+        rec_store.idx_to_id = {}
+        rec_store.is_ready = True
         return 0
 
     documents = []
@@ -122,7 +129,6 @@ def build_recommendation_matrix():
         desc_clean = normalize_tech_tokens(row.get("description", ""))
         req_clean = normalize_tech_tokens(row.get("requirements", ""))
 
-        # Weighted combination: Title x4, Skills x4, Level x2, Location x1, Desc x1, Req x1
         weighted_doc = (
             f" {title_clean}" * 4 +
             f" {skills_clean}" * 4 +
@@ -145,29 +151,187 @@ def build_recommendation_matrix():
     logger.info("Computing Cosine Similarity Matrix of shape (%d, %d)...", tfidf_matrix.shape[0], tfidf_matrix.shape[0])
     cosine_sim = cosine_similarity(tfidf_matrix, tfidf_matrix)
 
-    store.jobs_df = df
-    store.cosine_sim_matrix = cosine_sim
-    store.id_to_idx = id_to_idx
-    store.idx_to_id = idx_to_id
-    store.is_ready = True
+    rec_store.jobs_df = df
+    rec_store.cosine_sim_matrix = cosine_sim
+    rec_store.id_to_idx = id_to_idx
+    rec_store.idx_to_id = idx_to_id
+    rec_store.is_ready = True
 
     logger.info("Job Recommendation Matrix successfully built and cached in memory!")
     return len(df)
 
+
+# ==============================================================================
+# 2. COMPANY REVIEW SENTIMENT CLASSIFICATION MODEL
+# ==============================================================================
+
+class SentimentModelStore:
+    tokenizer = None
+    model = None
+    device: str = "cpu"
+    is_ready: bool = False
+
+sentiment_store = SentimentModelStore()
+
+def load_sentiment_model() -> bool:
+    """Loads fine-tuned PhoBERT review classification model from MODEL_DIR."""
+    if not os.path.isdir(MODEL_DIR):
+        logger.warning("Sentiment model directory not found at: %s", MODEL_DIR)
+        return False
+
+    try:
+        logger.info("Loading Vietnamese Sentiment Model from: %s ...", MODEL_DIR)
+        sentiment_store.tokenizer = AutoTokenizer.from_pretrained(MODEL_DIR)
+        sentiment_store.model = AutoModelForSequenceClassification.from_pretrained(MODEL_DIR)
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        sentiment_store.device = device
+        sentiment_store.model.to(device)
+        sentiment_store.model.eval()
+        sentiment_store.is_ready = True
+        logger.info("Sentiment Model loaded successfully on device: %s! Labels: %s", device, sentiment_store.model.config.id2label)
+        return True
+    except Exception as e:
+        logger.error("Error loading Sentiment Model: %s", str(e), exc_info=True)
+        return False
+
+def predict_review_sentiment(text: str) -> Dict[str, Any]:
+    """Infers sentiment label ('negative', 'neutral', 'positive') and confidence score."""
+    if not sentiment_store.is_ready or sentiment_store.model is None or sentiment_store.tokenizer is None:
+        raise RuntimeError("Sentiment model is not initialized.")
+
+    if not text or not text.strip():
+        return {
+            "label": "neutral",
+            "score": 0.5,
+            "probabilities": {"negative": 0.25, "neutral": 0.5, "positive": 0.25}
+        }
+
+    inputs = sentiment_store.tokenizer(
+        text.strip(),
+        return_tensors="pt",
+        truncation=True,
+        max_length=256,
+        padding=True
+    ).to(sentiment_store.device)
+
+    with torch.no_grad():
+        outputs = sentiment_store.model(**inputs)
+        logits = outputs.logits
+        probs = torch.softmax(logits, dim=-1).squeeze().tolist()
+
+    if isinstance(probs, float):
+        probs = [probs]
+
+    id2label = sentiment_store.model.config.id2label
+    best_idx = int(np.argmax(probs))
+    best_label = str(id2label.get(best_idx, id2label.get(str(best_idx), "neutral")))
+    confidence = float(probs[best_idx])
+
+    prob_dict = {}
+    for idx, p in enumerate(probs):
+        lbl = str(id2label.get(idx, id2label.get(str(idx), f"class_{idx}")))
+        prob_dict[lbl] = round(float(p), 4)
+
+    return {
+        "label": best_label,
+        "score": round(confidence, 4),
+        "probabilities": prob_dict
+    }
+
+def label_all_reviews_in_db() -> Dict[str, Any]:
+    """Scans MySQL company_reviews, ensures columns exist, and predicts sentiment for all rows."""
+    if not sentiment_store.is_ready:
+        loaded = load_sentiment_model()
+        if not loaded:
+            raise RuntimeError("Sentiment model could not be loaded.")
+
+    conn = pymysql.connect(
+        host=DB_HOST,
+        port=DB_PORT,
+        user=DB_USERNAME,
+        password=DB_PASSWORD,
+        database=DB_NAME,
+        charset="utf8mb4",
+        cursorclass=pymysql.cursors.DictCursor
+    )
+    try:
+        with conn.cursor() as cursor:
+            # 1. Check and add columns if they don't exist
+            cursor.execute("DESCRIBE company_reviews")
+            existing_cols = [c["Field"] for c in cursor.fetchall()]
+
+            if "sentiment_label" not in existing_cols:
+                logger.info("Adding column 'sentiment_label' to company_reviews...")
+                cursor.execute("ALTER TABLE company_reviews ADD COLUMN sentiment_label VARCHAR(50) DEFAULT NULL")
+                conn.commit()
+
+            if "sentiment_score" not in existing_cols:
+                logger.info("Adding column 'sentiment_score' to company_reviews...")
+                cursor.execute("ALTER TABLE company_reviews ADD COLUMN sentiment_score DOUBLE DEFAULT NULL")
+                conn.commit()
+
+            # 2. Select all reviews
+            cursor.execute("SELECT id, content, rating FROM company_reviews ORDER BY id ASC")
+            rows = cursor.fetchall()
+
+            updated_items = []
+            for r in rows:
+                r_id = r["id"]
+                content = r["content"] or ""
+                pred = predict_review_sentiment(content)
+
+                cursor.execute(
+                    "UPDATE company_reviews SET sentiment_label = %s, sentiment_score = %s WHERE id = %s",
+                    (pred["label"], pred["score"], r_id)
+                )
+                updated_items.append({
+                    "id": r_id,
+                    "rating": r["rating"],
+                    "content_snippet": content[:60] + ("..." if len(content) > 60 else ""),
+                    "sentiment_label": pred["label"],
+                    "sentiment_score": pred["score"]
+                })
+
+            conn.commit()
+            logger.info("Successfully updated sentiment for %d reviews in MySQL.", len(updated_items))
+            return {
+                "total_updated": len(updated_items),
+                "reviews": updated_items
+            }
+    finally:
+        conn.close()
+
+
+# ==============================================================================
+# 3. FASTAPI APPLICATION SETUP
+# ==============================================================================
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # 1. Build Recommendation Matrix
     try:
         count = build_recommendation_matrix()
-        logger.info("Startup complete. Indexed %d jobs.", count)
+        logger.info("Job Recommender startup complete. Indexed %d jobs.", count)
     except Exception as e:
         logger.error("Failed to build recommendation matrix at startup: %s", str(e), exc_info=True)
+
+    # 2. Load Review Sentiment Model
+    try:
+        s_ok = load_sentiment_model()
+        if s_ok:
+            logger.info("Company Review Sentiment Model startup complete.")
+        else:
+            logger.warning("Company Review Sentiment Model could not be loaded at startup.")
+    except Exception as e:
+        logger.error("Failed to load sentiment model at startup: %s", str(e), exc_info=True)
+
     yield
-    logger.info("ML Recommendation Service shutting down.")
+    logger.info("JobPortal ML Service shutting down.")
 
 app = FastAPI(
-    title="Job Recommendation ML Service",
-    description="Content-based IT Job Recommendation Engine using TF-IDF & Cosine Similarity",
-    version="1.0.0",
+    title="JobPortal Machine Learning Service",
+    description="Unified ML microservice providing Content-based Job Recommendations & Vietnamese Company Review Sentiment Classification",
+    version="2.0.0",
     lifespan=lifespan
 )
 
@@ -179,28 +343,46 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Request Models
+class SentimentPredictRequest(BaseModel):
+    text: str
+
+class SentimentBatchPredictRequest(BaseModel):
+    texts: List[str]
+
+
 @app.get("/health")
 def health_check():
     return {
-        "status": "UP" if store.is_ready else "INITIALIZING",
-        "total_jobs_indexed": len(store.jobs_df),
-        "matrix_shape": list(store.cosine_sim_matrix.shape) if store.is_ready else []
+        "status": "UP",
+        "job_recommender": {
+            "ready": rec_store.is_ready,
+            "jobs_indexed": len(rec_store.jobs_df)
+        },
+        "sentiment_classifier": {
+            "ready": sentiment_store.is_ready,
+            "device": sentiment_store.device,
+            "labels": list(sentiment_store.model.config.id2label.values()) if sentiment_store.is_ready else []
+        }
     }
+
+
+# --- Job Recommendation Endpoints ---
 
 @app.get("/api/related-jobs/{job_id}")
 def get_related_jobs(job_id: int, top_k: int = Query(6, ge=1, le=20)):
-    if not store.is_ready or store.jobs_df.empty:
+    if not rec_store.is_ready or rec_store.jobs_df.empty:
         raise HTTPException(status_code=503, detail="Recommendation engine is still initializing or empty.")
 
-    if job_id not in store.id_to_idx:
+    if job_id not in rec_store.id_to_idx:
         raise HTTPException(status_code=404, detail=f"Job ID {job_id} not found in active index.")
 
-    target_idx = store.id_to_idx[job_id]
-    target_row = store.jobs_df.iloc[target_idx]
+    target_idx = rec_store.id_to_idx[job_id]
+    target_row = rec_store.jobs_df.iloc[target_idx]
     target_skills_list = parse_skills_list(target_row.get("skills"))
     target_skills_lower = {s.lower(): s for s in target_skills_list}
 
-    sim_scores = store.cosine_sim_matrix[target_idx]
+    sim_scores = rec_store.cosine_sim_matrix[target_idx]
     indexed_scores = [(idx, score) for idx, score in enumerate(sim_scores) if idx != target_idx]
     indexed_scores.sort(key=lambda x: x[1], reverse=True)
 
@@ -208,18 +390,16 @@ def get_related_jobs(job_id: int, top_k: int = Query(6, ge=1, le=20)):
     results = []
 
     for idx, score in top_matches:
-        candidate_id = store.idx_to_id[idx]
-        candidate_row = store.jobs_df.iloc[idx]
+        candidate_id = rec_store.idx_to_id[idx]
+        candidate_row = rec_store.jobs_df.iloc[idx]
         candidate_skills_list = parse_skills_list(candidate_row.get("skills"))
 
-        # Find common skills preserving original proper casing
         matched = []
         for cs in candidate_skills_list:
             if cs.lower() in target_skills_lower:
                 matched.append(cs)
 
         raw_score = float(score)
-        # Scale raw cosine score (0.05 to 0.28) into intuitive percentage (68% - 98%)
         normalized_ratio = min(1.0, max(0.0, raw_score / 0.25))
         match_pct = int(round(65 + normalized_ratio * 32))
 
@@ -247,6 +427,51 @@ def reindex_jobs():
     except Exception as e:
         logger.error("Error during reindex: %s", str(e), exc_info=True)
         raise HTTPException(status_code=500, detail=f"Reindex failed: {str(e)}")
+
+
+# --- Review Sentiment Classification Endpoints ---
+
+@app.post("/api/sentiment/predict")
+def predict_sentiment(req: SentimentPredictRequest):
+    if not sentiment_store.is_ready:
+        # Try loading on-demand if not loaded yet
+        ok = load_sentiment_model()
+        if not ok:
+            raise HTTPException(status_code=503, detail="Sentiment model is not ready.")
+
+    try:
+        return predict_review_sentiment(req.text)
+    except Exception as e:
+        logger.error("Sentiment prediction error: %s", str(e), exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
+
+@app.post("/api/sentiment/predict-batch")
+def predict_sentiment_batch(req: SentimentBatchPredictRequest):
+    if not sentiment_store.is_ready:
+        ok = load_sentiment_model()
+        if not ok:
+            raise HTTPException(status_code=503, detail="Sentiment model is not ready.")
+
+    try:
+        return [predict_review_sentiment(text) for text in req.texts]
+    except Exception as e:
+        logger.error("Sentiment batch prediction error: %s", str(e), exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Batch prediction failed: {str(e)}")
+
+@app.post("/api/sentiment/label-db-reviews")
+def label_database_reviews():
+    """Trigger batch labeling directly into MySQL database."""
+    try:
+        res = label_all_reviews_in_db()
+        return {
+            "status": "SUCCESS",
+            "message": f"Successfully labeled {res['total_updated']} reviews in database.",
+            **res
+        }
+    except Exception as e:
+        logger.error("DB labeling error: %s", str(e), exc_info=True)
+        raise HTTPException(status_code=500, detail=f"DB labeling failed: {str(e)}")
+
 
 if __name__ == "__main__":
     import uvicorn

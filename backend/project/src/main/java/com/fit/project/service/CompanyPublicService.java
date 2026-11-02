@@ -9,6 +9,7 @@ import com.fit.project.enums.ReviewStatus;
 import com.fit.project.exception.ApiException;
 import com.fit.project.repository.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -16,8 +17,17 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CompanyPublicService {
@@ -29,6 +39,56 @@ public class CompanyPublicService {
     private final UserRepository userRepository;
     private final CandidateProfileRepository candidateProfileRepository;
     private final ApplicationRepository applicationRepository;
+
+    private static final String ML_SENTIMENT_URL = "http://localhost:8000/api/sentiment/predict";
+    private final HttpClient httpClient = HttpClient.newBuilder()
+            .connectTimeout(Duration.ofSeconds(2))
+            .build();
+
+    record SentimentResult(String label, Double score) {}
+
+    private SentimentResult predictSentiment(String content, int rating) {
+        if (content == null || content.isBlank()) {
+            return new SentimentResult("neutral", 0.5);
+        }
+        try {
+            String escaped = content
+                    .replace("\\", "\\\\")
+                    .replace("\"", "\\\"")
+                    .replace("\n", " ")
+                    .replace("\r", " ");
+            String jsonBody = "{\"text\":\"" + escaped + "\"}";
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(ML_SENTIMENT_URL))
+                    .header("Content-Type", "application/json")
+                    .timeout(Duration.ofSeconds(3))
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody, StandardCharsets.UTF_8))
+                    .build();
+
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+            if (response.statusCode() == 200) {
+                String resp = response.body();
+                Matcher labelMatcher = Pattern.compile("\"label\"\\s*:\\s*\"([^\"]+)\"").matcher(resp);
+                Matcher scoreMatcher = Pattern.compile("\"score\"\\s*:\\s*([0-9.]+)").matcher(resp);
+                String label = labelMatcher.find() ? labelMatcher.group(1) : "neutral";
+                double score = scoreMatcher.find() ? Double.parseDouble(scoreMatcher.group(1)) : 0.9;
+                log.info("ML Sentiment Prediction for review: label={}, score={}", label, score);
+                return new SentimentResult(label, score);
+            }
+        } catch (Exception e) {
+            log.warn("ML Service sentiment call failed or timed out: {}. Using fallback based on rating.", e.getMessage());
+        }
+
+        // Graceful fallback based on rating
+        if (rating >= 4) {
+            return new SentimentResult("positive", 0.88);
+        } else if (rating == 3) {
+            return new SentimentResult("neutral", 0.75);
+        } else {
+            return new SentimentResult("negative", 0.88);
+        }
+    }
 
     @Transactional(readOnly = true)
     public PageResponse<CompanySummaryResponse> getPublicCompanies(
@@ -134,11 +194,16 @@ public class CompanyPublicService {
                             .build());
                 });
 
+        // Tự động phân loại cảm xúc bằng mô hình AI PhoBERT
+        SentimentResult sentiment = predictSentiment(req.content(), req.rating());
+
         CompanyReview review = CompanyReview.builder()
                 .company(company)
                 .candidate(profile)
                 .rating(req.rating())
                 .content(req.content().trim())
+                .sentimentLabel(sentiment.label())
+                .sentimentScore(sentiment.score())
                 .status(ReviewStatus.visible)
                 .build();
 
@@ -180,6 +245,7 @@ public class CompanyPublicService {
             Integer userId,
             Integer rating,
             String replyStatus,
+            String sentiment,
             String keyword,
             int page,
             int size
@@ -191,6 +257,8 @@ public class CompanyPublicService {
         String kwPattern = (keyword != null && !keyword.isBlank()) ? "%" + keyword.trim().toLowerCase() + "%" : null;
         String repStatus = (replyStatus != null && !replyStatus.isBlank() && !replyStatus.equalsIgnoreCase("all"))
                 ? replyStatus.trim().toLowerCase() : null;
+        String sentParam = (sentiment != null && !sentiment.isBlank() && !sentiment.equalsIgnoreCase("all"))
+                ? sentiment.trim().toLowerCase() : null;
 
         Pageable pageable = PageRequest.of(Math.max(0, page), Math.max(1, size), Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<CompanyReview> reviewPage = reviewRepository.searchEmployerReviews(
@@ -198,6 +266,7 @@ public class CompanyPublicService {
                 ReviewStatus.visible,
                 rating,
                 repStatus,
+                sentParam,
                 kwPattern,
                 pageable
         );
@@ -218,6 +287,7 @@ public class CompanyPublicService {
         long unrepliedCount = Math.max(0, totalReviews - repliedCount);
         int responseRate = totalReviews > 0 ? (int) Math.round((double) repliedCount * 100.0 / totalReviews) : 100;
 
+        // Thống kê phân bổ sao
         Map<Integer, Long> breakdown = new HashMap<>();
         for (int i = 1; i <= 5; i++) breakdown.put(i, 0L);
         List<Object[]> groups = reviewRepository.countGroupByRating(companyId, ReviewStatus.visible);
@@ -226,6 +296,20 @@ public class CompanyPublicService {
                 int score = ((Number) g[0]).intValue();
                 long c = ((Number) g[1]).longValue();
                 breakdown.put(score, c);
+            }
+        }
+
+        // Thống kê phân bổ cảm xúc AI (Positive, Neutral, Negative)
+        Map<String, Long> sentBreakdown = new HashMap<>();
+        sentBreakdown.put("positive", 0L);
+        sentBreakdown.put("neutral", 0L);
+        sentBreakdown.put("negative", 0L);
+        List<Object[]> sentGroups = reviewRepository.countGroupBySentimentLabel(companyId, ReviewStatus.visible);
+        for (Object[] g : sentGroups) {
+            if (g[0] != null && g[1] != null) {
+                String lbl = g[0].toString().toLowerCase();
+                long c = ((Number) g[1]).longValue();
+                sentBreakdown.put(lbl, c);
             }
         }
 
@@ -238,6 +322,7 @@ public class CompanyPublicService {
                 .unrepliedCount(unrepliedCount)
                 .responseRate(responseRate)
                 .ratingBreakdown(breakdown)
+                .sentimentBreakdown(sentBreakdown)
                 .reviews(pagedReviews)
                 .build();
     }
@@ -260,4 +345,3 @@ public class CompanyPublicService {
         }
     }
 }
-

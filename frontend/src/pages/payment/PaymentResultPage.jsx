@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { getPaymentOrder, createPaymentOrder } from '../../services/paymentService';
+import { getPaymentOrder, createPaymentOrder, cancelPaymentOrder } from '../../services/paymentService';
 import { getAuthSession } from '../../services/apiClient';
 import { useWallet } from '../../context/WalletContext.jsx';
 import { formatCurrencyVND } from '../../utils/formatCurrency';
@@ -108,14 +108,16 @@ export const PaymentResultPage = () => {
   const session = getAuthSession();
   const isAdmin = session?.role === 'ADMIN';
 
-  const isSuccess = order.status === 'SUCCESS';
-  const isWrongAmount = order.status === 'WRONG_AMOUNT';
-  const isExpired = order.status === 'EXPIRED';
-  const isCancelled = order.status === 'CANCELLED';
+  const statusUpper = (order.status || '').toUpperCase();
+  const isSuccess = statusUpper === 'SUCCESS' || statusUpper === 'PAID' || statusUpper === 'FULFILLED';
+  const isWrongAmount = statusUpper === 'WRONG_AMOUNT';
+  const isExpired = statusUpper === 'EXPIRED';
+  const isCancelled = statusUpper === 'CANCELLED' || statusUpper === 'CANCELED';
+  const isPending = statusUpper === 'PENDING';
 
   const isEmployerOrder = order.orderType === 'EMPLOYER_PACKAGE' || order.orderType === 'SUBSCRIPTION';
   const returnPath = isEmployerOrder ? '/nha-tuyen-dung/tin-tuyen-dung' : '/ung-vien/vi-token';
-  const returnLabel = isEmployerOrder ? 'Về trang Quản lý tuyển dụng' : 'Về Ví Token của tôi';
+  const returnLabel = isEmployerOrder ? 'Về trang Quản lý tuyển dụng' : 'Về ví token của tôi';
 
   return (
     <div className="payment-result-page">
@@ -327,6 +329,80 @@ export const PaymentResultPage = () => {
                 <FiRefreshCw /> Tạo lại đơn thanh toán
               </button>
               <Link to="/" className="btn-action secondary">
+                Quay về trang chủ
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {/* ================= BIẾN THỂ: ĐANG CHỜ THANH TOÁN ================= */}
+        {isPending && (
+          <div className="result-body pending">
+            <div className="result-icon-wrapper warning-bg">
+              <FiClock className="result-icon warning-color" />
+            </div>
+            <h1 className="result-title warning-text">Đơn hàng đang chờ thanh toán</h1>
+            <p className="result-subtitle">
+              Đơn hàng này chưa hoàn tất chuyển khoản. Bạn có thể tiếp tục thanh toán hoặc huỷ đơn.
+            </p>
+
+            <div className="result-details-box">
+              <div className="detail-row">
+                <span className="detail-label">Mã đơn hàng</span>
+                <span className="detail-value mono bold">{order.orderId}</span>
+              </div>
+              <div className="detail-row">
+                <span className="detail-label">Dịch vụ</span>
+                <span className="detail-value">{order.serviceName}</span>
+              </div>
+              <div className="detail-row">
+                <span className="detail-label">Số tiền</span>
+                <span className="detail-value bold">{formatCurrencyVND(order.amount)}</span>
+              </div>
+              <div className="detail-row">
+                <span className="detail-label">Trạng thái</span>
+                <StatusBadge status={order.status} />
+              </div>
+            </div>
+
+            <div className="result-actions">
+              <button
+                type="button"
+                onClick={() => navigate(`/thanh-toan/${order.orderId}`)}
+                className="btn-action primary"
+              >
+                Tiếp tục quét mã thanh toán
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  try {
+                    await cancelPaymentOrder(order.orderId);
+                    setOrder((prev) => ({ ...prev, status: 'CANCELLED' }));
+                  } catch (e) {
+                    alert('Lỗi khi huỷ đơn: ' + e.message);
+                  }
+                }}
+                className="btn-action secondary"
+              >
+                Huỷ đơn này
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ================= BIẾN THỂ: DỰ PHÒNG ================= */}
+        {!isSuccess && !isWrongAmount && !isExpired && !isCancelled && !isPending && (
+          <div className="result-body info">
+            <div className="result-icon-wrapper warning-bg">
+              <FiClock className="result-icon warning-color" />
+            </div>
+            <h1 className="result-title">Thông tin giao dịch</h1>
+            <p className="result-subtitle">
+              Mã đơn: <strong>{order.orderId}</strong> — Trạng thái: <strong>{order.status}</strong>
+            </p>
+            <div className="result-actions">
+              <Link to="/" className="btn-action primary">
                 Quay về trang chủ
               </Link>
             </div>

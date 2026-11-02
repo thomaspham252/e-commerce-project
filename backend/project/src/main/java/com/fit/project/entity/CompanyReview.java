@@ -33,6 +33,12 @@ public class CompanyReview {
     @Column(columnDefinition = "TEXT")
     private String content;
 
+    @Column(name = "sentiment_label", length = 50)
+    private String sentimentLabel;
+
+    @Column(name = "sentiment_score")
+    private Double sentimentScore;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Builder.Default
@@ -50,4 +56,3 @@ public class CompanyReview {
         if (status == null) status = ReviewStatus.visible;
     }
 }
-

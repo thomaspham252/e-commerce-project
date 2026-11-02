@@ -1,0 +1,151 @@
+/* ==========================================================================
+   Employer Login Page Styles
+   Thương hiệu: JobViet Tuyển Dụng
+   ========================================================================== */
+
+.login-form-wrapper {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.login-body-max {
+  max-width: 480px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.field-label-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.link-forgot-pw {
+  font-size: 13px;
+  color: #047857;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.link-forgot-pw:hover {
+  text-decoration: underline;
+}
+
+.form-remember-row {
+  margin-bottom: 24px;
+}
+
+.remember-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #475569;
+  cursor: pointer;
+}
+
+.remember-checkbox-label input {
+  accent-color: #047857;
+  width: 16px;
+  height: 16px;
+}
+
+.role-mismatch-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background-color: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #92400e;
+  padding: 16px;
+  border-radius: 12px;
+}
+
+.alert-icon-leading {
+  color: #d97706;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.alert-text-body {
+  flex: 1;
+}
+
+.role-redirect-actions {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.btn-to-candidate-login {
+  background-color: #047857;
+  color: #ffffff;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-block;
+  text-align: center;
+}
+
+.btn-to-employer-register {
+  background-color: #ffffff;
+  color: #047857;
+  border: 1px solid #047857;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-block;
+  text-align: center;
+}
+
+.login-divider-box {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 32px 0 24px 0;
+}
+
+.divider-line {
+  flex: 1;
+  height: 1px;
+  background-color: #e2e8f0;
+}
+
+.divider-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #94a3b8;
+  letter-spacing: 0.5px;
+}
+
+.candidate-portal-switch {
+  text-align: center;
+  padding: 16px;
+  border-radius: 12px;
+  background-color: #f1f5f9;
+  font-size: 13px;
+}
+
+.candidate-portal-switch span {
+  display: block;
+  color: #64748b;
+  margin-bottom: 6px;
+}
+
+.link-candidate-portal {
+  color: #047857;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.link-candidate-portal:hover {
+  text-decoration: underline;
+}
+

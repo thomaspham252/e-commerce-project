@@ -1,35 +1,10 @@
 /**
- * Tầng dịch vụ Ví Token của Ứng viên (Wallet Service).
+ * Tầng dịch vụ ví token của ứng viên (Wallet Service).
  * Kết nối trực tiếp với Backend Spring Boot và Database MySQL.
- * Loại bỏ toàn bộ dữ liệu mock cứng, đồng bộ số dư và lịch sử thực tế.
+ * Hoàn toàn không sử dụng mock data, đồng bộ số dư và giao dịch thực tế từ DB.
  */
 
 import { apiClient, getErrorMessage } from './apiClient.js';
-
-// Danh mục biểu phí các tính năng dùng token của ứng viên
-export const initialServiceFees = [
-  {
-    featureKey: 'UNLOCK_CONTACT',
-    featureName: 'Mở khóa liên hệ trực tiếp NTD',
-    tokenCost: 30,
-    badge: 'Phổ biến',
-    description: 'Xem trực tiếp số điện thoại và email riêng của người phụ trách tuyển dụng',
-  },
-  {
-    featureKey: 'BOOST_CV',
-    featureName: 'Đẩy hồ sơ CV lên đầu danh sách',
-    tokenCost: 20,
-    badge: 'Hiệu quả',
-    description: 'Giữ vị trí ưu tiên cao trong kết quả tìm kiếm ứng viên của NTD trong 72 giờ',
-  },
-  {
-    featureKey: 'URGENT_APPLY',
-    featureName: 'Gắn huy hiệu Ứng tuyển nổi bật',
-    tokenCost: 25,
-    badge: 'Ưu tiên',
-    description: 'Hồ sơ được đánh dấu sao nổi bật trong hòm thư tuyển dụng của nhà tuyển dụng',
-  },
-];
 
 /**
  * 1. Lấy thông tin ví và số dư thực tế từ database MySQL qua API /api/v1/wallet.
@@ -63,13 +38,13 @@ export const getTokenPackages = async (includeAll = false) => {
       return res.data.data;
     }
   } catch (err) {
-    console.error('[WalletService] Lỗi khi lấy danh sách gói token:', getErrorMessage(err));
+    console.error('[WalletService] Lỗi khi lấy danh sách gói token từ DB:', getErrorMessage(err));
   }
   return [];
 };
 
 /**
- * 3. Lấy lịch sử biến động token thực tế từ database qua API /api/v1/wallet/transactions.
+ * 3. Lấy lịch sử biến động token thực tế từ database MySQL qua API /api/v1/wallet/transactions.
  */
 export const getTokenTransactions = async (
   _userId,
@@ -92,7 +67,7 @@ export const getTokenTransactions = async (
     }
     return list;
   } catch (err) {
-    console.error('[WalletService] Lỗi khi lấy lịch sử giao dịch:', getErrorMessage(err));
+    console.error('[WalletService] Lỗi khi lấy lịch sử giao dịch từ DB:', getErrorMessage(err));
     return [];
   }
 };
@@ -107,7 +82,7 @@ export const getDepositHistory = async () => {
       return res.data.data;
     }
   } catch (err) {
-    console.error('[WalletService] Lỗi khi lấy lịch sử nạp tiền:', getErrorMessage(err));
+    console.error('[WalletService] Lỗi khi lấy lịch sử nạp tiền từ DB:', getErrorMessage(err));
   }
   return [];
 };
@@ -116,16 +91,9 @@ export const getDepositHistory = async () => {
  * 5. Trừ token khi ứng viên sử dụng tiện ích (lưu vào bảng token_transactions trong DB).
  */
 export const consumeTokens = async (_userId, featureKey = 'UNLOCK_CONTACT') => {
-  const fee = initialServiceFees.find((f) => f.featureKey === featureKey) || {
-    featureName: 'Sử dụng tiện ích ứng viên',
-    tokenCost: 30,
-  };
-
   try {
     const res = await apiClient.post('/v1/wallet/consume', {
       featureKey,
-      featureName: fee.featureName,
-      tokenCost: fee.tokenCost,
     });
 
     if (res.data?.success) {
@@ -163,7 +131,7 @@ export const getServiceFees = async ({ fallback = true } = {}) => {
   } catch (err) {
     console.error('[WalletService] Lỗi khi lấy danh sách biểu phí từ DB:', err);
   }
-  return [...initialServiceFees];
+  return [];
 };
 
 /**
@@ -221,4 +189,3 @@ export const saveServiceFee = async (feeData) => {
     throw err;
   }
 };
-

@@ -1,21 +1,16 @@
 import React, { useEffect } from 'react';
 import {
   FiAlertTriangle,
-  FiCheckCircle,
   FiX,
-  FiMinusCircle,
-  FiPlusCircle,
-  FiArrowRight,
   FiShield,
 } from 'react-icons/fi';
-import { Coins } from 'lucide-react';
 import './TokenConsumeModal.css';
 
 /**
- * Modal xác nhận trừ token dùng chung cho toàn bộ ứng dụng.
+ * Modal xác nhận trừ token dùng chung.
  * Tự động kiểm tra tính toán:
- * - Đủ số dư: Hiển thị "Trừ X token, số dư còn Y" và cho phép bấm xác nhận.
- * - Thiếu số dư: Khóa nút xác nhận, hiển thị cảnh báo thiếu token và nút dẫn tới trang nạp.
+ * - Đủ số dư: Hiển thị chi phí và số dư còn lại sau khi trừ.
+ * - Thiếu số dư: Cảnh báo số token còn thiếu và dẫn tới nạp token.
  */
 export const TokenConsumeModal = ({
   isOpen = false,
@@ -51,6 +46,7 @@ export const TokenConsumeModal = ({
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
+        aria-labelledby="token-modal-title"
         id="token-consume-modal"
       >
         <button
@@ -58,36 +54,30 @@ export const TokenConsumeModal = ({
           className="token-modal-close-btn"
           onClick={onClose}
           disabled={loading}
-          aria-label="Đóng hộp thoại"
+          aria-label="Đóng"
         >
           <FiX />
         </button>
 
         <div className="token-modal-header">
-          <div
-            className={`token-modal-icon-badge ${
-              isSufficient ? 'token-modal-icon-badge--confirm' : 'token-modal-icon-badge--warning'
-            }`}
-          >
-            {isSufficient ? (
-              <Coins className="token-modal-icon" />
-            ) : (
+          {!isSufficient && (
+            <div className="token-modal-icon-badge token-modal-icon-badge--warning">
               <FiAlertTriangle className="token-modal-icon" />
-            )}
-          </div>
-          <h3 className="token-modal-title">
-            {isSufficient ? 'Xác Nhận Sử Dụng Tính Năng' : 'Số Dư Token Không Đủ'}
+            </div>
+          )}
+          <h3 className="token-modal-title" id="token-modal-title">
+            {isSufficient ? 'Xác nhận sử dụng tính năng' : 'Số dư token không đủ'}
           </h3>
           <p className="token-modal-subtitle">
             {isSufficient
-              ? 'Vui lòng kiểm tra kỹ chi phí token trước khi kích hoạt tiện ích.'
-              : 'Bạn cần nạp thêm token để có thể mở khóa và sử dụng tính năng này.'}
+              ? 'Kiểm tra thông tin chi phí trước khi kích hoạt.'
+              : 'Số dư hiện tại không đủ để sử dụng tính năng này.'}
           </p>
         </div>
 
         <div className="token-modal-content">
           <div className="token-modal-feature-box">
-            <span className="token-modal-feature-label">Tính năng yêu cầu:</span>
+            <span className="token-modal-feature-label">Tính năng:</span>
             <h4 className="token-modal-feature-name">{featureName}</h4>
             {featureDescription && (
               <p className="token-modal-feature-desc">{featureDescription}</p>
@@ -98,16 +88,14 @@ export const TokenConsumeModal = ({
             <div className="token-calc-row">
               <span className="token-calc-label">Số dư hiện tại:</span>
               <span className="token-calc-value">
-                <strong>{currentBalance.toLocaleString('vi-VN')}</strong> Token
+                <strong>{currentBalance.toLocaleString('vi-VN')}</strong> token
               </span>
             </div>
 
             <div className="token-calc-row token-calc-row--cost">
-              <span className="token-calc-label">
-                <FiMinusCircle className="text-red inline-icon" /> Token cần trừ:
-              </span>
+              <span className="token-calc-label">Token cần trừ:</span>
               <span className="token-calc-value text-red">
-                <strong>-{tokenCost.toLocaleString('vi-VN')}</strong> Token
+                <strong>-{tokenCost.toLocaleString('vi-VN')}</strong> token
               </span>
             </div>
 
@@ -115,11 +103,9 @@ export const TokenConsumeModal = ({
 
             {isSufficient ? (
               <div className="token-calc-row token-calc-row--remaining">
-                <span className="token-calc-label">
-                  <FiCheckCircle className="text-green inline-icon" /> Số dư còn lại sau khi trừ:
-                </span>
+                <span className="token-calc-label">Số dư còn lại:</span>
                 <span className="token-calc-value text-green">
-                  <strong>{remainingBalance.toLocaleString('vi-VN')}</strong> Token
+                  <strong>{remainingBalance.toLocaleString('vi-VN')}</strong> token
                 </span>
               </div>
             ) : (
@@ -127,11 +113,11 @@ export const TokenConsumeModal = ({
                 <div className="token-calc-warning-text">
                   <span>Còn thiếu:</span>
                   <strong className="text-red">
-                    {missingTokens.toLocaleString('vi-VN')} Token
+                    {missingTokens.toLocaleString('vi-VN')} token
                   </strong>
                 </div>
                 <p className="token-calc-warning-desc">
-                  Số dư hiện tại không đủ để hoàn tất thao tác. Vui lòng nạp thêm token vào ví.
+                  Vui lòng nạp thêm token vào ví để tiếp tục.
                 </p>
               </div>
             )}
@@ -156,7 +142,7 @@ export const TokenConsumeModal = ({
                 disabled={loading}
                 id="btn-confirm-consume-token"
               >
-                {loading ? 'Đang xử lý...' : 'Xác nhận trừ Token'}
+                {loading ? 'Đang xử lý...' : 'Xác nhận'}
               </button>
             </>
           ) : (
@@ -177,16 +163,14 @@ export const TokenConsumeModal = ({
                 }}
                 id="btn-modal-go-deposit"
               >
-                <FiPlusCircle />
-                <span>Nạp Token ngay</span>
-                <FiArrowRight />
+                Nạp thêm token
               </button>
             </>
           )}
         </div>
 
         <div className="token-modal-security-note">
-          <FiShield className="inline-icon" /> Thao tác trừ token an toàn • Có thể kiểm tra tại tab Lịch sử biến động
+          <FiShield className="inline-icon" /> Giao dịch được ghi nhận tự động vào lịch sử biến động token
         </div>
       </div>
     </div>

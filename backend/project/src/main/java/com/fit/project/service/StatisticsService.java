@@ -6,6 +6,7 @@ import com.fit.project.dto.admin.RevenueReportResponse;
 import com.fit.project.dto.common.CountItem;
 import com.fit.project.dto.employer.EmployerStatsResponse;
 import com.fit.project.dto.employer.EmployerStatsResponse.DayPoint;
+import com.fit.project.dto.stats.PublicStatsResponse;
 import com.fit.project.enums.*;
 import com.fit.project.exception.ApiException;
 import com.fit.project.repository.ApplicationRepository;
@@ -116,6 +117,19 @@ public class StatisticsService {
         long pkg = bucket != null ? bucket[0] : 0;
         long token = bucket != null ? bucket[1] : 0;
         return new RevenueReportResponse.Point(date.toString(), label, pkg, token, pkg + token);
+    }
+
+    // ===== Công khai (Landing Page) =====
+
+    /**
+     * Lấy số liệu thống kê thực tế công khai để hiển thị trên Landing Page Nhà tuyển dụng.
+     */
+    public PublicStatsResponse getPublicStats() {
+        long candidates = userRepository.countByRole(UserRole.CANDIDATE);
+        long companies = companyRepository.count();
+        long jobs = jobRepository.countByStatus(JobStatus.OPEN);
+        long applications = applicationRepository.count();
+        return new PublicStatsResponse(candidates, companies, jobs, applications);
     }
 
     // ===== Admin =====

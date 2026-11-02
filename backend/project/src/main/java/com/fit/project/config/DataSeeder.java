@@ -300,6 +300,8 @@ public class DataSeeder implements CommandLineRunner {
                 .candidate(candidates.get(0))
                 .rating(5)
                 .content("Môi trường làm việc cực kỳ chuyên nghiệp, văn phòng hiện đại và đồng nghiệp thân thiện. Chế độ đãi ngộ rất tốt, văn hóa trao quyền và khuyến khích đổi mới sáng tạo.")
+                .sentimentLabel("positive")
+                .sentimentScore(0.989)
                 .status(ReviewStatus.visible)
                 .createdAt(now.minusDays(15))
                 .build());
@@ -315,6 +317,8 @@ public class DataSeeder implements CommandLineRunner {
                 .candidate(candidates.get(1))
                 .rating(5)
                 .content("Dự án quy mô lớn, công nghệ mới nhất. Quy trình phát triển Agile/Scrum bài bản, học hỏi được rất nhiều từ các anh chị Tech Lead.")
+                .sentimentLabel("positive")
+                .sentimentScore(0.988)
                 .status(ReviewStatus.visible)
                 .createdAt(now.minusDays(25))
                 .build());
@@ -324,6 +328,8 @@ public class DataSeeder implements CommandLineRunner {
                 .candidate(candidates.get(2))
                 .rating(4)
                 .content("Quy trình phỏng vấn nhanh gọn và chuyên nghiệp. HR rất chu đáo và hỗ trợ nhiệt tình từ lúc nhận offer.")
+                .sentimentLabel("positive")
+                .sentimentScore(0.989)
                 .status(ReviewStatus.visible)
                 .createdAt(now.minusDays(35))
                 .build());
@@ -341,6 +347,8 @@ public class DataSeeder implements CommandLineRunner {
                     .candidate(candidates.size() > 3 ? candidates.get(3) : candidates.get(0))
                     .rating(5)
                     .content("FPT Software có môi trường quốc tế năng động, nhiều cơ hội onsite Nhật Bản, Mỹ, Châu Âu. Đào tạo nội bộ cực kỳ bài bản.")
+                    .sentimentLabel("positive")
+                    .sentimentScore(0.988)
                     .status(ReviewStatus.visible)
                     .createdAt(now.minusDays(20))
                     .build());
@@ -356,6 +364,8 @@ public class DataSeeder implements CommandLineRunner {
                     .candidate(candidates.size() > 4 ? candidates.get(4) : candidates.get(1))
                     .rating(5)
                     .content("Khuôn viên F-Town / F-Ville tuyệt đẹp, nhiều tiện ích thể thao, giải trí. Chế độ lương thưởng minh bạch và đúng hạn.")
+                    .sentimentLabel("positive")
+                    .sentimentScore(0.989)
                     .status(ReviewStatus.visible)
                     .createdAt(now.minusDays(40))
                     .build());
