@@ -69,6 +69,15 @@ public class ChatServiceImpl implements ChatService {
         Integer jobIdVal = (job != null) ? job.getId() : null;
         Optional<Conversation> existing = conversationRepository.findByCandidateIdAndCompanyIdAndJobId(
                 candidate.getId(), company.getId(), jobIdVal);
+        if (existing.isEmpty() && jobIdVal == null) {
+            List<Conversation> anyConv = conversationRepository.findByCompanyIdOrderByLastMessageAtDesc(company.getId());
+            for (Conversation c : anyConv) {
+                if (c.getCandidate() != null && c.getCandidate().getId().equals(candidate.getId())) {
+                    existing = Optional.of(c);
+                    break;
+                }
+            }
+        }
 
         Conversation conv;
         if (existing.isPresent()) {

@@ -189,10 +189,12 @@ export const getQuickReplies = async () => {
 export const getOrCreateConversationForCandidate = async (candidateData) => {
   const { candidateId, candidateName, jobTitle, jobId, companyId } = candidateData;
   try {
-    const res = await apiClient.post('/v1/chat/conversations', {
-      companyId: companyId || 2,
-      jobId: jobId || null
-    });
+    const payload = {};
+    if (candidateId) payload.candidateId = Number(candidateId);
+    if (companyId) payload.companyId = Number(companyId);
+    if (jobId) payload.jobId = Number(jobId);
+
+    const res = await apiClient.post('/v1/chat/conversations', payload);
     return normalizeEmployerConv(res.data);
   } catch (error) {
     console.warn('Lỗi khi mở cuộc hội thoại với ứng viên:', error);

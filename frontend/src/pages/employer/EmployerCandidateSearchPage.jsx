@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   FiSearch,
   FiMapPin,
@@ -12,19 +13,27 @@ import {
   FiLock,
   FiUnlock,
   FiAlertCircle,
+  FiMessageSquare,
+  FiBriefcase,
+  FiDownload,
+  FiCopy,
+  FiCheck,
 } from 'react-icons/fi';
 import { useEmployerPackage } from '../../context/EmployerPackageContext.jsx';
 import { employerService } from '../../services/employerService.js';
+import { getOrCreateConversationForCandidate } from '../../services/employerMessagesService.js';
 import { getErrorMessage } from '../../services/apiClient.js';
 import { PackageLimitModal } from '../../components/employer/PackageLimitModal.jsx';
 import './EmployerCandidateSearchPage.css';
 
 /**
  * Trang Tìm Kiếm Hồ Sơ Ứng Viên (/employer/candidates).
- * Cho phép Nhà tuyển dụng tìm kiếm nhân tài trong kho ứng viên,
+ * Cho phép Nhà tuyển dụng tìm kiếm ứng viên trong kho tài năng,
  * mở xem thông tin liên hệ và CV trong phạm vi hạn mức cv_view_limit của gói.
+ * Hỗ trợ Chat trực tiếp với ứng viên ngay từ màn hình chi tiết hoặc thẻ đã mở khóa.
  */
 export const EmployerCandidateSearchPage = () => {
+  const navigate = useNavigate();
   const { subscription, refreshSubscription } = useEmployerPackage();
 
   const [keyword, setKeyword] = useState('');
@@ -33,7 +42,7 @@ export const EmployerCandidateSearchPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Phân trang
+  // Phân trang: 9 ứng viên/trang (3 dòng x 3 cột)
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
@@ -41,6 +50,8 @@ export const EmployerCandidateSearchPage = () => {
   // Chi tiết ứng viên & Modal
   const [selectedCandidate, setSelectedCandidate] = useState(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
+  const [startingChat, setStartingChat] = useState(false);
+  const [copiedField, setCopiedField] = useState(null);
   const [limitModalOpen, setLimitModalOpen] = useState(false);
   const [limitReason, setLimitReason] = useState('CV_LIMIT_REACHED');
 
@@ -52,7 +63,7 @@ export const EmployerCandidateSearchPage = () => {
         keyword: keyword.trim() || undefined,
         location: location.trim() || undefined,
         page: p,
-        size: 6,
+        size: 9,
       });
       setCandidates(res.content || []);
       setPage(res.page || 0);
@@ -84,8 +95,11 @@ export const EmployerCandidateSearchPage = () => {
       setLoadingDetail(true);
       const detail = await employerService.getCandidateDetail(candidateId);
       setSelectedCandidate(detail);
-      // Tải lại gói để cập nhật số lượt xem CV đã dùng
       refreshSubscription();
+      // Cập nhật trạng thái isUnlocked cục bộ cho ứng viên trong danh sách kèm email và phone thực tế
+      setCandidates((prev) =>
+        prev.map((c) => (c.userId === candidateId ? { ...c, isUnlocked: true, email: detail.email, phone: detail.phone } : c))
+      );
     } catch (err) {
       const msg = getErrorMessage(err);
       if (msg.includes('QUOTA_EXCEEDED')) {
@@ -105,15 +119,48 @@ export const EmployerCandidateSearchPage = () => {
     }
   };
 
+  const handleStartChat = async (cand) => {
+    if (!cand) return;
+    const canChat = Boolean(subscription?.allowRealtimeChat) || cand.hasAppliedToCompany;
+    if (!canChat) {
+      setLimitReason('NO_PERMISSION');
+      setLimitModalOpen(true);
+      return;
+    }
+
+    try {
+      setStartingChat(true);
+      await getOrCreateConversationForCandidate({
+        candidateId: cand.userId,
+        candidateName: cand.fullName,
+      });
+      setSelectedCandidate(null);
+      navigate(`/employer/messages?candidateId=${cand.userId}`);
+    } catch (err) {
+      console.error('Lỗi khi mở cuộc trò chuyện với ứng viên:', err);
+      setSelectedCandidate(null);
+      navigate(`/employer/messages?candidateId=${cand.userId}`);
+    } finally {
+      setStartingChat(false);
+    }
+  };
+
+  const handleCopy = (text, field) => {
+    if (!text) return;
+    navigator.clipboard?.writeText(text);
+    setCopiedField(field);
+    setTimeout(() => setCopiedField(null), 2000);
+  };
+
   const isUnlimitedViews = subscription?.cvViewLimit == null;
   const usedViews = subscription?.usedCvViews || 0;
   const maxViews = subscription?.cvViewLimit;
 
   return (
     <div className="candidate-search-page">
-      {/* Header */}
+      {/* Header & Hạn mức */}
       <div className="candidate-search-header">
-        <div>
+        <div className="header-text-block">
           <h2 className="page-title">Kho Hồ Sơ Ứng Viên</h2>
           <p className="page-subtitle">
             Chủ động tìm kiếm và tiếp cận các ứng viên tiềm năng phù hợp với yêu cầu của doanh nghiệp.
@@ -121,46 +168,69 @@ export const EmployerCandidateSearchPage = () => {
         </div>
 
         {subscription && (
-          <div className="cv-quota-badge-box">
-            <span className="cv-quota-label">
-              <FiEye style={{ color: '#2563eb', marginRight: '6px' }} />
-              Hạn mức xem hồ sơ kho:
-            </span>
-            <span className="cv-quota-count">
+          <div className="cv-quota-pill" title="Hạn mức xem chi tiết hồ sơ trong gói hiện tại">
+            <FiEye className="quota-pill-icon" />
+            <span className="quota-pill-label">Hạn mức xem hồ sơ kho:</span>
+            <span className="quota-pill-count">
               <strong>{usedViews}</strong> / {isUnlimitedViews ? '∞' : maxViews} lượt
             </span>
           </div>
         )}
       </div>
 
-      {/* Thanh tìm kiếm & bộ lọc */}
+      {/* Thanh tìm kiếm & bộ lọc tích hợp chuẩn mực */}
       <form className="candidate-filter-bar" onSubmit={handleSearchSubmit}>
-        <div className="filter-input-wrapper">
+        <div className="filter-field-wrapper filter-field-keyword">
           <FiSearch className="filter-icon" />
           <input
             type="text"
+            className="filter-input"
             placeholder="Tìm theo họ tên, kỹ năng, kinh nghiệm..."
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
           />
+          {keyword && (
+            <button
+              type="button"
+              className="filter-clear-btn"
+              onClick={() => setKeyword('')}
+              title="Xóa từ khóa"
+            >
+              <FiX size={14} />
+            </button>
+          )}
         </div>
 
-        <div className="filter-input-wrapper filter-input-wrapper--location">
+        <div className="filter-divider" />
+
+        <div className="filter-field-wrapper filter-field-location">
           <FiMapPin className="filter-icon" />
           <input
             type="text"
+            className="filter-input"
             placeholder="Địa điểm (Hà Nội, TP.HCM...)"
             value={location}
             onChange={(e) => setLocation(e.target.value)}
           />
+          {location && (
+            <button
+              type="button"
+              className="filter-clear-btn"
+              onClick={() => setLocation('')}
+              title="Xóa địa điểm"
+            >
+              <FiX size={14} />
+            </button>
+          )}
         </div>
 
-        <button type="submit" className="btn btn-primary filter-submit-btn" disabled={loading}>
-          {loading ? 'Đang tìm...' : 'Tìm kiếm'}
+        <button type="submit" className="filter-submit-btn" disabled={loading}>
+          <FiSearch className="submit-btn-icon" />
+          <span>{loading ? 'Đang tìm...' : 'Tìm kiếm'}</span>
         </button>
       </form>
 
-      {/* Thông báo lỗi phân quyền */}
+      {/* Cảnh báo phân quyền gói */}
       {error && (
         <div className="candidate-permission-alert">
           <FiAlertCircle className="alert-icon" />
@@ -181,7 +251,7 @@ export const EmployerCandidateSearchPage = () => {
         </div>
       )}
 
-      {/* Danh sách ứng viên */}
+      {/* Danh sách 9 ứng viên (3 dòng x 3 cột) */}
       {!error && (
         <>
           {loading ? (
@@ -198,8 +268,12 @@ export const EmployerCandidateSearchPage = () => {
           ) : (
             <div className="candidates-grid">
               {candidates.map((cand) => (
-                <div key={cand.userId} className="candidate-card">
-                  <div className="cand-card-top">
+                <div
+                  key={cand.userId}
+                  className={`candidate-card ${cand.isUnlocked ? 'is-unlocked-card' : ''}`}
+                >
+                  {/* Header thẻ: Avatar, Tên, Cấp bậc, Địa điểm và Huy hiệu */}
+                  <div className="cand-card-header">
                     <div className="cand-avatar-wrap">
                       {cand.avatar ? (
                         <img src={cand.avatar} alt={cand.fullName} className="cand-avatar-img" />
@@ -208,51 +282,111 @@ export const EmployerCandidateSearchPage = () => {
                           {cand.fullName ? cand.fullName.charAt(0).toUpperCase() : 'U'}
                         </div>
                       )}
+                      <span className="cand-avatar-status-dot" title="Sẵn sàng nhận việc" />
                     </div>
 
                     <div className="cand-header-meta">
-                      <h3 className="cand-name">{cand.fullName}</h3>
-                      {cand.address && (
-                        <span className="cand-location">
-                          <FiMapPin /> {cand.address}
+                      <div className="cand-name-row">
+                        <h3 className="cand-name" title={cand.fullName}>{cand.fullName}</h3>
+                        <span className={`cand-status-badge ${cand.isUnlocked ? 'is-unlocked' : 'is-locked'}`}>
+                          {cand.isUnlocked ? (
+                            <>
+                              <FiUnlock size={13} /> Đã mở khóa
+                            </>
+                          ) : (
+                            <>
+                              <FiLock size={13} /> Chưa mở khóa
+                            </>
+                          )}
                         </span>
-                      )}
-                      <span className="cand-level-badge">{cand.experienceLevel || 'Ứng viên'}</span>
+                      </div>
+                      <div className="cand-subline">
+                        <span className="cand-subline-item">
+                          <FiBriefcase size={12} /> {cand.experienceLevel || 'Chuyên viên'}
+                        </span>
+                        <span className="cand-subline-dot">•</span>
+                        <span className="cand-subline-item">
+                          <FiMapPin size={12} /> {cand.address || 'Toàn quốc'}
+                        </span>
+                      </div>
                     </div>
                   </div>
 
-                  <p className="cand-summary">
-                    {cand.summary || 'Chưa cập nhật phần giới thiệu bản thân.'}
-                  </p>
+                  {/* Khung thông tin liên hệ và hồ sơ CV thực tế */}
+                  <div className="cand-meta-box">
+                    <div className="cand-meta-row">
+                      <span className="cand-meta-label">Email:</span>
+                      <span className={`cand-meta-val ${cand.isUnlocked ? 'is-real' : 'is-masked'}`} title={cand.email}>
+                        <FiMail size={12} className="val-icon" />
+                        {cand.email || (cand.isUnlocked ? 'Chưa cập nhật' : '••••••••••••')}
+                      </span>
+                    </div>
+                    <div className="cand-meta-row">
+                      <span className="cand-meta-label">SĐT:</span>
+                      <span className={`cand-meta-val ${cand.isUnlocked ? 'is-real' : 'is-masked'}`}>
+                        <FiPhone size={12} className="val-icon" />
+                        {cand.phone || (cand.isUnlocked ? 'Chưa cập nhật' : '••••••••••••')}
+                      </span>
+                    </div>
+                    <div className="cand-meta-row">
+                      <span className="cand-meta-label">Hồ sơ:</span>
+                      <span className="cand-meta-val is-cv">
+                        <FiFileText size={12} className="val-icon" />
+                        {cand.cvFileName || 'CV đính kèm (PDF)'}
+                      </span>
+                    </div>
+                  </div>
 
-                  <div className="cand-card-footer">
-                    <span className={`cand-status-pill ${cand.isUnlocked ? 'is-unlocked' : ''}`}>
-                      {cand.isUnlocked ? (
-                        <>
-                          <FiUnlock /> Đã mở khóa
-                        </>
-                      ) : (
-                        <>
-                          <FiLock /> Chưa mở khóa
-                        </>
-                      )}
-                    </span>
+                  {/* Phần tóm tắt giới thiệu */}
+                  <div className="cand-bio-box">
+                    <p className={`cand-bio-text ${!cand.summary ? 'cand-bio-text--placeholder' : ''}`}>
+                      {cand.summary || 'Ứng viên sẵn sàng trao đổi các cơ hội nghề nghiệp phù hợp.'}
+                    </p>
+                  </div>
 
-                    <button
-                      type="button"
-                      className="btn btn-outline cand-view-btn"
-                      onClick={() => handleOpenProfile(cand.userId)}
-                      disabled={loadingDetail}
-                    >
-                      <FiEye /> {cand.isUnlocked ? 'Xem chi tiết' : 'Mở khóa xem'}
-                    </button>
+                  {/* Nút hành động ở chân thẻ */}
+                  <div className={`cand-card-footer ${cand.isUnlocked ? 'cand-card-footer--dual' : ''}`}>
+                    {cand.isUnlocked ? (
+                      <>
+                        <button
+                          type="button"
+                          className="cand-btn cand-btn--chat"
+                          onClick={() => handleStartChat(cand)}
+                          disabled={startingChat}
+                          title="Nhắn tin trực tiếp với ứng viên"
+                        >
+                          <FiMessageSquare size={13} />
+                          <span>Nhắn tin</span>
+                        </button>
+                        <button
+                          type="button"
+                          className="cand-btn cand-btn--view"
+                          onClick={() => handleOpenProfile(cand.userId)}
+                          disabled={loadingDetail}
+                          title="Xem chi tiết đầy đủ hồ sơ và CV"
+                        >
+                          <FiEye size={13} />
+                          <span>Xem hồ sơ</span>
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        type="button"
+                        className="cand-btn cand-btn--unlock"
+                        onClick={() => handleOpenProfile(cand.userId)}
+                        disabled={loadingDetail}
+                      >
+                        <FiUnlock size={14} />
+                        <span>Mở khóa xem hồ sơ</span>
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}
             </div>
           )}
 
-          {/* Phân trang */}
+          {/* Phân trang: 9 người/trang (3 dòng x 3 cột) */}
           {totalPages > 1 && (
             <div className="candidates-pagination">
               <button
@@ -287,10 +421,12 @@ export const EmployerCandidateSearchPage = () => {
               type="button"
               className="modal-close-button"
               onClick={() => setSelectedCandidate(null)}
+              title="Đóng modal"
             >
               <FiX />
             </button>
 
+            {/* Header Modal */}
             <div className="modal-cand-header">
               <div className="cand-avatar-wrap cand-avatar-wrap--lg">
                 {selectedCandidate.avatar ? (
@@ -301,89 +437,189 @@ export const EmployerCandidateSearchPage = () => {
                   />
                 ) : (
                   <div className="cand-avatar-placeholder">
-                    {selectedCandidate.fullName?.charAt(0).toUpperCase()}
+                    {selectedCandidate.fullName?.charAt(0).toUpperCase() || 'U'}
                   </div>
                 )}
+                <span className="cand-avatar-status-dot" title="Sẵn sàng kết nối" />
               </div>
-              <div>
-                <h3 className="modal-cand-name">{selectedCandidate.fullName}</h3>
-                {selectedCandidate.hasAppliedToCompany && (
-                  <span className="modal-applied-tag">
-                    <FiCheckCircle /> Ứng viên đã nộp đơn vào tin tuyển dụng của công ty bạn
+
+              <div className="modal-cand-header-info">
+                <div className="modal-name-row">
+                  <h3 className="modal-cand-name">{selectedCandidate.fullName}</h3>
+                  <span className="modal-cand-level">
+                    <FiBriefcase size={12} /> Chuyên viên
                   </span>
-                )}
+                </div>
+                <div className="modal-badges-row">
+                  <span className="modal-status-badge is-unlocked">
+                    <FiUnlock size={11} /> Đã mở thông tin liên hệ
+                  </span>
+                  {selectedCandidate.hasAppliedToCompany && (
+                    <span className="modal-status-badge is-applied">
+                      <FiCheckCircle size={11} /> Ứng viên đã nộp đơn vào công ty bạn
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
 
+            {/* Body Modal */}
             <div className="modal-cand-body">
-              <h4 className="modal-section-title">Thông tin liên hệ trực tiếp</h4>
-              <div className="modal-contact-row">
-                <div className="contact-item">
-                  <FiMail className="contact-icon" />
-                  <span>
-                    Email: <strong>{selectedCandidate.email || 'Chưa cung cấp'}</strong>
-                  </span>
-                </div>
-                <div className="contact-item">
-                  <FiPhone className="contact-icon" />
-                  <span>
-                    SĐT: <strong>{selectedCandidate.phone || 'Chưa cung cấp'}</strong>
-                  </span>
-                </div>
-                {selectedCandidate.address && (
-                  <div className="contact-item">
-                    <FiMapPin className="contact-icon" />
-                    <span>Địa chỉ: {selectedCandidate.address}</span>
+              {/* Lưới thông tin nhanh 4 ô */}
+              <div className="modal-quick-info-grid">
+                <div className="quick-info-card">
+                  <div className="quick-info-header">
+                    <FiMail className="quick-info-icon" />
+                    <span>Email liên hệ</span>
                   </div>
-                )}
+                  <div className="quick-info-value">
+                    <span>{selectedCandidate.email || 'Chưa cung cấp'}</span>
+                    {selectedCandidate.email && (
+                      <button
+                        type="button"
+                        className="quick-copy-btn"
+                        onClick={() => handleCopy(selectedCandidate.email, 'email')}
+                        title="Sao chép Email"
+                      >
+                        {copiedField === 'email' ? <FiCheck className="text-success" /> : <FiCopy />}
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="quick-info-card">
+                  <div className="quick-info-header">
+                    <FiPhone className="quick-info-icon" />
+                    <span>Số điện thoại</span>
+                  </div>
+                  <div className="quick-info-value">
+                    <span>{selectedCandidate.phone || 'Chưa cung cấp'}</span>
+                    {selectedCandidate.phone && (
+                      <button
+                        type="button"
+                        className="quick-copy-btn"
+                        onClick={() => handleCopy(selectedCandidate.phone, 'phone')}
+                        title="Sao chép SĐT"
+                      >
+                        {copiedField === 'phone' ? <FiCheck className="text-success" /> : <FiCopy />}
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="quick-info-card">
+                  <div className="quick-info-header">
+                    <FiMapPin className="quick-info-icon" />
+                    <span>Khu vực</span>
+                  </div>
+                  <div className="quick-info-value">
+                    <span>{selectedCandidate.address || 'Toàn quốc'}</span>
+                  </div>
+                </div>
+
+                <div className="quick-info-card">
+                  <div className="quick-info-header">
+                    <FiBriefcase className="quick-info-icon" />
+                    <span>Tình trạng tìm việc</span>
+                  </div>
+                  <div className="quick-info-value text-success">
+                    <span>Sẵn sàng kết nối</span>
+                  </div>
+                </div>
               </div>
 
-              <h4 className="modal-section-title" style={{ marginTop: '20px' }}>
-                Giới thiệu bản thân
-              </h4>
-              <p className="modal-summary-text">
-                {selectedCandidate.summary || 'Chưa có thông tin tóm tắt.'}
-              </p>
+              {/* Giới thiệu bản thân */}
+              <div className="modal-section-block">
+                <h4 className="modal-section-title">
+                  <FiUser className="section-title-icon" /> Giới thiệu bản thân
+                </h4>
+                <div className="modal-bio-card">
+                  <p className="modal-summary-text">
+                    {selectedCandidate.summary ||
+                      'Ứng viên đang tìm kiếm cơ hội nghề nghiệp phù hợp và chưa cập nhật phần tóm tắt chi tiết.'}
+                  </p>
+                </div>
+              </div>
 
-              <h4 className="modal-section-title" style={{ marginTop: '20px' }}>
-                Danh sách CV đính kèm
-              </h4>
-              {selectedCandidate.cvs && selectedCandidate.cvs.length > 0 ? (
-                <div className="modal-cvs-list">
-                  {selectedCandidate.cvs.map((cv) => (
-                    <div key={cv.id} className="cv-item-card">
-                      <div className="cv-item-info">
-                        <FiFileText className="cv-icon" />
-                        <div>
-                          <strong>{cv.fileName || 'CV Ứng viên'}</strong>
-                          {cv.isDefault && <span className="cv-default-tag">Mặc định</span>}
+              {/* Danh sách CV đính kèm */}
+              <div className="modal-section-block">
+                <h4 className="modal-section-title">
+                  <FiFileText className="section-title-icon" /> Danh sách CV & Hồ sơ đính kèm
+                </h4>
+                {selectedCandidate.cvs && selectedCandidate.cvs.length > 0 ? (
+                  <div className="modal-cvs-list">
+                    {selectedCandidate.cvs.map((cv) => (
+                      <div key={cv.id} className="cv-item-card">
+                        <div className="cv-item-info">
+                          <div className="cv-icon-wrap">
+                            <FiFileText className="cv-icon" />
+                          </div>
+                          <div className="cv-item-meta">
+                            <div className="cv-item-title-row">
+                              <strong className="cv-filename">{cv.fileName || 'CV Ứng viên'}</strong>
+                              {cv.isDefault && <span className="cv-default-tag">Mặc định</span>}
+                            </div>
+                            <span className="cv-item-sub">Định dạng PDF • Đã được kiểm tra an toàn</span>
+                          </div>
+                        </div>
+                        <div className="cv-item-actions">
+                          <a
+                            href={cv.fileUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="btn btn-outline btn-sm cv-btn-view"
+                          >
+                            <FiEye />
+                            <span>Xem CV</span>
+                          </a>
+                          <a
+                            href={cv.fileUrl}
+                            download
+                            target="_blank"
+                            rel="noreferrer"
+                            className="btn btn-primary btn-sm cv-btn-download"
+                          >
+                            <FiDownload />
+                            <span>Tải về</span>
+                          </a>
                         </div>
                       </div>
-                      <a
-                        href={cv.fileUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="btn btn-primary btn-sm"
-                      >
-                        Tải / Xem CV
-                      </a>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
+                ) : (
+                  <div className="empty-cv-box">
+                    <p className="text-muted">Ứng viên chưa tải lên CV dạng tập tin. Bạn có thể liên hệ trực tiếp để nhận CV mới nhất.</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Hộp gợi ý tuyển dụng */}
+              <div className="modal-recruiter-tip">
+                <FiMessageSquare className="recruiter-tip-icon" />
+                <div className="recruiter-tip-text">
+                  <strong>Kết nối trực tiếp:</strong> Bạn có thể bắt đầu cuộc trò chuyện ngay với ứng viên để đặt câu hỏi về kinh nghiệm, trao đổi vị trí hoặc gửi lời mời phỏng vấn nhanh chóng.
                 </div>
-              ) : (
-                <p className="text-muted" style={{ fontSize: '13px' }}>
-                  Ứng viên chưa tải lên CV dạng tập tin.
-                </p>
-              )}
+              </div>
             </div>
 
+            {/* Footer Modal với nút Đóng và nút Chat */}
             <div className="modal-cand-footer">
               <button
                 type="button"
-                className="btn btn-outline"
+                className="btn btn-outline modal-btn-secondary"
                 onClick={() => setSelectedCandidate(null)}
               >
                 Đóng
+              </button>
+
+              <button
+                type="button"
+                className="btn btn-primary modal-btn-chat"
+                onClick={() => handleStartChat(selectedCandidate)}
+                disabled={startingChat}
+              >
+                <FiMessageSquare className="chat-btn-icon" />
+                <span>{startingChat ? 'Đang kết nối...' : 'Chat với Ứng Viên'}</span>
               </button>
             </div>
           </div>
@@ -400,4 +636,3 @@ export const EmployerCandidateSearchPage = () => {
     </div>
   );
 };
-

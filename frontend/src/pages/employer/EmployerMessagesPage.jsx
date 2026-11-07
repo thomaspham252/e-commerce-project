@@ -39,7 +39,7 @@ export const EmployerMessagesPage = () => {
     openConversationForCandidate
   } = useEmployerMessages();
 
-  // Kiểm tra tham số URL ?candidateId=... khi người dùng chuyển hướng từ Dashboard
+  // Kiểm tra tham số URL ?candidateId=... khi người dùng chuyển hướng từ Dashboard hoặc Kho hồ sơ
   useEffect(() => {
     const candidateIdParam = searchParams.get('candidateId');
     if (candidateIdParam) {
@@ -48,6 +48,8 @@ export const EmployerMessagesPage = () => {
       );
       if (found) {
         selectConversation(found.id);
+      } else if (openConversationForCandidate) {
+        openConversationForCandidate({ candidateId: candidateIdParam });
       }
     } else if (!activeConversationId && conversations.length > 0) {
       const isMobile = window.innerWidth < 768;
@@ -55,7 +57,7 @@ export const EmployerMessagesPage = () => {
         selectConversation(conversations[0].id);
       }
     }
-  }, [searchParams, conversations, activeConversationId, selectConversation]);
+  }, [searchParams, conversations, activeConversationId, selectConversation, openConversationForCandidate]);
 
   // Tự động cuộn xuống tin nhắn mới nhất mỗi khi messages hoặc hội thoại thay đổi
   useEffect(() => {

@@ -252,10 +252,10 @@ export const CandidateWalletPage = () => {
           <span className="wallet-breadcrumb-current">Ví token</span>
         </nav>
 
-        {/* Tiêu đề trang */}
+        {/* Tiêu đề trang - giống EmployerPricingPage */}
         <div className="wallet-page-header">
           <div>
-            <h1 className="wallet-page-title">Ví token của tôi</h1>
+            <h1 className="wallet-page-title">Ví Token Của Tôi</h1>
             <p className="wallet-page-subtitle">
               Dùng token để mở liên hệ nhà tuyển dụng, đẩy CV lên đầu và gắn huy hiệu nổi bật.
             </p>

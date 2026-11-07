@@ -183,11 +183,47 @@ public class DataSeeder implements CommandLineRunner {
         }
 
         if (tokenPackageRepository.count() == 0) {
-            tokenPackageRepository.save(TokenPackage.builder().tokens(50).price(BigDecimal.valueOf(50_000)).isActive(true).build());
-            tokenPackageRepository.save(TokenPackage.builder().tokens(120).price(BigDecimal.valueOf(100_000)).isActive(true).build());
-            tokenPackageRepository.save(TokenPackage.builder().tokens(300).price(BigDecimal.valueOf(200_000)).isActive(true).build());
-            tokenPackageRepository.save(TokenPackage.builder().tokens(1000).price(BigDecimal.valueOf(500_000)).isActive(true).build());
-            log.info("Đã tạo dữ liệu mẫu cho danh mục token_packages.");
+            tokenPackageRepository.save(TokenPackage.builder()
+                    .tokens(20)
+                    .price(BigDecimal.valueOf(20_000))
+                    .bonusTokens(0)
+                    .badgeLabel(null)
+                    .description("Gói nhỏ cho người dùng mới bắt đầu")
+                    .isPopular(false)
+                    .isActive(true)
+                    .build());
+
+            tokenPackageRepository.save(TokenPackage.builder()
+                    .tokens(100)
+                    .price(BigDecimal.valueOf(100_000))
+                    .bonusTokens(10)
+                    .badgeLabel("Phổ biến")
+                    .description("Gói phổ biến với 10 token thưởng")
+                    .isPopular(true)
+                    .isActive(true)
+                    .build());
+
+            tokenPackageRepository.save(TokenPackage.builder()
+                    .tokens(200)
+                    .price(BigDecimal.valueOf(200_000))
+                    .bonusTokens(40)
+                    .badgeLabel("+40 token thưởng")
+                    .description("Gói tiết kiệm với 40 token thưởng")
+                    .isPopular(false)
+                    .isActive(true)
+                    .build());
+
+            tokenPackageRepository.save(TokenPackage.builder()
+                    .tokens(50)
+                    .price(BigDecimal.valueOf(50_000))
+                    .bonusTokens(5)
+                    .badgeLabel("+5 token thưởng")
+                    .description("Gói tiêu chuẩn với 5 token thưởng")
+                    .isPopular(false)
+                    .isActive(true)
+                    .build());
+
+            log.info("Đã tạo dữ liệu mẫu cho danh mục token_packages với đầy đủ thông tin.");
         }
 
         if (serviceFeeRepository.count() == 0) {

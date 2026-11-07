@@ -49,6 +49,17 @@ public class CandidateSearchService {
         return PageResponse.of(page, cp -> {
             boolean isUnlocked = applicationRepository.existsByJobCompanyOwnerIdAndCandidateUserId(employer.getId(), cp.getUserId())
                     || candidateProfileViewRepository.existsBySubscriptionIdAndCandidateUserId(activeSub.getId(), cp.getUserId());
+
+            String email = null;
+            String phone = null;
+            if (isUnlocked) {
+                email = cp.getUser() != null ? cp.getUser().getEmail() : null;
+                phone = cp.getPhone();
+            }
+            String cvFileName = cvRepository.findByCandidateUserIdAndIsDefaultTrue(cp.getUserId())
+                    .map(com.fit.project.entity.Cv::getFileName)
+                    .orElse("CV đính kèm (PDF)");
+
             return new CandidateSummaryResponse(
                     cp.getUserId(),
                     cp.getFullName(),
@@ -57,7 +68,10 @@ public class CandidateSearchService {
                     cp.getAvatar(),
                     isUnlocked,
                     List.of(),
-                    "Chuyên viên"
+                    "Chuyên viên",
+                    email,
+                    phone,
+                    cvFileName
             );
         });
     }

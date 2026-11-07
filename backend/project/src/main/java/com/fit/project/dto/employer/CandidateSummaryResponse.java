@@ -10,7 +10,11 @@ public record CandidateSummaryResponse(
         String avatar,
         boolean isUnlocked,
         List<String> skills,
-        String experienceLevel
+        String experienceLevel,
+        String email,
+        String phone,
+        String cvFileName
 ) {
 }
+
 
