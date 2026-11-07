@@ -18,7 +18,6 @@ import {
   Settings,
   MessageSquare,
   Star,
-  ClipboardList
 } from 'lucide-react';
 import { useSavedJobs } from '../context/SavedJobsContext';
 import { useWallet } from '../context/WalletContext.jsx';
