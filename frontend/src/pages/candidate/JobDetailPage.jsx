@@ -154,38 +154,19 @@ export const JobDetailPage = () => {
   const companyCountry = company.country || 'Việt Nam';
   const workingSchedule = company.workingSchedule || job.workingSchedule || 'Thứ 2 - Thứ 6 (08:30 - 17:30)';
   const overtimePolicy = company.overtime || 'Không có OT / Trả lương làm thêm giờ đầy đủ';
-  const ratingScore = company.rating || 4.8;
-  const reviewCount = company.reviewCount || 28;
-  const recommendRate = company.recommendRate || 99;
+  const ratingScore = company.rating ? Number(company.rating) : 0;
+  const reviewCount = company.reviewCount || 0;
+  const recommendRate = company.recommendRate ? Number(company.recommendRate) : 0;
 
-  const awards = company.awards && company.awards.length > 0 ? company.awards : [
-    { year: '2024', title: 'Công ty IT tốt nhất Việt Nam 2024', score: '4.9', recommend: '100%' },
-    { year: '2023', title: 'Công ty IT tốt nhất Việt Nam 2023', score: '4.8', recommend: '100%' },
-    { year: '2022', title: 'Công ty IT tốt nhất Việt Nam 2022', score: '5.0', recommend: '100%' },
-  ];
-
-  const photos = company.photos && company.photos.length > 0 ? company.photos : [
-    { id: 1, url: '/images/workplace/team.jpg', caption: 'Teambuilding & Hoạt động văn hóa gắn kết' },
-    { id: 2, url: '/images/workplace/office.jpg', caption: 'Không gian làm việc sáng tạo chuẩn quốc tế' },
-    { id: 3, url: '/images/workplace/event.jpg', caption: 'Sự kiện Townhall & Chia sẻ công nghệ định kỳ' },
-  ];
-
-  const offices = company.offices && company.offices.length > 0 ? company.offices : [
-    {
-      city: 'TP. Hồ Chí Minh',
-      address: company.address || 'Tầng 5, Tòa nhà Innovation, Khu Công nghệ cao, TP. Thủ Đức, TP. HCM',
-      isPrimary: true,
-      lat: 10.8542,
-      lng: 106.7865
-    },
-    {
-      city: 'Hà Nội',
-      address: 'Tầng 12, Tòa nhà Keangnam Landmark 72, Phạm Hùng, Nam Từ Liêm, Hà Nội',
-      isPrimary: false,
-      lat: 21.0173,
-      lng: 105.7838
-    }
-  ];
+  const offices = Array.isArray(company.offices) && company.offices.length > 0
+    ? company.offices
+    : [
+        {
+          city: 'Trụ sở chính',
+          address: company.address || job.location || 'Chưa cập nhật địa chỉ',
+          isPrimary: true,
+        },
+      ];
 
   const currentOffice = offices[activeOfficeIdx] || offices[0];
 
@@ -311,27 +292,38 @@ export const JobDetailPage = () => {
               </div>
             </div>
 
-            {/* Cột phải: Khối đánh giá & Giải thưởng nổi bật */}
+            {/* Cột phải: Khối đánh giá nổi bật nếu có */}
             <div className="itv-hero-right">
               <div className="itv-rating-box">
-                <div className="itv-rating-top">
-                  <span className="itv-rating-number">{ratingScore.toFixed(1)}</span>
-                  <div className="itv-stars-group">
-                    <div className="itv-stars-row">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <Star key={star} size={15} fill="#F59E0B" color="#F59E0B" />
-                      ))}
+                {ratingScore > 0 ? (
+                  <div className="itv-rating-top">
+                    <span className="itv-rating-number">{ratingScore.toFixed(1)}</span>
+                    <div className="itv-stars-group">
+                      <div className="itv-stars-row">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Star
+                            key={star}
+                            size={15}
+                            fill={ratingScore >= star ? '#F59E0B' : '#E2E8F0'}
+                            color={ratingScore >= star ? '#F59E0B' : '#CBD5E1'}
+                          />
+                        ))}
+                      </div>
+                      <span className="itv-review-count-text">{reviewCount} đánh giá</span>
                     </div>
-                    <span className="itv-review-count-text">{reviewCount} đánh giá</span>
                   </div>
-                </div>
+                ) : (
+                  <div className="itv-rating-top">
+                    <span className="itv-review-count-text">Chưa có đánh giá</span>
+                  </div>
+                )}
 
-                <div className="itv-recommend-stat">
-                  <span className="itv-recommend-percent">{recommendRate}%</span>
-                  <span className="itv-recommend-label">Khuyến khích làm việc ở đây</span>
-                </div>
-
-                
+                {recommendRate > 0 && (
+                  <div className="itv-recommend-stat">
+                    <span className="itv-recommend-percent">{recommendRate}%</span>
+                    <span className="itv-recommend-label">Khuyến khích làm việc ở đây</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>

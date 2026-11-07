@@ -351,9 +351,7 @@ export const CandidateDashboardPage = () => {
   };
 
   // Tab Đăng ký email state
-  const [registeredAlerts, setRegisteredAlerts] = useState([
-    { id: 1, text: 'github java mysql tại TP Hồ Chí Minh', active: true }
-  ]);
+  const [registeredAlerts, setRegisteredAlerts] = useState([]);
   const [newKeyword, setNewKeyword] = useState('');
   const [newLocation, setNewLocation] = useState('TP Hồ Chí Minh');
 
@@ -1598,7 +1596,12 @@ export const CandidateDashboardPage = () => {
                 </form>
 
                 <div className="itv-registered-alerts-list">
-                  {registeredAlerts.map((alert, idx) => (
+                  {registeredAlerts.length === 0 ? (
+                    <p style={{ color: '#64748B', fontStyle: 'italic', margin: '14px 0' }}>
+                      Bạn chưa đăng ký nhận thông báo việc làm nào qua email.
+                    </p>
+                  ) : (
+                    registeredAlerts.map((alert, idx) => (
                     <div key={alert.id} className="itv-alert-item-row">
                       <span className="itv-alert-text">
                         <strong>{idx + 1}.</strong> {alert.text}
@@ -1630,7 +1633,8 @@ export const CandidateDashboardPage = () => {
                         </button>
                       </div>
                     </div>
-                  ))}
+                  ))
+                )}
                 </div>
               </section>
 

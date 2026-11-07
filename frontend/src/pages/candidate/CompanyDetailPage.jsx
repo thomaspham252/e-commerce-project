@@ -220,9 +220,9 @@ export const CompanyDetailPage = () => {
   const companyName = company.name || 'Công ty Công nghệ';
   const companyLogo = company.logo || company.logoUrl || null;
   const companyInitials = company.initials || companyName.slice(0, 3).toUpperCase();
-  const ratingScore = company.rating ? Number(company.rating) : 4.8;
+  const ratingScore = company.rating ? Number(company.rating) : 0;
   const reviewCount = company.reviewCount || (company.reviews ? company.reviews.length : 0);
-  const recommendRate = company.recommendRate || 99;
+  const recommendRate = company.recommendRate ? Number(company.recommendRate) : 0;
   const openJobs = company.openJobs || [];
   const openJobsCount = company.openJobsCount || openJobs.length;
   const reviews = company.reviews || [];
@@ -233,15 +233,15 @@ export const CompanyDetailPage = () => {
 
   const totalReviewsPages = Math.ceil(reviews.length / reviewsPerPage) || 1;
   const paginatedReviews = reviews.slice((reviewsPage - 1) * reviewsPerPage, reviewsPage * reviewsPerPage);
-  const offices = company.offices || [
-    {
-      city: 'Trụ sở chính',
-      address: company.address || 'Hà Nội & TP. HCM, Việt Nam',
-      isPrimary: true,
-      lat: 10.8542,
-      lng: 106.7865,
-    },
-  ];
+  const offices = Array.isArray(company.offices) && company.offices.length > 0
+    ? company.offices
+    : [
+        {
+          city: 'Trụ sở chính',
+          address: company.address || 'Chưa cập nhật địa chỉ',
+          isPrimary: true,
+        },
+      ];
   const currentOffice = offices[activeOfficeIdx] || offices[0];
 
   return (
@@ -358,27 +358,38 @@ export const CompanyDetailPage = () => {
               </div>
             </div>
 
-            {/* Cột phải: Khối đánh giá & Giải thưởng nổi bật (GIỐNG HỆT ẢNH NGƯỜI DÙNG) */}
+            {/* Cột phải: Khối đánh giá nổi bật nếu có */}
             <div className="itv-hero-right">
               <div className="itv-rating-box">
-                <div className="itv-rating-top">
-                  <span className="itv-rating-number">{ratingScore.toFixed(1)}</span>
-                  <div className="itv-stars-group">
-                    <div className="itv-stars-row">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <Star key={star} size={15} fill="#F59E0B" color="#F59E0B" />
-                      ))}
+                {ratingScore > 0 ? (
+                  <div className="itv-rating-top">
+                    <span className="itv-rating-number">{ratingScore.toFixed(1)}</span>
+                    <div className="itv-stars-group">
+                      <div className="itv-stars-row">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Star
+                            key={star}
+                            size={15}
+                            fill={ratingScore >= star ? '#F59E0B' : '#E2E8F0'}
+                            color={ratingScore >= star ? '#F59E0B' : '#CBD5E1'}
+                          />
+                        ))}
+                      </div>
+                      <span className="itv-review-count-text">{reviewCount} đánh giá</span>
                     </div>
-                    <span className="itv-review-count-text">{reviewCount} đánh giá</span>
                   </div>
-                </div>
+                ) : (
+                  <div className="itv-rating-top">
+                    <span className="itv-review-count-text">Chưa có đánh giá</span>
+                  </div>
+                )}
 
-                <div className="itv-recommend-stat">
-                  <span className="itv-recommend-percent">{recommendRate}%</span>
-                  <span className="itv-recommend-label">Khuyến khích làm việc ở đây</span>
-                </div>
-
-                
+                {recommendRate > 0 && (
+                  <div className="itv-recommend-stat">
+                    <span className="itv-recommend-percent">{recommendRate}%</span>
+                    <span className="itv-recommend-label">Khuyến khích làm việc ở đây</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -468,13 +479,13 @@ export const CompanyDetailPage = () => {
                 Về {companyName}
               </h2>
               <div className="itv-prose">
-                <p>
-                  {company.description ||
-                    `${companyName} là doanh nghiệp hàng đầu trong lĩnh vực ${company.industry || 'công nghệ thông tin'}, chuyên cung cấp giải pháp sáng tạo và sản phẩm chất lượng cao đến hàng triệu người dùng.`}
-                </p>
-                <p>
-                  Tại {companyName}, chúng tôi tin rằng con người là tài sản quý giá nhất. Công ty cam kết xây dựng một môi trường làm việc cởi mở, minh bạch, đề cao tinh thần học hỏi không ngừng và trao quyền tự chủ tối đa cho từng thành viên.
-                </p>
+                {company.description ? (
+                  <p>{company.description}</p>
+                ) : (
+                  <p style={{ color: '#64748B', fontStyle: 'italic' }}>
+                    Doanh nghiệp chưa cập nhật thông tin giới thiệu chi tiết.
+                  </p>
+                )}
               </div>
             </section>
 
