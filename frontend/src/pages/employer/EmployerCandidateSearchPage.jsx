@@ -52,7 +52,7 @@ export const EmployerCandidateSearchPage = () => {
         keyword: keyword.trim() || undefined,
         location: location.trim() || undefined,
         page: p,
-        size: 9,
+        size: 6,
       });
       setCandidates(res.content || []);
       setPage(res.page || 0);

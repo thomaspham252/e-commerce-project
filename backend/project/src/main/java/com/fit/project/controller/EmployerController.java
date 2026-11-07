@@ -114,7 +114,7 @@ public class EmployerController {
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String location,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "6") int size
     ) {
         org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(
                 Math.max(0, page),
@@ -173,7 +173,7 @@ public class EmployerController {
             @RequestParam(required = false) String sentiment,
             @RequestParam(required = false) String keyword,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "6") int size
     ) {
         return companyPublicService.getEmployerReviews(employer(userId).getId(), rating, replyStatus, sentiment, keyword, page, size);
     }
