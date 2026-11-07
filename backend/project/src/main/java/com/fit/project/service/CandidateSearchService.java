@@ -4,6 +4,7 @@ import com.fit.project.dto.candidate.CandidateCvResponse;
 import com.fit.project.dto.common.PageResponse;
 import com.fit.project.dto.employer.CandidateDetailResponse;
 import com.fit.project.dto.employer.CandidateSummaryResponse;
+import com.fit.project.entity.CandidateBenefitGrant;
 import com.fit.project.entity.CandidateProfile;
 import com.fit.project.entity.CandidateProfileView;
 import com.fit.project.entity.Subscription;
@@ -19,6 +20,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -29,6 +32,7 @@ public class CandidateSearchService {
     private final SubscriptionRepository subscriptionRepository;
     private final ApplicationRepository applicationRepository;
     private final CvRepository cvRepository;
+    private final CandidateBenefitGrantRepository candidateBenefitGrantRepository;
 
     @Transactional(readOnly = true)
     public PageResponse<CandidateSummaryResponse> searchCandidates(User employer, String keyword, String location, Pageable pageable) {
@@ -44,7 +48,12 @@ public class CandidateSearchService {
         String kw = QueryUtils.likePattern(keyword);
         String loc = QueryUtils.likePattern(location);
 
-        Page<CandidateProfile> page = candidateProfileRepository.searchCandidates(kw, loc, pageable);
+        Page<CandidateProfile> page = candidateProfileRepository.searchCandidates(kw, loc, now, pageable);
+
+        List<Integer> userIds = page.getContent().stream().map(CandidateProfile::getUserId).toList();
+        Map<Integer, CandidateBenefitGrant> grantMap = userIds.isEmpty() ? Map.of()
+                : candidateBenefitGrantRepository.findByUserIdIn(userIds).stream()
+                .collect(Collectors.toMap(CandidateBenefitGrant::getUserId, g -> g));
 
         return PageResponse.of(page, cp -> {
             boolean isUnlocked = applicationRepository.existsByJobCompanyOwnerIdAndCandidateUserId(employer.getId(), cp.getUserId())
@@ -60,6 +69,11 @@ public class CandidateSearchService {
                     .map(com.fit.project.entity.Cv::getFileName)
                     .orElse("CV đính kèm (PDF)");
 
+            CandidateBenefitGrant grant = grantMap.get(cp.getUserId());
+            boolean isFeatured = grant != null && grant.getFeaturedBadgeExpireAt() != null && grant.getFeaturedBadgeExpireAt().isAfter(now);
+            boolean isBoosted = grant != null && grant.getBoostCvExpireAt() != null && grant.getBoostCvExpireAt().isAfter(now);
+            boolean isPrioritized = grant != null && grant.getPriorityDisplayExpireAt() != null && grant.getPriorityDisplayExpireAt().isAfter(now);
+
             return new CandidateSummaryResponse(
                     cp.getUserId(),
                     cp.getFullName(),
@@ -71,7 +85,10 @@ public class CandidateSearchService {
                     "Chuyên viên",
                     email,
                     phone,
-                    cvFileName
+                    cvFileName,
+                    isFeatured,
+                    isBoosted,
+                    isPrioritized
             );
         });
     }

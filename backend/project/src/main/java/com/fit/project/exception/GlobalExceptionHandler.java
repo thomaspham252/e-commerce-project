@@ -1,5 +1,6 @@
 package com.fit.project.exception;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -11,6 +12,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -35,6 +37,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<Map<String, Object>> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
         return body(HttpStatus.BAD_REQUEST, "Giá trị tham số '" + ex.getName() + "' không hợp lệ", null);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Map<String, Object>> handleGeneral(Exception ex) {
+        log.error("Lỗi hệ thống chưa được phân loại: ", ex);
+        return body(HttpStatus.INTERNAL_SERVER_ERROR, "Đã có lỗi xảy ra trong quá trình xử lý hệ thống", null);
     }
 
     private ResponseEntity<Map<String, Object>> body(HttpStatus status, String message, Object errors) {

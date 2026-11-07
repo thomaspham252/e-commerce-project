@@ -81,6 +81,7 @@ import {
 import { uploadService } from '../../services/uploadService';
 import { candidateService } from '../../services/candidateService';
 import { FileUploadField } from '../../components/common/FileUploadField';
+import { CandidateBenefitLimitModal } from '../../components/candidate/CandidateBenefitLimitModal';
 import './CandidateDashboardPage.css';
 
 export const CandidateDashboardPage = () => {
@@ -199,6 +200,7 @@ export const CandidateDashboardPage = () => {
   const [inputMessage, setInputMessage] = useState('');
   const [isSendingMsg, setIsSendingMsg] = useState(false);
   const [totalUnreadChat, setTotalUnreadChat] = useState(0);
+  const [showBenefitModal, setShowBenefitModal] = useState(false);
   const cardContainerRef = useRef(null);
   const quickQuestionsRef = useRef(null);
   const timelinePaneRef = useRef(null);
@@ -218,17 +220,22 @@ export const CandidateDashboardPage = () => {
       const jobIdParam = searchParams.get('jobId');
       const jobParam = searchParams.get('jobTitle');
       if (companyParam || companyIdParam) {
-        const targetConv = await getOrCreateCandidateConversation({
-          companyId: companyIdParam ? parseInt(companyIdParam, 10) : undefined,
-          jobId: jobIdParam ? parseInt(jobIdParam, 10) : undefined,
-          companyName: companyParam || 'Doanh nghiệp tuyển dụng',
-          jobTitle: jobParam || 'Vị trí tuyển dụng'
-        });
-        if (targetConv && targetConv.id) {
-          setActiveConvId(targetConv.id);
+        try {
+          const targetConv = await getOrCreateCandidateConversation({
+            companyId: companyIdParam ? parseInt(companyIdParam, 10) : undefined,
+            jobId: jobIdParam ? parseInt(jobIdParam, 10) : undefined,
+            companyName: companyParam || 'Doanh nghiệp tuyển dụng',
+            jobTitle: jobParam || 'Vị trí tuyển dụng'
+          });
+          if (targetConv && targetConv.id) {
+            setActiveConvId(targetConv.id);
+          }
+          const updated = await refreshConversations();
+          setConversations(updated);
+        } catch (err) {
+          console.warn('Yêu cầu combo tiện ích để mở khóa liên hệ NTD:', err);
+          setShowBenefitModal(true);
         }
-        const updated = await refreshConversations();
-        setConversations(updated);
       } else if (!activeConvId && list.length > 0) {
         setActiveConvId(list[0].id);
       }
@@ -341,6 +348,12 @@ export const CandidateDashboardPage = () => {
       await refreshConversations();
     } catch (err) {
       console.error('Lỗi khi gửi tin nhắn:', err);
+      const msg = err.response?.data?.message || err.message || '';
+      if (err.response?.status === 403 || msg.includes('PACKAGE_REQUIRED')) {
+        setShowBenefitModal(true);
+      } else {
+        alert('Không thể gửi tin nhắn: ' + msg);
+      }
     } finally {
       setIsSendingMsg(false);
     }
@@ -1954,6 +1967,12 @@ export const CandidateDashboardPage = () => {
           <span>{toastMessage}</span>
         </div>
       )}
+
+      {/* MODAL KHÓA QUYỀN LỢI TIỆN ÍCH CHO ỨNG VIÊN */}
+      <CandidateBenefitLimitModal
+        isOpen={showBenefitModal}
+        onClose={() => setShowBenefitModal(false)}
+      />
     </div>
   );
 };

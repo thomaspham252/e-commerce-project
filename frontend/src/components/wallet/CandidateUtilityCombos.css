@@ -1,0 +1,431 @@
+/* ==========================================================================
+   CandidateUtilityCombos.css
+   Style cho Bảng Giá Combo Tiện Ích Ứng Tuyển trong trang Ví Token
+   ========================================================================== */
+
+.candidate-utility-combos-container {
+  width: 100%;
+  padding: 0.5rem 0 2rem 0;
+}
+
+/* 1. Header */
+.utility-combos-header {
+  text-align: left;
+  margin-bottom: 1.5rem;
+}
+
+.utility-combos-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 0.35rem 0;
+  letter-spacing: -0.01em;
+}
+
+.utility-combos-subtitle {
+  font-size: 0.875rem;
+  color: #4b5563;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Thanh quyền lợi đang kích hoạt */
+.utility-active-benefits-bar {
+  margin-top: 1rem;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 6px;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.active-benefits-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #166534;
+}
+
+.active-benefits-tags {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.active-tag {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
+.tag-boost {
+  background: #e0f2fe;
+  color: #0369a1;
+  border: 1px solid #bae6fd;
+}
+
+.tag-badge {
+  background: #fef3c7;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+
+.tag-priority {
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.tag-quota {
+  background: #f3e8ff;
+  color: #7e22ce;
+  border: 1px solid #e9d5ff;
+}
+
+.active-tag-manage-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #0284c7;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.active-tag-manage-btn:hover {
+  background: #0369a1;
+}
+
+.utility-empty-benefits-bar {
+  max-width: 820px;
+  margin: 1.5rem auto 0 auto;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 12px;
+  padding: 12px 20px;
+  text-align: center;
+  font-size: 13.5px;
+  color: #64748b;
+}
+
+/* 2. Lưới thẻ Combo (Desktop: 3 cột đều) */
+.utility-combos-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+  align-items: stretch;
+}
+
+/* Thẻ Combo */
+.utility-combo-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  padding: 1.75rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.utility-combo-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+}
+
+/* Thẻ nổi bật ở giữa */
+.utility-combo-card--featured {
+  border: 2px solid #0284c7;
+  box-shadow: 0 10px 25px -5px rgba(2, 132, 199, 0.12), 0 8px 10px -6px rgba(2, 132, 199, 0.06);
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+}
+
+.utility-combo-card--featured:hover {
+  box-shadow: 0 14px 30px -5px rgba(2, 132, 199, 0.18), 0 10px 12px -6px rgba(2, 132, 199, 0.08);
+}
+
+/* Nhãn định vị */
+.utility-combo-badge-wrapper {
+  margin-bottom: 0.75rem;
+}
+
+.combo-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.25rem 0.65rem;
+  border-radius: 6px;
+}
+
+.combo-tag--standard {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.combo-tag--featured {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.combo-tag .tag-icon {
+  color: #0284c7;
+}
+
+/* Tên combo */
+.combo-name {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 1rem 0;
+}
+
+/* Khu vực Giá Token */
+.combo-price-block {
+  margin-bottom: 0.5rem;
+}
+
+.combo-price-main {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+}
+
+.combo-price-token {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1;
+}
+
+.combo-price-unit {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+.combo-original-price {
+  font-size: 1.1rem;
+  color: #94a3b8;
+  text-decoration: line-through;
+  margin-left: 0.35rem;
+  font-weight: 500;
+}
+
+/* Badge tiết kiệm tự động tính */
+.combo-savings-badge {
+  display: inline-block;
+  margin-top: 0.4rem;
+  background-color: #ecfdf5;
+  color: #059669;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 0.2rem 0.6rem;
+  border-radius: 9999px;
+  border: 1px solid #a7f3d0;
+}
+
+/* Giá quy đổi tương đương VNĐ */
+.combo-vnd-conversion {
+  font-size: 0.85rem;
+  color: #64748b;
+  margin-bottom: 1.25rem;
+}
+
+.combo-vnd-conversion strong {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+/* Phân cách */
+.combo-divider {
+  height: 1px;
+  background-color: #f1f5f9;
+  margin-bottom: 1.25rem;
+}
+
+/* Danh sách quyền lợi */
+.combo-benefits-section {
+  flex: 1;
+  margin-bottom: 1.5rem;
+}
+
+.combo-benefits-title {
+  font-size: 0.825rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin: 0 0 0.75rem 0;
+}
+
+.combo-benefits-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.combo-benefit-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  font-size: 0.9rem;
+  color: #334155;
+  line-height: 1.45;
+}
+
+.benefit-check-icon {
+  color: #10b981;
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+}
+
+/* Nút bấm mua combo */
+.combo-action-footer {
+  margin-top: auto;
+}
+
+.btn-combo-buy {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  border-radius: 0.65rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: 0.01em;
+}
+
+.btn-combo-buy--primary {
+  background-color: #0284c7;
+  color: #ffffff;
+}
+
+.btn-combo-buy--primary:hover {
+  background-color: #0369a1;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
+}
+
+.btn-combo-buy--black {
+  background-color: #0f172a;
+  color: #ffffff;
+}
+
+.btn-combo-buy--black:hover {
+  background-color: #1e293b;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.35);
+}
+
+/* 3. Khối thông tin bổ trợ */
+.utility-combos-policies-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.utility-policy-card {
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.85rem;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.policy-icon-wrapper {
+  width: 44px;
+  height: 44px;
+  border-radius: 0.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.policy-icon-wrapper--shield {
+  background-color: #ecfdf5;
+  color: #059669;
+}
+
+.policy-icon-wrapper--refresh {
+  background-color: #eff6ff;
+  color: #2563eb;
+}
+
+.policy-content {
+  flex: 1;
+}
+
+.policy-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 0.35rem 0;
+}
+
+.policy-description {
+  font-size: 0.85rem;
+  color: #64748b;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* 4. Responsive Media Queries */
+@media (max-width: 992px) {
+  .utility-combos-grid {
+    grid-template-columns: 1fr;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .utility-combos-policies-grid {
+    grid-template-columns: 1fr;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+@media (max-width: 640px) {
+  .utility-combos-title {
+    font-size: 1.5rem;
+  }
+
+  .utility-combo-card {
+    padding: 1.5rem 1.25rem;
+  }
+
+  .combo-price-token {
+    font-size: 2.15rem;
+  }
+}
+

@@ -288,17 +288,29 @@ export const EmployerCandidateSearchPage = () => {
                     <div className="cand-header-meta">
                       <div className="cand-name-row">
                         <h3 className="cand-name" title={cand.fullName}>{cand.fullName}</h3>
-                        <span className={`cand-status-badge ${cand.isUnlocked ? 'is-unlocked' : 'is-locked'}`}>
-                          {cand.isUnlocked ? (
-                            <>
-                              <FiUnlock size={13} /> Đã mở khóa
-                            </>
-                          ) : (
-                            <>
-                              <FiLock size={13} /> Chưa mở khóa
-                            </>
+                        <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
+                          {cand.isFeatured && (
+                            <span className="cand-featured-tag" title="Ứng viên đã kích hoạt Huy hiệu nổi bật">
+                              ⭐ Nổi bật
+                            </span>
                           )}
-                        </span>
+                          {(cand.isBoosted || cand.isPrioritized) && (
+                            <span className="cand-boosted-tag" title="Ứng viên được ưu tiên đẩy top hồ sơ">
+                              ⚡ Đẩy Top
+                            </span>
+                          )}
+                          <span className={`cand-status-badge ${cand.isUnlocked ? 'is-unlocked' : 'is-locked'}`}>
+                            {cand.isUnlocked ? (
+                              <>
+                                <FiUnlock size={13} /> Đã mở khóa
+                              </>
+                            ) : (
+                              <>
+                                <FiLock size={13} /> Chưa mở khóa
+                              </>
+                            )}
+                          </span>
+                        </div>
                       </div>
                       <div className="cand-subline">
                         <span className="cand-subline-item">

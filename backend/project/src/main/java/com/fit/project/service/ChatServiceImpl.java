@@ -1,6 +1,8 @@
 package com.fit.project.service;
 
 import com.fit.project.dto.chat.*;
+import com.fit.project.entity.CandidateBenefitGrant;
+import com.fit.project.entity.CandidateUnlockedCompany;
 import com.fit.project.entity.ChatMessage;
 import com.fit.project.entity.Company;
 import com.fit.project.entity.Conversation;
@@ -32,6 +34,8 @@ public class ChatServiceImpl implements ChatService {
     private final SubscriptionRepository subscriptionRepository;
     private final ApplicationRepository applicationRepository;
     private final CandidateProfileViewRepository candidateProfileViewRepository;
+    private final CandidateBenefitGrantRepository candidateBenefitGrantRepository;
+    private final CandidateUnlockedCompanyRepository candidateUnlockedCompanyRepository;
 
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
 
@@ -98,6 +102,28 @@ public class ChatServiceImpl implements ChatService {
                         || candidateProfileViewRepository.existsByViewedByIdAndCandidateUserId(caller.getId(), candidate.getId());
                 if (!inScope) {
                     throw new ApiException(HttpStatus.FORBIDDEN, "OUT_OF_SCOPE: Chỉ có thể chủ động liên hệ ứng viên đã ứng tuyển vào tin của công ty hoặc đã được mở khóa hồ sơ.");
+                }
+            } else {
+                // Kiểm tra phân quyền nếu ỨNG VIÊN là người chủ động khởi tạo hội thoại mới với công ty
+                boolean companyUnlocked = candidateUnlockedCompanyRepository.existsByCandidateUserIdAndCompanyId(
+                        caller.getId(), Long.valueOf(company.getId()));
+                if (!companyUnlocked) {
+                    CandidateBenefitGrant grant = candidateBenefitGrantRepository.findByUserIdForUpdate(caller.getId())
+                            .orElseThrow(() -> new ApiException(HttpStatus.FORBIDDEN, "PACKAGE_REQUIRED: Bạn cần mua combo tiện ích (Liên hệ nhanh hoặc Toàn diện) để mở khóa liên hệ và nhắn tin với Nhà tuyển dụng."));
+
+                    if (grant.getContactUnlockQuota() == null || grant.getContactUnlockQuota() <= 0) {
+                        throw new ApiException(HttpStatus.FORBIDDEN, "PACKAGE_REQUIRED: Bạn đã dùng hết số lượt liên hệ với Nhà tuyển dụng. Vui lòng mua thêm combo tiện ích để tiếp tục.");
+                    }
+
+                    grant.setContactUnlockQuota(grant.getContactUnlockQuota() - 1);
+                    candidateBenefitGrantRepository.save(grant);
+
+                    CandidateUnlockedCompany unlocked = CandidateUnlockedCompany.builder()
+                            .candidateUserId(caller.getId())
+                            .companyId(Long.valueOf(company.getId()))
+                            .unlockedAt(LocalDateTime.now())
+                            .build();
+                    candidateUnlockedCompanyRepository.save(unlocked);
                 }
             }
 
@@ -169,6 +195,30 @@ public class ChatServiceImpl implements ChatService {
 
         if (senderUserId.equals(conv.getCandidate().getId())) {
             senderType = "CANDIDATE";
+            boolean employerHasSent = chatMessageRepository.existsByConversationIdAndSenderType(conv.getId(), "EMPLOYER");
+            if (!employerHasSent) {
+                // NTD chưa từng gửi tin nhắn nào trong hội thoại này (ứng viên chủ động nhắn tin trước)
+                boolean companyUnlocked = candidateUnlockedCompanyRepository.existsByCandidateUserIdAndCompanyId(
+                        sender.getId(), Long.valueOf(conv.getCompany().getId()));
+                if (!companyUnlocked) {
+                    CandidateBenefitGrant grant = candidateBenefitGrantRepository.findByUserIdForUpdate(sender.getId())
+                            .orElseThrow(() -> new ApiException(HttpStatus.FORBIDDEN, "PACKAGE_REQUIRED: Bạn cần mua combo tiện ích (Liên hệ nhanh hoặc Toàn diện) để mở khóa liên hệ và nhắn tin với Nhà tuyển dụng."));
+
+                    if (grant.getContactUnlockQuota() == null || grant.getContactUnlockQuota() <= 0) {
+                        throw new ApiException(HttpStatus.FORBIDDEN, "PACKAGE_REQUIRED: Bạn đã dùng hết số lượt liên hệ với Nhà tuyển dụng. Vui lòng mua thêm combo tiện ích để tiếp tục.");
+                    }
+
+                    grant.setContactUnlockQuota(grant.getContactUnlockQuota() - 1);
+                    candidateBenefitGrantRepository.save(grant);
+
+                    CandidateUnlockedCompany unlocked = CandidateUnlockedCompany.builder()
+                            .candidateUserId(sender.getId())
+                            .companyId(Long.valueOf(conv.getCompany().getId()))
+                            .unlockedAt(now)
+                            .build();
+                    candidateUnlockedCompanyRepository.save(unlocked);
+                }
+            }
             conv.setEmployerUnreadCount(conv.getEmployerUnreadCount() + 1);
         } else {
             senderType = "EMPLOYER";

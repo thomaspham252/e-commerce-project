@@ -9,6 +9,7 @@ import { MessageTimeline } from '../../components/employer/messages/MessageTimel
 import { QuickRepliesBar } from '../../components/employer/messages/QuickRepliesBar';
 import { MessageInput } from '../../components/employer/messages/MessageInput';
 import { toast } from 'react-toastify';
+import { PackageLimitModal } from '../../components/employer/PackageLimitModal';
 import './EmployerMessagesPage.css';
 
 /**
@@ -109,6 +110,22 @@ export const EmployerMessagesPage = () => {
   const handleViewProfile = () => {
     navigate('/employer/applications');
   };
+
+  // Nếu NTD chưa mua gói có quyền realtime chat, hiển thị ngay modal khóa tính năng và không mở trang chat
+  if (subscription && !subscription.allowRealtimeChat) {
+    return (
+      <div className="employer-messages-locked-page" style={{ padding: '40px 20px', textAlign: 'center' }}>
+        <PackageLimitModal
+          isOpen={true}
+          onClose={() => navigate('/employer/dashboard')}
+          reason="NO_PERMISSION"
+          customTitle="Yêu Cầu Mua Gói Dịch Vụ Nhà Tuyển Dụng"
+          customMessage="Tính năng nhắn tin trực tiếp với ứng viên chỉ áp dụng cho Nhà tuyển dụng đã đăng ký Gói Dịch Vụ (Tiêu chuẩn hoặc Chuyên nghiệp). Vui lòng nâng cấp gói để mở khóa kênh liên hệ này!"
+          currentSubscription={subscription}
+        />
+      </div>
+    );
+  }
 
   return (
     <div
