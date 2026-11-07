@@ -42,7 +42,10 @@ public record JobResponse(
         LocalDateTime updatedAt,
         Long applicationCount,
         Integer matchPercentage,
-        List<String> matchedSkills
+        List<String> matchedSkills,
+        String moderationLabel,
+        Double moderationScore,
+        String moderationReasons
 ) {
     public static JobResponse of(Job j, boolean effectiveHighlighted, boolean effectivePrioritized, boolean isTopEmployer,
                                  Long applicationCount, Integer matchPercentage, List<String> matchedSkills) {
@@ -79,7 +82,10 @@ public record JobResponse(
                 j.getUpdatedAt(),
                 applicationCount,
                 matchPercentage,
-                matchedSkills
+                matchedSkills,
+                j.getModerationLabel(),
+                j.getModerationScore(),
+                j.getModerationReasons()
         );
     }
 

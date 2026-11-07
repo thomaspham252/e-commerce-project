@@ -44,6 +44,7 @@ public class EmployerService {
     private final ApplicationRepository applicationRepository;
     private final EmployerSubscriptionService subscriptionService;
     private final SubscriptionRepository subscriptionRepository;
+    private final JobModerationService jobModerationService;
 
     // ===== Doanh nghiệp =====
 
@@ -120,6 +121,7 @@ public class EmployerService {
                 .build();
         applyRequest(job, req, activeSub);
         job.setStatus(JobStatus.PENDING_REVIEW);
+        jobModerationService.evaluateJob(job);
         return JobResponse.of(jobRepository.save(job));
     }
 
@@ -137,6 +139,7 @@ public class EmployerService {
         job.setRejectionReason(null);
         job.setReviewedAt(null);
         job.setReviewedBy(null);
+        jobModerationService.evaluateJob(job);
         return JobResponse.of(job);
     }
 

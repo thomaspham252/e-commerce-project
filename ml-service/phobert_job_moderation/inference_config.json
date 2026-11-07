@@ -1,0 +1,29 @@
+{
+  "base_model": "vinai/phobert-base-v2",
+  "labels": [
+    "an_toan",
+    "nghi_van",
+    "nguy_co_cao"
+  ],
+  "max_len": 256,
+  "segmenter": "pyvi",
+  "t_safe": 0.8,
+  "t_high": 0.5,
+  "hard_rules": {
+    "Thu phí / đặt cọc từ ứng viên": "(nộp|đóng|chuyển|thu)\\s+(phí|tiền)|đặt cọc|tiền cọc|phí (hồ sơ|đào tạo|giữ chỗ|môi giới)",
+    "Yêu cầu OTP / mật khẩu": "\\botp\\b|mật khẩu|mã xác (nhận|minh)",
+    "Thuê / mượn tài khoản, nhận tiền hộ": "(thuê|mượn).{0,20}tài khoản|nhận tiền (chuyển khoản )?hộ|thu hộ",
+    "Nhiệm vụ hoàn tiền / ứng tiền": "nhiệm vụ.{0,80}(hoàn tiền|hoa hồng)|ứng tiền|nạp (trước|tiền)",
+    "Đa cấp / cam kết lợi nhuận": "cam kết lợi nhuận|hoa hồng (đa tầng|từ tuyến dưới)|gói thành viên|bảo toàn vốn",
+    "Giữ hộ chiếu / giấy tờ gốc": "giữ (hộ )?(hộ chiếu|giấy tờ|cccd gốc)|giao (hộ chiếu|cccd gốc)",
+    "Công việc bất hợp pháp (hack, spam, bypass OTP, mua bán dữ liệu)": "tool hack|chiếm quyền tài khoản|giả danh ngân hàng|bypass otp|vượt xác thực otp|mua bán dữ liệu|web casino|web cá cược|cá cược|casino|đọc danh bạ người vay",
+    "Test thanh toán bằng tài khoản cá nhân": "test cổng thanh toán.{0,60}(tài khoản|hoa hồng)|nhận tiền chuyển khoản thật",
+    "Cờ bạc / đòi nợ": "đòi nợ|thu hồi nợ"
+  },
+  "soft_rules": {
+    "Liên hệ qua Zalo/Telegram cá nhân": "zalo|telegram|(?<![\\w.])@\\w+",
+    "Không cần phỏng vấn / nhận việc ngay": "không cần phỏng vấn|nhận việc ngay|đi làm ngay",
+    "Thu nhập không giới hạn / thụ động": "không giới hạn|thụ động|tự do tài chính|việc nhẹ lương cao",
+    "Gửi CCCD qua tin nhắn": "(gửi|chụp).{0,25}(cccd|cmnd)"
+  }
+}
