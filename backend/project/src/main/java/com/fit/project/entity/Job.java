@@ -91,6 +91,15 @@ public class Job {
     @Column(name = "rejection_reason", columnDefinition = "TEXT")
     private String rejectionReason;
 
+    @Column(name = "moderation_label", length = 50)
+    private String moderationLabel;
+
+    @Column(name = "moderation_score")
+    private Double moderationScore;
+
+    @Column(name = "moderation_reasons", columnDefinition = "TEXT")
+    private String moderationReasons;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 

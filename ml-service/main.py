@@ -18,6 +18,8 @@ from sklearn.metrics.pairwise import cosine_similarity
 import torch
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
+from job_moderator import moderator
+
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("JobPortalML")
@@ -325,6 +327,16 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.error("Failed to load sentiment model at startup: %s", str(e), exc_info=True)
 
+    # 3. Load PhoBERT Job Moderation Model
+    try:
+        m_ok = moderator.load_model()
+        if m_ok:
+            logger.info("PhoBERT Job Moderation Model startup complete.")
+        else:
+            logger.warning("PhoBERT Job Moderation Model could not be loaded at startup.")
+    except Exception as e:
+        logger.error("Failed to load job moderation model at startup: %s", str(e), exc_info=True)
+
     yield
     logger.info("JobPortal ML Service shutting down.")
 
@@ -363,6 +375,11 @@ def health_check():
             "ready": sentiment_store.is_ready,
             "device": sentiment_store.device,
             "labels": list(sentiment_store.model.config.id2label.values()) if sentiment_store.is_ready else []
+        },
+        "job_moderator": {
+            "ready": moderator.is_ready,
+            "device": moderator.device,
+            "labels": list(moderator.model.config.id2label.values()) if moderator.is_ready and moderator.model else []
         }
     }
 
@@ -471,6 +488,155 @@ def label_database_reviews():
     except Exception as e:
         logger.error("DB labeling error: %s", str(e), exc_info=True)
         raise HTTPException(status_code=500, detail=f"DB labeling failed: {str(e)}")
+
+
+# --- Job Moderation & Scam Detection Endpoints ---
+
+class JobModerationRequest(BaseModel):
+    title: str
+    description: Optional[str] = ""
+    requirements: Optional[str] = ""
+    level: Optional[str] = ""
+    salary_min: Optional[float] = None
+    salary_max: Optional[float] = None
+
+
+@app.post("/api/moderation/predict")
+def predict_job_moderation(req: JobModerationRequest):
+    """
+    Evaluates a job posting using Rule Heuristics + PhoBERT deep sequence classification.
+    Returns:
+    - label: 'an_toan' (clean), 'nghi_van' (suspicious), or 'nguy_co_cao' (high risk)
+    - score: float confidence score (0.0 - 1.0)
+    - reasons: human-readable explanation of matched violations
+    - probabilities: raw class probabilities dict
+    """
+    if not moderator.is_ready:
+        ok = moderator.load_model()
+        if not ok:
+            logger.warning("Job moderation model not ready, using heuristic fallback.")
+
+    try:
+        return moderator.predict(
+            title=req.title,
+            description=req.description,
+            requirements=req.requirements,
+            level=req.level,
+            salary_min=req.salary_min,
+            salary_max=req.salary_max
+        )
+    except Exception as e:
+        logger.error("Job moderation prediction error: %s", str(e), exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Moderation failed: {str(e)}")
+
+
+@app.post("/api/moderation/label-db-jobs")
+def label_database_jobs(only_pending: bool = False):
+    """
+    Scans MySQL jobs, ensures columns (moderation_label, moderation_score, moderation_reasons) exist,
+    and predicts moderation labels for all jobs in database.
+    """
+    if not moderator.is_ready:
+        moderator.load_model()
+
+    conn = pymysql.connect(
+        host=DB_HOST,
+        port=DB_PORT,
+        user=DB_USERNAME,
+        password=DB_PASSWORD,
+        database=DB_NAME,
+        charset="utf8mb4",
+        cursorclass=pymysql.cursors.DictCursor
+    )
+    try:
+        with conn.cursor() as cursor:
+            # 1. Ensure columns exist
+            cursor.execute("DESCRIBE jobs")
+            existing_cols = [c["Field"] for c in cursor.fetchall()]
+
+            if "moderation_label" not in existing_cols:
+                logger.info("Adding column 'moderation_label' to jobs...")
+                cursor.execute("ALTER TABLE jobs ADD COLUMN moderation_label VARCHAR(50) DEFAULT NULL")
+                conn.commit()
+
+            if "moderation_score" not in existing_cols:
+                logger.info("Adding column 'moderation_score' to jobs...")
+                cursor.execute("ALTER TABLE jobs ADD COLUMN moderation_score DOUBLE DEFAULT NULL")
+                conn.commit()
+
+            if "moderation_reasons" not in existing_cols:
+                logger.info("Adding column 'moderation_reasons' to jobs...")
+                cursor.execute("ALTER TABLE jobs ADD COLUMN moderation_reasons TEXT DEFAULT NULL")
+                conn.commit()
+
+            # 2. Select jobs
+            sql = "SELECT id, title, description, requirements, level, salary_min, salary_max, status FROM jobs"
+            if only_pending:
+                sql += " WHERE status = 'pending_review'"
+            sql += " ORDER BY id ASC"
+
+            cursor.execute(sql)
+            jobs = cursor.fetchall()
+
+            counts = {"an_toan": 0, "nghi_van": 0, "nguy_co_cao": 0}
+            updated_items = []
+
+            for j in jobs:
+                j_id = j["id"]
+                title = j.get("title") or ""
+                desc = j.get("description") or ""
+                req = j.get("requirements") or ""
+                lvl = j.get("level") or ""
+                s_min = float(j["salary_min"]) if j.get("salary_min") else None
+                s_max = float(j["salary_max"]) if j.get("salary_max") else None
+
+                res = moderator.predict(
+                    title=title,
+                    description=desc,
+                    requirements=req,
+                    level=lvl,
+                    salary_min=s_min,
+                    salary_max=s_max
+                )
+
+                lbl = res["label"]
+                score = res["score"]
+                reasons = res["reasons"]
+
+                counts[lbl] = counts.get(lbl, 0) + 1
+
+                cursor.execute("""
+                    UPDATE jobs
+                    SET moderation_label = %s,
+                        moderation_score = %s,
+                        moderation_reasons = %s
+                    WHERE id = %s
+                """, (lbl, score, reasons, j_id))
+
+                updated_items.append({
+                    "id": j_id,
+                    "title": title[:50],
+                    "status": j.get("status"),
+                    "moderation_label": lbl,
+                    "moderation_score": score,
+                    "moderation_reasons": reasons
+                })
+
+            conn.commit()
+            logger.info("Successfully labeled %d jobs in MySQL: %s", len(updated_items), counts)
+
+            return {
+                "status": "SUCCESS",
+                "message": f"Successfully labeled {len(updated_items)} jobs in database.",
+                "total_scanned": len(updated_items),
+                "summary": counts,
+                "jobs": updated_items
+            }
+    except Exception as e:
+        logger.error("DB job moderation error: %s", str(e), exc_info=True)
+        raise HTTPException(status_code=500, detail=f"DB job moderation failed: {str(e)}")
+    finally:
+        conn.close()
 
 
 if __name__ == "__main__":

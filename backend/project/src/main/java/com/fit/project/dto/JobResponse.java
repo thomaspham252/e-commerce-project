@@ -40,7 +40,10 @@ public record JobResponse(
         LocalDateTime updatedAt,
         Long applicationCount,
         Integer matchPercentage,
-        List<String> matchedSkills
+        List<String> matchedSkills,
+        String moderationLabel,
+        Double moderationScore,
+        String moderationReasons
 ) {
     public static JobResponse of(Job j, Long applicationCount, Integer matchPercentage, List<String> matchedSkills) {
         Company comp = j.getCompany();
@@ -74,7 +77,10 @@ public record JobResponse(
                 j.getUpdatedAt(),
                 applicationCount,
                 matchPercentage,
-                matchedSkills
+                matchedSkills,
+                j.getModerationLabel(),
+                j.getModerationScore(),
+                j.getModerationReasons()
         );
     }
 

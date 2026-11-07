@@ -9,6 +9,7 @@ import { usePagedList } from '../../hooks/usePagedList';
 import { JOB_STATUS, toOptions } from '../../utils/statusLabels';
 import { formatDate } from '../../utils/formatDate';
 import { formatSalaryRange } from '../../utils/formatSalary';
+import './AdminJobs.css';
 
 export const AdminJobs = () => {
   const [status, setStatus] = useState('PENDING_REVIEW');
@@ -41,16 +42,60 @@ export const AdminJobs = () => {
     }
   };
 
+  const renderAiBadge = (row) => {
+    const label = row.moderationLabel;
+    const score = row.moderationScore ? Math.round(row.moderationScore * 100) : null;
+
+    if (label === 'an_toan') {
+      return (
+        <span className="admin-ai-badge admin-ai-badge-safe" title="Tin an toàn, không phát hiện dấu hiệu vi phạm">
+          <span>🟢</span>
+          <span>An toàn</span>
+          {score && <small>({score}%)</small>}
+        </span>
+      );
+    }
+    if (label === 'nghi_van') {
+      return (
+        <span className="admin-ai-badge admin-ai-badge-suspicious" title={row.moderationReasons || 'Có dấu hiệu nghi vấn cần lưu ý'}>
+          <span>🟡</span>
+          <span>Nghi vấn</span>
+          {score && <small>({score}%)</small>}
+        </span>
+      );
+    }
+    if (label === 'nguy_co_cao') {
+      return (
+        <span className="admin-ai-badge admin-ai-badge-danger" title={row.moderationReasons || 'Cảnh báo: Nguy cơ lừa đảo hoặc vi phạm quy định cao'}>
+          <span>🔴</span>
+          <span>Nguy cơ cao</span>
+          {score && <small>({score}%)</small>}
+        </span>
+      );
+    }
+    return (
+      <span className="admin-ai-badge admin-ai-badge-unscanned" title="Chưa được gán nhãn qua mô hình AI">
+        <span>⚪</span>
+        <span>Chưa quét</span>
+      </span>
+    );
+  };
+
   const columns = [
-    { header: 'Tên công việc', accessor: 'title', width: '24%' },
-    { header: 'Doanh nghiệp', accessor: 'companyName', width: '16%' },
-    { header: 'Địa điểm', accessor: 'location', width: '12%' },
-    { header: 'Hồ sơ', render: (row) => <strong>{row.applicationCount}</strong>, width: '7%' },
-    { header: 'Trạng thái', render: (row) => <StatusBadge status={JOB_STATUS[row.status]?.label} />, width: '12%' },
-    { header: 'Ngày đăng', render: (row) => formatDate(row.createdAt), width: '11%' },
+    { header: 'Tên công việc', accessor: 'title', width: '20%' },
+    { header: 'Doanh nghiệp', accessor: 'companyName', width: '15%' },
+    {
+      header: 'Đánh giá AI (PhoBERT)',
+      width: '16%',
+      render: (row) => renderAiBadge(row),
+    },
+    { header: 'Địa điểm', accessor: 'location', width: '11%' },
+    { header: 'Hồ sơ', render: (row) => <strong>{row.applicationCount}</strong>, width: '6%' },
+    { header: 'Trạng thái', render: (row) => <StatusBadge status={JOB_STATUS[row.status]?.label} />, width: '11%' },
+    { header: 'Ngày đăng', render: (row) => formatDate(row.createdAt), width: '10%' },
     {
       header: 'Thao tác',
-      width: '10%',
+      width: '11%',
       render: (row) => (
         <button className="btn btn-outline mgmt-btn" onClick={() => open(row)}>
           {row.status === 'PENDING_REVIEW' ? 'Duyệt' : 'Chi tiết'}
@@ -130,9 +175,39 @@ export const AdminJobs = () => {
       >
         {selected && (
           <>
+            {selected.moderationLabel && (
+              <div className={`admin-ai-mod-banner mod-${selected.moderationLabel}`}>
+                <div className="admin-ai-mod-header">
+                  <div className="admin-ai-mod-badge-wrap">
+                    <span className="admin-ai-mod-icon">
+                      {selected.moderationLabel === 'an_toan' ? '🛡️' : (selected.moderationLabel === 'nghi_van' ? '⚠️' : '🚨')}
+                    </span>
+                    <strong>
+                      AI PhoBERT Đánh giá: {
+                        selected.moderationLabel === 'an_toan' ? 'AN TOÀN' :
+                        selected.moderationLabel === 'nghi_van' ? 'NGHI VẤN / CẦN LƯU Ý' : 'NGUY CƠ CAO (LỪA ĐẢO / VI PHẠM)'
+                      }
+                    </strong>
+                    {selected.moderationScore && (
+                      <span className="admin-ai-mod-score">
+                        (Độ tin cậy: {Math.round(selected.moderationScore * 100)}%)
+                      </span>
+                    )}
+                  </div>
+                </div>
+                {selected.moderationReasons && (
+                  <div className="admin-ai-mod-reasons">
+                    <strong>Chi tiết phân tích & cảnh báo:</strong>
+                    <p>{selected.moderationReasons}</p>
+                  </div>
+                )}
+              </div>
+            )}
+
             <dl className="mgmt-detail-grid">
               <dt>Doanh nghiệp</dt><dd>{selected.companyName}</dd>
               <dt>Trạng thái</dt><dd><StatusBadge status={JOB_STATUS[selected.status]?.label} /></dd>
+              <dt>Đánh giá AI</dt><dd>{renderAiBadge(selected)}</dd>
               <dt>Địa điểm</dt><dd>{selected.location}</dd>
               <dt>Mức lương</dt><dd>{formatSalaryRange(selected.salaryMin, selected.salaryMax)}</dd>
               <dt>Cấp bậc</dt><dd>{selected.level || '—'}</dd>
@@ -145,14 +220,40 @@ export const AdminJobs = () => {
             </dl>
             {pending && (
               <div className="mgmt-field">
-                <label htmlFor="reject-reason">Lý do từ chối (bắt buộc khi từ chối)</label>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                  <label htmlFor="reject-reason" style={{ margin: 0 }}>Lý do từ chối (bắt buộc khi từ chối)</label>
+                  {selected.moderationReasons && (
+                    <button
+                      type="button"
+                      className="btn btn-outline"
+                      style={{ fontSize: 11, padding: '2px 8px', height: 'auto', cursor: 'pointer' }}
+                      onClick={() => setReason(selected.moderationReasons)}
+                      title="Tự động điền lý do vi phạm phát hiện bởi AI"
+                    >
+                      📋 Điền lý do từ AI
+                    </button>
+                  )}
+                </div>
                 <textarea id="reject-reason" rows={3} value={reason} onChange={(e) => setReason(e.target.value)}
-                  placeholder="VD: Mô tả công việc chưa rõ ràng..." />
+                  placeholder="VD: Mô tả công việc chưa rõ ràng, phát hiện thu phí ứng viên..." />
               </div>
             )}
             {showing && (
               <div className="mgmt-field">
-                <label htmlFor="takedown-reason">Lý do gỡ tin (bắt buộc khi gỡ)</label>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                  <label htmlFor="takedown-reason" style={{ margin: 0 }}>Lý do gỡ tin (bắt buộc khi gỡ)</label>
+                  {selected.moderationReasons && (
+                    <button
+                      type="button"
+                      className="btn btn-outline"
+                      style={{ fontSize: 11, padding: '2px 8px', height: 'auto', cursor: 'pointer' }}
+                      onClick={() => setReason(selected.moderationReasons)}
+                      title="Tự động điền lý do vi phạm phát hiện bởi AI"
+                    >
+                      📋 Điền lý do từ AI
+                    </button>
+                  )}
+                </div>
                 <textarea id="takedown-reason" rows={3} value={reason} onChange={(e) => setReason(e.target.value)}
                   placeholder="VD: Tin có nội dung lừa đảo, thu phí ứng viên..." />
               </div>
