@@ -6,9 +6,11 @@ import com.fit.project.enums.OrderStatus;
 import com.fit.project.enums.OrderType;
 import com.fit.project.enums.SubscriptionStatus;
 import com.fit.project.enums.TokenTransactionType;
+import com.fit.project.exception.ApiException;
 import com.fit.project.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -50,22 +52,25 @@ public class FulfillmentService {
     }
 
     private void fulfillTokenOrder(Order order, User user) {
-        int tokensToAdd = 0;
-        if (order.getTokenPackage() != null) {
-            tokensToAdd = order.getTokenPackage().getTokens();
-            if (order.getTokenPackage().getBonusTokens() != null && order.getTokenPackage().getBonusTokens() > 0) {
-                tokensToAdd += order.getTokenPackage().getBonusTokens();
-            }
-        } else {
-            // Trường hợp dự phòng nếu không có FK trực tiếp
-            tokensToAdd = 100;
+        if (order.getTokenPackage() == null) {
+            log.error("Đơn hàng token {} không liên kết với gói token hợp lệ!", order.getOrderCode());
+            throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, "Đơn hàng token không liên kết với gói token hợp lệ");
         }
 
-        TokenWallet wallet = tokenWalletRepository.findByUserId(user.getId())
-                .orElseGet(() -> tokenWalletRepository.save(TokenWallet.builder()
-                        .user(user)
-                        .balance(0)
-                        .build()));
+        int tokensToAdd = order.getTokenPackage().getTokens();
+        if (order.getTokenPackage().getBonusTokens() != null && order.getTokenPackage().getBonusTokens() > 0) {
+            tokensToAdd += order.getTokenPackage().getBonusTokens();
+        }
+
+        TokenWallet wallet = tokenWalletRepository.findByUserIdForUpdate(user.getId())
+                .orElseGet(() -> {
+                    TokenWallet newWallet = tokenWalletRepository.save(TokenWallet.builder()
+                            .user(user)
+                            .balance(0)
+                            .build());
+                    return tokenWalletRepository.findByUserIdForUpdate(newWallet.getUser().getId())
+                            .orElse(newWallet);
+                });
 
         int newBalance = wallet.getBalance() + tokensToAdd;
         wallet.setBalance(newBalance);
@@ -92,7 +97,7 @@ public class FulfillmentService {
         Package packageEntity = order.getPackageEntity();
         if (packageEntity == null) {
             log.error("Đơn hàng subscription {} không có packageEntity liên kết!", order.getOrderCode());
-            return;
+            throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, "Đơn hàng subscription không liên kết với gói dịch vụ hợp lệ");
         }
 
         int durationDays = packageEntity.getDurationDays();
@@ -123,11 +128,15 @@ public class FulfillmentService {
         // Nếu gói có tặng kèm tokens thì cộng vào ví của nhà tuyển dụng
         if (packageEntity.getIncludedTokens() != null && packageEntity.getIncludedTokens() > 0) {
             int bonusTokens = packageEntity.getIncludedTokens();
-            TokenWallet wallet = tokenWalletRepository.findByUserId(employer.getId())
-                    .orElseGet(() -> tokenWalletRepository.save(TokenWallet.builder()
-                            .user(employer)
-                            .balance(0)
-                            .build()));
+            TokenWallet wallet = tokenWalletRepository.findByUserIdForUpdate(employer.getId())
+                    .orElseGet(() -> {
+                        TokenWallet newWallet = tokenWalletRepository.save(TokenWallet.builder()
+                                .user(employer)
+                                .balance(0)
+                                .build());
+                        return tokenWalletRepository.findByUserIdForUpdate(newWallet.getUser().getId())
+                                .orElse(newWallet);
+                    });
             int newBalance = wallet.getBalance() + bonusTokens;
             wallet.setBalance(newBalance);
             tokenWalletRepository.save(wallet);

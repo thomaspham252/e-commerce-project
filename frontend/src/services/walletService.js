@@ -89,12 +89,31 @@ export const getDepositHistory = async () => {
 
 /**
  * 5. Trừ token khi ứng viên sử dụng tiện ích (lưu vào bảng token_transactions trong DB).
+ * Bổ sung khóa chống trùng lặp Idempotency Key gắn liền với thao tác người dùng.
  */
-export const consumeTokens = async (_userId, featureKey = 'UNLOCK_CONTACT') => {
+export const consumeTokens = async (_userId, featureKey = 'UNLOCK_CONTACT', options = {}) => {
   try {
-    const res = await apiClient.post('/v1/wallet/consume', {
-      featureKey,
-    });
+    const idempotencyKey =
+      options.idempotencyKey ||
+      (typeof crypto !== 'undefined' && crypto.randomUUID
+        ? crypto.randomUUID()
+        : `consume-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`);
+
+    const res = await apiClient.post(
+      '/v1/wallet/consume',
+      {
+        featureKey,
+        featureName: options.featureName,
+        tokenCost: options.tokenCost,
+        targetRefId: options.targetRefId,
+        idempotencyKey,
+      },
+      {
+        headers: {
+          'X-Idempotency-Key': idempotencyKey,
+        },
+      }
+    );
 
     if (res.data?.success) {
       return {

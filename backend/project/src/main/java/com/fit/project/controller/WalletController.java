@@ -16,6 +16,7 @@ import com.fit.project.repository.ServiceFeeRepository;
 import com.fit.project.repository.TokenTransactionRepository;
 import com.fit.project.repository.TokenWalletRepository;
 import com.fit.project.service.CurrentUserService;
+import com.fit.project.service.WalletService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -43,6 +44,7 @@ public class WalletController {
     private final TokenTransactionRepository tokenTransactionRepository;
     private final OrderRepository orderRepository;
     private final ServiceFeeRepository serviceFeeRepository;
+    private final WalletService walletService;
 
     @GetMapping
     public ResponseEntity<Map<String, Object>> getWallet(
@@ -156,68 +158,12 @@ public class WalletController {
     }
 
     @PostMapping("/consume")
-    @Transactional
     public ResponseEntity<Map<String, Object>> consumeTokens(
             @RequestBody ConsumeTokenRequest request,
-            @RequestHeader(value = CurrentUserService.HEADER, required = false) Integer currentUserId) {
+            @RequestHeader(value = "X-Idempotency-Key", required = false) String headerIdempotencyKey,
+            @RequestHeader(value = CurrentUserService.HEADER, required = true) Integer currentUserId) {
         User user = currentUserService.requireUser(currentUserId);
-
-        TokenWallet wallet = tokenWalletRepository.findByUserId(user.getId())
-                .orElseGet(() -> tokenWalletRepository.save(TokenWallet.builder()
-                        .user(user)
-                        .balance(0)
-                        .build()));
-
-        int cost = request.getTokenCost() != null ? request.getTokenCost() : 0;
-        String featureTitle = request.getFeatureName() != null ? request.getFeatureName() : request.getFeatureKey();
-
-        if (request.getFeatureKey() != null) {
-            var feeOpt = serviceFeeRepository.findByFeatureKey(request.getFeatureKey());
-            if (feeOpt.isPresent()) {
-                cost = feeOpt.get().getTokenCost();
-                featureTitle = feeOpt.get().getFeatureName();
-            }
-        }
-
-        if (cost <= 0) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, "Số token sử dụng phải lớn hơn 0");
-        }
-
-        if (wallet.getBalance() < cost) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
-                    "success", false,
-                    "error", "INSUFFICIENT_BALANCE",
-                    "message", "Số dư không đủ. Cần " + cost + " token nhưng bạn chỉ còn " + wallet.getBalance() + " token."
-            ));
-        }
-
-        int newBalance = wallet.getBalance() - cost;
-        wallet.setBalance(newBalance);
-        tokenWalletRepository.save(wallet);
-
-        String idempKey = "consume:" + user.getId() + ":" + System.currentTimeMillis();
-        TokenTransaction tx = TokenTransaction.builder()
-                .wallet(wallet)
-                .type(TokenTransactionType.SPEND)
-                .amount(-cost)
-                .balanceAfter(newBalance)
-                .idempotencyKey(idempKey)
-                .refType(featureTitle)
-                .createdAt(LocalDateTime.now())
-                .build();
-        tokenTransactionRepository.save(tx);
-
-        return ResponseEntity.ok(Map.of(
-                "success", true,
-                "wallet", Map.of(
-                        "userId", user.getId(),
-                        "balance", newBalance
-                ),
-                "transaction", Map.of(
-                        "id", "TX-TOK-" + tx.getId(),
-                        "amount", -cost,
-                        "balanceAfter", newBalance
-                )
-        ));
+        Map<String, Object> result = walletService.consumeTokens(user, request, headerIdempotencyKey);
+        return ResponseEntity.ok(result);
     }
 }

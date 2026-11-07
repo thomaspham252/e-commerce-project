@@ -3,7 +3,7 @@
  * Toàn bộ thông tin ngân hàng, nội dung chuyển khoản và mã VietQR được backend xử lý và lưu trong cơ sở dữ liệu.
  */
 
-import { apiClient } from './apiClient.js';
+import { apiClient, getAuthSession } from './apiClient.js';
 
 /**
  * Chuẩn hóa đối tượng đơn hàng trả về từ Backend cho các component Frontend.
@@ -39,7 +39,10 @@ const normalizeOrder = (backendData) => {
  * 1. Lấy thông tin chi tiết một đơn thanh toán theo mã đơn từ Backend.
  */
 export const getPaymentOrder = async (orderId) => {
-  const res = await apiClient.get(`/v1/orders/${orderId}`);
+  const session = getAuthSession();
+  const res = await apiClient.get(`/v1/orders/${orderId}`, {
+    headers: session?.id ? { 'X-User-Id': session.id } : {},
+  });
   if (res.data?.success && res.data?.data) {
     return normalizeOrder(res.data.data);
   }
@@ -53,28 +56,20 @@ export const createPaymentOrder = async ({
   orderType = 'CANDIDATE_TOKEN',
   packageId = null,
   tokenPackageId = null,
-  amount = 100000,
 }) => {
   const isToken = orderType === 'CANDIDATE_TOKEN' || orderType === 'TOKEN';
 
-  let finalTokenPackageId = tokenPackageId;
-  let finalPackageId = packageId;
-
-  if (isToken && !finalTokenPackageId) {
-    if (amount <= 50000) finalTokenPackageId = 1;
-    else if (amount <= 100000) finalTokenPackageId = 2;
-    else if (amount <= 200000) finalTokenPackageId = 3;
-    else finalTokenPackageId = 4;
-  } else if (!isToken && !finalPackageId) {
-    if (amount <= 500000) finalPackageId = 1;
-    else if (amount <= 1500000) finalPackageId = 2;
-    else finalPackageId = 3;
+  if (isToken && !tokenPackageId) {
+    throw new Error('Vui lòng chọn gói nạp Token cụ thể');
+  }
+  if (!isToken && !packageId) {
+    throw new Error('Vui lòng chọn gói dịch vụ tuyển dụng cụ thể');
   }
 
   const payload = {
     orderType: isToken ? 'TOKEN' : 'SUBSCRIPTION',
-    tokenPackageId: isToken ? finalTokenPackageId : null,
-    packageId: !isToken ? finalPackageId : null,
+    tokenPackageId: isToken ? tokenPackageId : null,
+    packageId: !isToken ? packageId : null,
   };
 
   const res = await apiClient.post('/v1/orders', payload);
@@ -88,7 +83,10 @@ export const createPaymentOrder = async ({
  * 3. Kiểm tra trạng thái hiện tại của đơn hàng từ Backend (dùng cho Polling).
  */
 export const checkPaymentStatus = async (orderId) => {
-  const res = await apiClient.get(`/v1/orders/${orderId}/status`);
+  const session = getAuthSession();
+  const res = await apiClient.get(`/v1/orders/${orderId}/status`, {
+    headers: session?.id ? { 'X-User-Id': session.id } : {},
+  });
   if (res.data?.success && res.data?.data) {
     const data = res.data.data;
     let status = data.status;
@@ -108,7 +106,10 @@ export const checkPaymentStatus = async (orderId) => {
  * 4. Huỷ đơn thanh toán trên Backend Spring Boot (/api/v1/orders/{orderCode}/cancel).
  */
 export const cancelPaymentOrder = async (orderId) => {
-  const res = await apiClient.post(`/v1/orders/${orderId}/cancel`);
+  const session = getAuthSession();
+  const res = await apiClient.post(`/v1/orders/${orderId}/cancel`, {}, {
+    headers: session?.id ? { 'X-User-Id': session.id } : {},
+  });
   return res.data;
 };
 

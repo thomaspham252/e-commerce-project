@@ -9,6 +9,7 @@ import com.fit.project.entity.TokenPackage;
 import com.fit.project.entity.User;
 import com.fit.project.enums.OrderStatus;
 import com.fit.project.enums.OrderType;
+import com.fit.project.enums.UserRole;
 import com.fit.project.exception.ApiException;
 import com.fit.project.repository.OrderRepository;
 import com.fit.project.repository.PackageRepository;
@@ -132,17 +133,25 @@ public class OrderService {
     }
 
     @Transactional(readOnly = true)
-    public OrderResponse getOrderByCode(String orderCode) {
+    public OrderResponse getOrderByCode(String orderCode, Integer currentUserId) {
+        User currentUser = currentUserService.requireUser(currentUserId);
         Order order = orderRepository.findByOrderCode(orderCode)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Không tìm thấy đơn hàng: " + orderCode));
+        if (!order.getUser().getId().equals(currentUser.getId()) && currentUser.getRole() != UserRole.ADMIN) {
+            throw new ApiException(HttpStatus.NOT_FOUND, "Không tìm thấy đơn hàng: " + orderCode);
+        }
         String serviceName = extractServiceName(order);
         return toOrderResponse(order, serviceName);
     }
 
     @Transactional(readOnly = true)
-    public OrderStatusResponse getOrderStatus(String orderCode) {
+    public OrderStatusResponse getOrderStatus(String orderCode, Integer currentUserId) {
+        User currentUser = currentUserService.requireUser(currentUserId);
         Order order = orderRepository.findByOrderCode(orderCode)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Không tìm thấy đơn hàng: " + orderCode));
+        if (!order.getUser().getId().equals(currentUser.getId()) && currentUser.getRole() != UserRole.ADMIN) {
+            throw new ApiException(HttpStatus.NOT_FOUND, "Không tìm thấy đơn hàng: " + orderCode);
+        }
         return OrderStatusResponse.builder()
                 .orderCode(order.getOrderCode())
                 .status(order.getStatus().name())
@@ -154,8 +163,12 @@ public class OrderService {
 
     @Transactional
     public void cancelOrder(String orderCode, Integer currentUserId) {
+        User currentUser = currentUserService.requireUser(currentUserId);
         Order order = orderRepository.findByOrderCode(orderCode)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Không tìm thấy đơn hàng: " + orderCode));
+        if (!order.getUser().getId().equals(currentUser.getId()) && currentUser.getRole() != UserRole.ADMIN) {
+            throw new ApiException(HttpStatus.NOT_FOUND, "Không tìm thấy đơn hàng: " + orderCode);
+        }
         if (order.getStatus() != OrderStatus.PENDING) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "Chỉ có thể hủy đơn hàng ở trạng thái Chờ thanh toán");
         }

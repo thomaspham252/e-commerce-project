@@ -34,8 +34,10 @@ public class OrderController {
     }
 
     @GetMapping("/{orderCode}")
-    public ResponseEntity<Map<String, Object>> getOrderByCode(@PathVariable String orderCode) {
-        OrderResponse response = orderService.getOrderByCode(orderCode);
+    public ResponseEntity<Map<String, Object>> getOrderByCode(
+            @PathVariable String orderCode,
+            @RequestHeader(value = CurrentUserService.HEADER, required = true) Integer currentUserId) {
+        OrderResponse response = orderService.getOrderByCode(orderCode, currentUserId);
         return ResponseEntity.ok(Map.of(
                 "success", true,
                 "data", response
@@ -43,8 +45,10 @@ public class OrderController {
     }
 
     @GetMapping("/{orderCode}/status")
-    public ResponseEntity<Map<String, Object>> getOrderStatus(@PathVariable String orderCode) {
-        OrderStatusResponse response = orderService.getOrderStatus(orderCode);
+    public ResponseEntity<Map<String, Object>> getOrderStatus(
+            @PathVariable String orderCode,
+            @RequestHeader(value = CurrentUserService.HEADER, required = true) Integer currentUserId) {
+        OrderStatusResponse response = orderService.getOrderStatus(orderCode, currentUserId);
         return ResponseEntity.ok(Map.of(
                 "success", true,
                 "data", response
@@ -54,7 +58,7 @@ public class OrderController {
     @PostMapping("/{orderCode}/cancel")
     public ResponseEntity<Map<String, Object>> cancelOrder(
             @PathVariable String orderCode,
-            @RequestHeader(value = CurrentUserService.HEADER, required = false) Integer currentUserId) {
+            @RequestHeader(value = CurrentUserService.HEADER, required = true) Integer currentUserId) {
         orderService.cancelOrder(orderCode, currentUserId);
         return ResponseEntity.ok(Map.of(
                 "success", true,

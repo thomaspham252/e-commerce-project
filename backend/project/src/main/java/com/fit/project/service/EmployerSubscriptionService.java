@@ -15,6 +15,7 @@ import com.fit.project.repository.JobRepository;
 import com.fit.project.repository.OrderRepository;
 import com.fit.project.repository.SubscriptionRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,8 +37,8 @@ import java.util.Optional;
 @Transactional(readOnly = true)
 public class EmployerSubscriptionService {
 
-    /** Số tin được đăng miễn phí khi NTD chưa từng mua gói. */
-    public static final int FREE_JOB_POSTS = 3;
+    @Value("${app.employer.free-job-posts:3}")
+    private int freeJobPosts = 3;
 
     private final SubscriptionRepository subscriptionRepository;
     private final JobRepository jobRepository;
@@ -75,7 +76,7 @@ public class EmployerSubscriptionService {
         }
 
         return new EmployerSubscriptionResponse("FREE", null, null, "Gói miễn phí", companyName,
-                null, null, 0, totalJobs, FREE_JOB_POSTS, 0,
+                null, null, 0, totalJobs, freeJobPosts, 0,
                 false, false, false, false, null);
     }
 
@@ -87,7 +88,7 @@ public class EmployerSubscriptionService {
         }
         if (sub.maxJobPosts() != null && sub.usedJobPosts() >= sub.maxJobPosts()) {
             throw ApiException.forbidden("FREE".equals(sub.status())
-                    ? "Bạn đã dùng hết " + FREE_JOB_POSTS + " tin đăng miễn phí. Vui lòng mua gói dịch vụ để đăng thêm tin."
+                    ? "Bạn đã dùng hết " + freeJobPosts + " tin đăng miễn phí. Vui lòng mua gói dịch vụ để đăng thêm tin."
                     : "Bạn đã dùng hết " + sub.maxJobPosts() + " tin đăng của gói hiện tại. Vui lòng nâng cấp gói để đăng thêm.");
         }
     }

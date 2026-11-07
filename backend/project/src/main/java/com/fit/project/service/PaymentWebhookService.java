@@ -86,7 +86,7 @@ public class PaymentWebhookService {
                     .build();
         }
 
-        // 4. Tìm đơn hàng trong DB
+        // 4. Tìm đơn hàng trong DB và khóa dòng để chống Webhook đồng thời
         Optional<Order> orderOpt = findOrderByExtractedCode(extractedCode);
         if (orderOpt.isEmpty()) {
             log.warn("Không tìm thấy đơn hàng tương ứng với mã: {}", extractedCode);
@@ -96,7 +96,19 @@ public class PaymentWebhookService {
                     .build();
         }
 
-        Order order = orderOpt.get();
+        Order order = orderRepository.findByIdForUpdate(orderOpt.get().getId())
+                .orElse(orderOpt.get());
+
+        // Kiểm tra nếu đơn hàng đã được xử lý thanh toán trước đó
+        if (order.getStatus() == OrderStatus.PAID || order.getStatus() == OrderStatus.FULFILLED) {
+            log.info("Đơn hàng {} đã ở trạng thái {}, bỏ qua xử lý cấp phát lặp lại.",
+                    order.getOrderCode(), order.getStatus());
+            return WebhookResponse.builder()
+                    .success(true)
+                    .message("Đơn hàng đã được xử lý thanh toán trước đó")
+                    .orderCode(order.getOrderCode())
+                    .build();
+        }
 
         // 5. So sánh số tiền nhận được
         if (payload.getTransferAmount() != null && payload.getTransferAmount().compareTo(order.getTotalAmount()) >= 0) {

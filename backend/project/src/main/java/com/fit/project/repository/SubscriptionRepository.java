@@ -4,6 +4,7 @@ import com.fit.project.entity.Subscription;
 import com.fit.project.enums.SubscriptionStatus;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -20,6 +21,12 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, Inte
     List<Subscription> findByEmployerIdAndStatus(Integer employerId, SubscriptionStatus status);
 
     Optional<Subscription> findFirstByEmployerIdAndStatusOrderByEndAtDesc(Integer employerId, SubscriptionStatus status);
+
+    @Modifying
+    @Query("update Subscription s set s.status = :targetStatus where s.status = :currentStatus and s.endAt < :now")
+    int updateStatusForExpiredSubscriptions(@Param("currentStatus") SubscriptionStatus currentStatus,
+                                            @Param("targetStatus") SubscriptionStatus targetStatus,
+                                            @Param("now") LocalDateTime now);
 
     /** Gói đang có hiệu lực tại thời điểm now (gói gia hạn nối tiếp chưa tới ngày bắt đầu thì không tính). */
     @EntityGraph(attributePaths = {"packageEntity", "order"})

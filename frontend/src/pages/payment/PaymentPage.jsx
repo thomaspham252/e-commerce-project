@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
-import { getPaymentOrder, simulateOrderStatus, cancelPaymentOrder } from '../../services/paymentService';
+import { getPaymentOrder, cancelPaymentOrder } from '../../services/paymentService';
 import { getAuthSession } from '../../services/apiClient';
 import { QRCodeCard } from '../../components/payment/QRCodeCard';
 import { TransferInfoCard } from '../../components/payment/TransferInfoCard';
@@ -45,19 +45,14 @@ export const PaymentPage = () => {
         const existingOrder = await getPaymentOrder(targetOrderId);
         setOrder(existingOrder);
       } else {
-        // Nếu truy cập bằng ?type=package hoặc mặc định là token
-        const isPackage = queryType === 'package';
-        const defaultOrder = await getPaymentOrder(
-          isPackage ? 'PAY-20261009-002' : 'PAY-20261009-001'
-        );
-        setOrder(defaultOrder);
+        setError('Không tìm thấy thông tin mã đơn thanh toán. Vui lòng quay lại chọn gói dịch vụ.');
       }
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
-  }, [paramOrderId, queryOrderId, queryType]);
+  }, [paramOrderId, queryOrderId]);
 
   useEffect(() => {
     loadOrder();
@@ -85,14 +80,10 @@ export const PaymentPage = () => {
   );
 
   // 3. Xử lý khi hết hạn 15 phút
-  const handleExpire = async () => {
+  const handleExpire = () => {
     if (!order || order.status !== 'PENDING') return;
-    try {
-      await simulateOrderStatus(order.orderId, 'EXPIRED');
-      navigate(`/thanh-toan/ket-qua/${order.orderId}`);
-    } catch (err) {
-      console.error('Lỗi khi chuyển trạng thái hết hạn:', err);
-    }
+    setOrder((prev) => (prev ? { ...prev, status: 'EXPIRED' } : null));
+    navigate(`/thanh-toan/ket-qua/${order.orderId}`);
   };
 
   // 4. Xử lý huỷ đơn thanh toán
@@ -137,9 +128,19 @@ export const PaymentPage = () => {
         <FiAlertCircle className="error-icon" />
         <h2>Không thể tải đơn thanh toán</h2>
         <p>{error || 'Đơn hàng không tồn tại'}</p>
-        <button type="button" onClick={() => loadOrder()} className="btn-retry">
-          <FiRefreshCw /> Thử lại
-        </button>
+        <div style={{ display: 'flex', gap: '10px', marginTop: '12px' }}>
+          <button type="button" onClick={() => loadOrder()} className="btn-retry">
+            <FiRefreshCw /> Thử lại
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate('/employer/pricing')}
+            className="btn-retry"
+            style={{ background: '#0284c7', color: '#fff', borderColor: '#0284c7' }}
+          >
+            Xem bảng giá
+          </button>
+        </div>
       </div>
     );
   }

@@ -518,6 +518,23 @@ CREATE TABLE `token_packages` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='Bảng danh mục các mệnh giá gói nạp Token mua lẻ';
 
+-- 5.2.1. Bảng service_fees (Biểu phí tiêu thụ Token cho từng tính năng)
+DROP TABLE IF EXISTS `service_fees`;
+CREATE TABLE `service_fees` (
+  `id` INT NOT NULL AUTO_INCREMENT COMMENT 'ID biểu phí dịch vụ',
+  `feature_key` VARCHAR(50) NOT NULL COMMENT 'Mã định danh tính năng (duy nhất, VD: UNLOCK_CONTACT)',
+  `feature_name` VARCHAR(150) NOT NULL COMMENT 'Tên tính năng hiển thị',
+  `token_cost` INT NOT NULL COMMENT 'Mức trừ Token khi kích hoạt tính năng',
+  `badge` VARCHAR(50) DEFAULT NULL COMMENT 'Nhãn phụ hiển thị trên giao diện (VD: Phổ biến, Tiết kiệm)',
+  `description` VARCHAR(500) DEFAULT NULL COMMENT 'Mô tả chi tiết quyền lợi tính năng',
+  `is_active` TINYINT(1) NOT NULL DEFAULT 1 COMMENT 'Trạng thái áp dụng biểu phí (1: Có, 0: Ẩn)',
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Thời điểm tạo cấu hình',
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Thời điểm cập nhật biểu phí gần nhất',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_service_fees_feature_key` (`feature_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+COMMENT='Bảng cấu hình biểu phí tiêu thụ Token cho từng tính năng ứng viên và nhà tuyển dụng';
+
 -- 5.3. Bảng promotions
 DROP TABLE IF EXISTS `promotions`;
 CREATE TABLE `promotions` (
