@@ -220,9 +220,9 @@ export const CompanyDetailPage = () => {
   const companyName = company.name || 'Công ty Công nghệ';
   const companyLogo = company.logo || company.logoUrl || null;
   const companyInitials = company.initials || companyName.slice(0, 3).toUpperCase();
-  const ratingScore = company.rating ? Number(company.rating) : 0;
-  const reviewCount = company.reviewCount || (company.reviews ? company.reviews.length : 0);
-  const recommendRate = company.recommendRate ? Number(company.recommendRate) : 0;
+  const ratingScore = company.rating != null ? Number(company.rating) : null;
+  const reviewCount = company.reviewCount != null ? Number(company.reviewCount) : (company.reviews ? company.reviews.length : 0);
+  const recommendRate = company.recommendRate != null ? Number(company.recommendRate) : null;
   const openJobs = company.openJobs || [];
   const openJobsCount = company.openJobsCount || openJobs.length;
   const reviews = company.reviews || [];
@@ -358,36 +358,39 @@ export const CompanyDetailPage = () => {
               </div>
             </div>
 
-            {/* Cột phải: Khối đánh giá nổi bật nếu có */}
+            {/* Cột phải: Khối đánh giá & Giải thưởng nổi bật */}
             <div className="itv-hero-right">
               <div className="itv-rating-box">
-                {ratingScore > 0 ? (
-                  <div className="itv-rating-top">
-                    <span className="itv-rating-number">{ratingScore.toFixed(1)}</span>
-                    <div className="itv-stars-group">
-                      <div className="itv-stars-row">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <Star
-                            key={star}
-                            size={15}
-                            fill={ratingScore >= star ? '#F59E0B' : '#E2E8F0'}
-                            color={ratingScore >= star ? '#F59E0B' : '#CBD5E1'}
-                          />
-                        ))}
+                {reviewCount > 0 && ratingScore != null ? (
+                  <>
+                    <div className="itv-rating-top">
+                      <span className="itv-rating-number">{ratingScore.toFixed(1)}</span>
+                      <div className="itv-stars-group">
+                        <div className="itv-stars-row">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <Star
+                              key={star}
+                              size={15}
+                              fill={star <= Math.round(ratingScore) ? '#F59E0B' : 'none'}
+                              color="#F59E0B"
+                            />
+                          ))}
+                        </div>
+                        <span className="itv-review-count-text">{reviewCount} đánh giá</span>
                       </div>
-                      <span className="itv-review-count-text">{reviewCount} đánh giá</span>
                     </div>
-                  </div>
-                ) : (
-                  <div className="itv-rating-top">
-                    <span className="itv-review-count-text">Chưa có đánh giá</span>
-                  </div>
-                )}
 
-                {recommendRate > 0 && (
-                  <div className="itv-recommend-stat">
-                    <span className="itv-recommend-percent">{recommendRate}%</span>
-                    <span className="itv-recommend-label">Khuyến khích làm việc ở đây</span>
+                    {recommendRate != null && (
+                      <div className="itv-recommend-stat">
+                        <span className="itv-recommend-percent">{recommendRate}%</span>
+                        <span className="itv-recommend-label">Khuyến khích làm việc ở đây</span>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="itv-rating-empty-box">
+                    <span className="itv-no-reviews-title">Chưa có đánh giá nào</span>
+                    <span className="itv-no-reviews-sub">Hãy là người đầu tiên chia sẻ trải nghiệm về công ty này</span>
                   </div>
                 )}
               </div>
@@ -920,7 +923,11 @@ export const CompanyDetailPage = () => {
                   </div>
                   <div className="sidebar-stat-item">
                     <Star size={16} className="stat-icon" />
-                    <span><strong>{ratingScore.toFixed(1)} / 5.0</strong> ({reviewCount} đánh giá)</span>
+                    {reviewCount > 0 && ratingScore != null ? (
+                      <span><strong>{ratingScore.toFixed(1)} / 5.0</strong> ({reviewCount} đánh giá)</span>
+                    ) : (
+                      <span>Chưa có đánh giá nào</span>
+                    )}
                   </div>
                   <div className="sidebar-stat-item">
                     <Users size={16} className="stat-icon" />

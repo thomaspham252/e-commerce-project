@@ -16,12 +16,12 @@ export const mapBackendCompany = (c) => ({
   website: c.website || '',
   verificationStatus: c.verificationStatus || 'PENDING',
   openJobsCount: c.openJobsCount ?? (c.openJobs ? c.openJobs.length : 0),
-  rating: c.rating ? Number(c.rating) : 0,
+  rating: c.rating != null ? Number(c.rating) : null,
   reviewCount: c.reviewCount ?? 0,
-  recommendRate: c.recommendRate ?? 0,
-  model: c.model || '',
-  workingSchedule: c.workingSchedule || '',
-  overtime: c.overtime || '',
+  recommendRate: c.recommendRate != null ? Number(c.recommendRate) : null,
+  model: c.model || 'Sản phẩm & Dịch vụ',
+  workingSchedule: c.workingSchedule || 'Thứ 2 - Thứ 6 (08:30 - 17:30)',
+  overtime: c.overtime || 'Theo quy định công ty',
   awards: Array.isArray(c.awards) ? c.awards : [],
   photos: Array.isArray(c.photos) ? c.photos : [],
   offices: Array.isArray(c.offices) && c.offices.length > 0 ? c.offices : [
@@ -41,26 +41,47 @@ export const mapBackendCompany = (c) => ({
 export const companyService = {
   getCompaniesPaged: async (filters = {}) => {
     try {
-      const { keyword = '', industry = '', location = '', page = 0, size = 12 } = filters;
+      const {
+        keyword = '',
+        industry = '',
+        location = '',
+        companySize = '',
+        size: filterSize = '',
+        status = '',
+        sort = 'latest',
+        page = 0,
+        pageSize = 8,
+      } = filters;
+
+      const sizeParam = filterSize || companySize;
       const response = await apiClient.get('/companies', {
-        params: cleanParams({ keyword, industry, location, page, size }),
+        params: cleanParams({
+          keyword,
+          industry: industry === 'all' ? '' : industry,
+          location: location === 'all' ? '' : location,
+          companySize: sizeParam === 'all' ? '' : sizeParam,
+          status: status === 'all' ? '' : status,
+          sort,
+          page,
+          size: pageSize,
+        }),
       });
 
       const data = response.data;
       const list = Array.isArray(data) ? data : data?.content || [];
       return {
         content: list.map(mapBackendCompany),
-        page: data?.page || 0,
-        size: data?.size || size,
-        totalElements: data?.totalElements || list.length,
-        totalPages: data?.totalPages || 1,
+        page: data?.page ?? 0,
+        size: data?.size ?? pageSize,
+        totalElements: data?.totalElements ?? list.length,
+        totalPages: data?.totalPages ?? 1,
       };
     } catch (err) {
       console.warn('Lỗi khi lấy danh sách công ty từ backend:', err);
       return {
         content: [],
         page: 0,
-        size: filters.size || 12,
+        size: filters.pageSize || 8,
         totalElements: 0,
         totalPages: 1,
       };

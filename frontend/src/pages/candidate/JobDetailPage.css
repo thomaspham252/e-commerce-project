@@ -331,6 +331,31 @@
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.35);
 }
 
+.itv-rating-empty-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  text-align: center;
+  padding: 10px 8px;
+  min-height: 76px;
+}
+
+.itv-no-reviews-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #FFFFFF;
+  letter-spacing: 0.2px;
+}
+
+.itv-no-reviews-sub {
+  font-size: 12px;
+  color: #94A3B8;
+  line-height: 1.4;
+  max-width: 220px;
+}
+
 .itv-rating-top {
   display: flex;
   align-items: center;

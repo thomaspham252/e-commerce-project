@@ -6,6 +6,7 @@ import com.fit.project.dto.company.*;
 import com.fit.project.entity.*;
 import com.fit.project.enums.JobStatus;
 import com.fit.project.enums.ReviewStatus;
+import com.fit.project.enums.VerificationStatus;
 import com.fit.project.exception.ApiException;
 import com.fit.project.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -98,25 +99,90 @@ public class CompanyPublicService {
             int page,
             int size
     ) {
+        return getPublicCompanies(keyword, industry, location, null, null, "latest", page, size);
+    }
+
+    @Transactional(readOnly = true)
+    public PageResponse<CompanySummaryResponse> getPublicCompanies(
+            String keyword,
+            String industry,
+            String location,
+            String companySize,
+            String status,
+            String sort,
+            int page,
+            int size
+    ) {
         String kwPattern = (keyword != null && !keyword.isBlank()) ? "%" + keyword.trim().toLowerCase() + "%" : null;
         String indPattern = (industry != null && !industry.isBlank() && !industry.equalsIgnoreCase("all"))
                 ? "%" + industry.trim().toLowerCase() + "%" : null;
-        String locPattern = (location != null && !location.isBlank() && !location.equalsIgnoreCase("all"))
-                ? "%" + location.trim().toLowerCase() + "%" : null;
 
-        Pageable pageable = PageRequest.of(Math.max(0, page), Math.max(1, size), Sort.by(Sort.Direction.DESC, "id"));
-        Page<Company> companyPage = companyRepository.searchPublicCompanies(kwPattern, indPattern, locPattern, null, pageable);
+        String locPattern = null;
+        if (location != null && !location.isBlank() && !location.equalsIgnoreCase("all")) {
+            String loc = location.trim().toLowerCase();
+            if (loc.contains("hcm") || loc.contains("hồ chí minh")) {
+                locPattern = "%hcm%";
+            } else if (loc.contains("hà nội")) {
+                locPattern = "%hà nội%";
+            } else if (loc.contains("đà nẵng")) {
+                locPattern = "%đà nẵng%";
+            } else if (loc.contains("cần thơ")) {
+                locPattern = "%cần thơ%";
+            } else {
+                locPattern = "%" + loc + "%";
+            }
+        }
 
-        List<CompanySummaryResponse> content = companyPage.getContent().stream().map(c -> {
+        VerificationStatus vStatus = null;
+        if ("verified".equalsIgnoreCase(status)) {
+            vStatus = VerificationStatus.VERIFIED;
+        }
+
+        List<Company> allMatching = companyRepository.findAllPublicCompanies(kwPattern, indPattern, locPattern, vStatus);
+
+        if (companySize != null && !companySize.isBlank() && !companySize.equalsIgnoreCase("all")) {
+            String targetSize = companySize.trim();
+            allMatching = allMatching.stream()
+                    .filter(c -> c.getSize() != null && c.getSize().contains(targetSize))
+                    .toList();
+        }
+
+        List<CompanySummaryResponse> responses = new ArrayList<>(allMatching.stream().map(c -> {
             long openJobsCount = jobRepository.countByCompanyIdAndStatus(c.getId(), JobStatus.OPEN);
             long reviewCount = reviewRepository.countByCompanyIdAndStatus(c.getId(), ReviewStatus.visible);
             Double avg = reviewRepository.calculateAverageRating(c.getId(), ReviewStatus.visible);
-            double rating = avg != null ? Math.round(avg * 10.0) / 10.0 : 4.8;
+            Double rating = (reviewCount > 0 && avg != null) ? Math.round(avg * 10.0) / 10.0 : null;
             return CompanySummaryResponse.of(c, openJobsCount, rating, reviewCount);
-        }).toList();
+        }).toList());
 
-        return new PageResponse<>(content, companyPage.getNumber(), companyPage.getSize(),
-                companyPage.getTotalElements(), companyPage.getTotalPages());
+        if ("high_rating".equalsIgnoreCase(status)) {
+            responses.removeIf(c -> c.rating() == null || c.rating() < 4.5);
+        } else if ("has_jobs".equalsIgnoreCase(status)) {
+            responses.removeIf(c -> c.openJobsCount() <= 0);
+        }
+
+        String sortType = sort != null ? sort.trim().toLowerCase() : "latest";
+        switch (sortType) {
+            case "rating_desc" -> responses.sort((a, b) -> {
+                double rA = a.rating() != null ? a.rating() : 0.0;
+                double rB = b.rating() != null ? b.rating() : 0.0;
+                return Double.compare(rB, rA);
+            });
+            case "jobs_desc" -> responses.sort((a, b) -> Long.compare(b.openJobsCount(), a.openJobsCount()));
+            case "name_asc" -> responses.sort((a, b) -> a.name().compareToIgnoreCase(b.name()));
+            default -> responses.sort((a, b) -> Integer.compare(b.id(), a.id()));
+        }
+
+        int totalElements = responses.size();
+        int pageSize = Math.max(1, size);
+        int totalPages = Math.max(1, (int) Math.ceil((double) totalElements / pageSize));
+        int currentPage = Math.max(0, Math.min(page, totalPages - 1));
+
+        int fromIndex = Math.min(currentPage * pageSize, totalElements);
+        int toIndex = Math.min(fromIndex + pageSize, totalElements);
+        List<CompanySummaryResponse> pagedContent = responses.subList(fromIndex, toIndex);
+
+        return new PageResponse<>(pagedContent, currentPage, pageSize, totalElements, totalPages);
     }
 
     @Transactional(readOnly = true)
@@ -133,9 +199,9 @@ public class CompanyPublicService {
         List<CompanyReview> reviewsList = reviewRepository.findByCompanyIdAndStatusOrderByCreatedAtDesc(id, ReviewStatus.visible);
         List<CompanyReviewResponse> reviews = reviewsList.stream().map(CompanyReviewResponse::of).toList();
 
-        Double avg = reviewRepository.calculateAverageRating(id, ReviewStatus.visible);
-        double rating = avg != null ? Math.round(avg * 10.0) / 10.0 : 4.8;
         long reviewCount = reviewsList.size();
+        Double avg = reviewRepository.calculateAverageRating(id, ReviewStatus.visible);
+        Double rating = (reviewCount > 0 && avg != null) ? Math.round(avg * 10.0) / 10.0 : null;
 
         Map<Integer, Long> breakdown = new HashMap<>();
         for (int i = 1; i <= 5; i++) breakdown.put(i, 0L);
@@ -145,7 +211,7 @@ public class CompanyPublicService {
         }
 
         long positiveReviews = breakdown.get(4) + breakdown.get(5);
-        int recommendRate = reviewCount > 0 ? (int) Math.round((double) positiveReviews * 100.0 / reviewCount) : 98;
+        Integer recommendRate = reviewCount > 0 ? (int) Math.round((double) positiveReviews * 100.0 / reviewCount) : null;
 
         return new CompanyDetailResponse(
                 company.getId(),

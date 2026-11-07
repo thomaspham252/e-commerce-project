@@ -15,10 +15,10 @@ public record CompanySummaryResponse(
         String website,
         VerificationStatus verificationStatus,
         long openJobsCount,
-        double rating,
+        Double rating,
         long reviewCount
 ) {
-    public static CompanySummaryResponse of(Company c, long openJobsCount, double rating, long reviewCount) {
+    public static CompanySummaryResponse of(Company c, long openJobsCount, Double rating, long reviewCount) {
         return new CompanySummaryResponse(
                 c.getId(),
                 c.getName(),

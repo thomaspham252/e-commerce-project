@@ -21,10 +21,13 @@ public class CompanyController {
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String industry,
             @RequestParam(required = false) String location,
+            @RequestParam(required = false) String companySize,
+            @RequestParam(required = false) String status,
+            @RequestParam(defaultValue = "latest") String sort,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "12") int size
+            @RequestParam(defaultValue = "8") int size
     ) {
-        return companyService.getPublicCompanies(keyword, industry, location, page, size);
+        return companyService.getPublicCompanies(keyword, industry, location, companySize, status, sort, page, size);
     }
 
     @GetMapping("/{id}")
