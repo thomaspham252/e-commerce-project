@@ -23,7 +23,14 @@ export const JobCard = ({ job }) => {
           <Link to={`/viec-lam/${job.id}`} className="job-title-link">
             <h3 className="job-title">{job.title}</h3>
           </Link>
-          <p className="company-name">{job.companyName}</p>
+          <p className="company-name">
+            {job.companyName}
+            {job.isTopEmployer && (
+              <span className="top-employer-tag" title="Doanh nghiệp sở hữu chứng nhận Nhà tuyển dụng hàng đầu">
+                🏆 Top NTD
+              </span>
+            )}
+          </p>
         </div>
         <button 
           className={`save-btn ${saved ? 'saved' : ''}`}

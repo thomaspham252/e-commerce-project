@@ -29,6 +29,8 @@ public class FulfillmentService {
     private final TokenTransactionRepository tokenTransactionRepository;
     private final SubscriptionRepository subscriptionRepository;
     private final OrderRepository orderRepository;
+    private final JobRepository jobRepository;
+    private final CandidateProfileViewRepository candidateProfileViewRepository;
 
     @Transactional
     public void fulfillOrder(Order order) {
@@ -104,13 +106,53 @@ public class FulfillmentService {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime startAt = now;
         LocalDateTime endAt = now.plusDays(durationDays);
+        int bonusJobPosts = 0;
+        int bonusCvViews = 0;
 
-        // Kiểm tra xem nhà tuyển dụng có gói đang active không để gia hạn tiếp
-        var existingActive = subscriptionRepository.findFirstByEmployerIdAndStatusOrderByEndAtDesc(
-                employer.getId(), SubscriptionStatus.ACTIVE);
-        if (existingActive.isPresent() && existingActive.get().getEndAt().isAfter(now)) {
-            startAt = existingActive.get().getEndAt();
-            endAt = startAt.plusDays(durationDays);
+        // Tìm gói đang có hiệu lực hiện tại của NTD
+        var currentActiveOpt = subscriptionRepository.findInEffect(
+                employer.getId(), SubscriptionStatus.ACTIVE, now).stream().findFirst();
+
+        if (currentActiveOpt.isPresent()) {
+            Subscription currentSub = currentActiveOpt.get();
+            Package currentPkg = currentSub.getPackageEntity();
+
+            if (isHigherTier(packageEntity, currentPkg)) {
+                // NÂNG CẤP LÊN GÓI CAO HƠN (VD: Basic -> Pro, Pro -> Enterprise):
+                // 1. Tính toán số tin và lượt xem CV còn lại của gói cũ để cộng dồn
+                long usedPosts = jobRepository.countBySubscriptionId(currentSub.getId());
+                int currentPostLimit = (currentPkg.getJobPostLimit() != null ? currentPkg.getJobPostLimit() : 0)
+                        + (currentSub.getBonusJobPosts() != null ? currentSub.getBonusJobPosts() : 0);
+                int remainingPosts = Math.max(0, currentPostLimit - (int) usedPosts);
+
+                long usedViews = candidateProfileViewRepository.countBySubscriptionId(currentSub.getId());
+                int currentViewLimit = (currentPkg.getCvViewLimit() != null ? currentPkg.getCvViewLimit() : 0)
+                        + (currentSub.getBonusCvViews() != null ? currentSub.getBonusCvViews() : 0);
+                int remainingViews = Math.max(0, currentViewLimit - (int) usedViews);
+
+                bonusJobPosts = remainingPosts;
+                bonusCvViews = remainingViews;
+
+                // 2. Kích hoạt gói mới NGAY LẬP TỨC
+                startAt = now;
+                endAt = now.plusDays(durationDays);
+
+                // 3. Đóng gói cũ ngay (chuyển sang EXPIRED và set endAt về hiện tại)
+                currentSub.setStatus(SubscriptionStatus.EXPIRED);
+                currentSub.setEndAt(now);
+                subscriptionRepository.save(currentSub);
+
+                log.info("NÂNG CẤP GÓI: employerId={} nâng cấp từ {} lên {}. Kích hoạt ngay lập tức. Cộng dồn: +{} tin tuyển dụng, +{} lượt xem CV.",
+                        employer.getId(), currentPkg.getName(), packageEntity.getName(), bonusJobPosts, bonusCvViews);
+            } else {
+                // CÙNG GÓI HOẶC GÓI THẤP HƠN: Giữ cơ chế gối đầu / gia hạn nối tiếp
+                var latestActive = subscriptionRepository.findFirstByEmployerIdAndStatusOrderByEndAtDesc(
+                        employer.getId(), SubscriptionStatus.ACTIVE);
+                if (latestActive.isPresent() && latestActive.get().getEndAt().isAfter(now)) {
+                    startAt = latestActive.get().getEndAt();
+                    endAt = startAt.plusDays(durationDays);
+                }
+            }
         }
 
         Subscription subscription = Subscription.builder()
@@ -119,10 +161,23 @@ public class FulfillmentService {
                 .order(order)
                 .startAt(startAt)
                 .endAt(endAt)
+                .bonusJobPosts(bonusJobPosts)
+                .bonusCvViews(bonusCvViews)
                 .status(SubscriptionStatus.ACTIVE)
                 .build();
         subscriptionRepository.save(subscription);
-        log.info("Kích hoạt gói {} cho employerId={}, hiệu lực từ {} đến {}",
-                packageEntity.getName(), employer.getId(), startAt, endAt);
+        log.info("Kích hoạt gói {} cho employerId={}, hiệu lực từ {} đến {}, bonusJobPosts={}, bonusCvViews={}",
+                packageEntity.getName(), employer.getId(), startAt, endAt, bonusJobPosts, bonusCvViews);
+    }
+
+    private boolean isHigherTier(Package newPkg, Package oldPkg) {
+        if (newPkg == null || oldPkg == null) return false;
+        // So sánh theo giá bán: gói mới đắt hơn gói cũ -> Nâng cấp
+        if (newPkg.getPrice() != null && oldPkg.getPrice() != null) {
+            return newPkg.getPrice().compareTo(oldPkg.getPrice()) > 0;
+        }
+        int newLimit = newPkg.getJobPostLimit() != null ? newPkg.getJobPostLimit() : 0;
+        int oldLimit = oldPkg.getJobPostLimit() != null ? oldPkg.getJobPostLimit() : 0;
+        return newLimit > oldLimit;
     }
 }

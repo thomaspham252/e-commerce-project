@@ -168,17 +168,17 @@ public class DataSeeder implements CommandLineRunner {
             packageRepository.save(Package.builder().name("Gói Khởi nghiệp (Basic)")
                     .price(BigDecimal.valueOf(500_000)).durationDays(30).jobPostLimit(5).cvViewLimit(20)
                     .includedTokens(0).canHighlightJobs(false).canPrioritizeJobs(false)
-                    .canSearchCandidates(false).canDirectContact(false).isActive(true).build());
+                    .canSearchCandidates(false).canDirectContact(false).isTopEmployer(false).isActive(true).build());
 
             packageRepository.save(Package.builder().name("Gói Chuyên nghiệp (Pro)")
                     .price(BigDecimal.valueOf(1_500_000)).durationDays(30).jobPostLimit(20).cvViewLimit(100)
                     .includedTokens(0).canHighlightJobs(true).canPrioritizeJobs(true)
-                    .canSearchCandidates(true).canDirectContact(true).isActive(true).build());
+                    .canSearchCandidates(true).canDirectContact(true).isTopEmployer(false).isActive(true).build());
 
             packageRepository.save(Package.builder().name("Gói Doanh nghiệp (Enterprise)")
                     .price(BigDecimal.valueOf(4_000_000)).durationDays(90).jobPostLimit(100).cvViewLimit(500)
                     .includedTokens(0).canHighlightJobs(true).canPrioritizeJobs(true)
-                    .canSearchCandidates(true).canDirectContact(true).isActive(true).build());
+                    .canSearchCandidates(true).canDirectContact(true).isTopEmployer(true).isActive(true).build());
             log.info("Đã tạo dữ liệu mẫu cho danh mục packages.");
         }
 

@@ -79,6 +79,11 @@ export const CurrentPackageCard = ({
             {subscription.subscriptionId && (
               <span className="current-pkg-code">Mã: SUB-{subscription.subscriptionId}</span>
             )}
+            {subscription.isTopEmployer && (
+              <span className="top-employer-badge">
+                🏆 Top Nhà tuyển dụng
+              </span>
+            )}
           </div>
 
           <h2 className="current-pkg-title">{subscription.packageName}</h2>
@@ -120,6 +125,11 @@ export const CurrentPackageCard = ({
           </span>
           <span className="quota-count">
             <strong>{used}</strong> / {unlimited ? '∞' : max} tin
+            {subscription.bonusJobPosts > 0 && (
+              <span className="bonus-pill" title={`Bao gồm ${subscription.bonusJobPosts} tin cộng dồn từ gói trước`}>
+                (+{subscription.bonusJobPosts} cộng dồn)
+              </span>
+            )}
           </span>
         </div>
 
@@ -153,6 +163,11 @@ export const CurrentPackageCard = ({
           </span>
           <span className="quota-count">
             <strong>{usedViews}</strong> / {unlimitedViews ? '∞' : maxViews} lượt
+            {subscription.bonusCvViews > 0 && (
+              <span className="bonus-pill" title={`Bao gồm ${subscription.bonusCvViews} lượt xem CV cộng dồn từ gói trước`}>
+                (+{subscription.bonusCvViews} cộng dồn)
+              </span>
+            )}
           </span>
         </div>
 
@@ -208,6 +223,7 @@ export const CurrentPackageCard = ({
             [subscription.canSearchCandidates, 'Tìm kiếm trong kho hồ sơ ứng viên'],
             [subscription.canHighlightJobs, 'Làm nổi bật tin tuyển dụng'],
             [subscription.canPrioritizeJobs, 'Ưu tiên hiển thị tin lên đầu'],
+            [subscription.isTopEmployer, 'Huy hiệu Nhà tuyển dụng hàng đầu (Top Employer)'],
           ].map(([enabled, label]) => (
             <div className="benefit-item" key={label}>
               {enabled ? (

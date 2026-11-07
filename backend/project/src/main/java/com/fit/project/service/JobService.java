@@ -90,13 +90,19 @@ public class JobService {
                 .map(s -> s.getEmployer().getId())
                 .collect(Collectors.toSet());
 
+        Set<Integer> topEmployerOwnerIds = activeSubs.stream()
+                .filter(s -> Boolean.TRUE.equals(s.getPackageEntity().getIsTopEmployer()))
+                .map(s -> s.getEmployer().getId())
+                .collect(Collectors.toSet());
+
         return PageResponse.of(result, j -> {
             Integer ownerId = j.getCompany() != null && j.getCompany().getOwner() != null ? j.getCompany().getOwner().getId() : null;
             boolean effectiveHighlighted = Boolean.TRUE.equals(j.getIsHighlighted())
                     && ownerId != null && highlightOwnerIds.contains(ownerId);
             boolean effectivePrioritized = Boolean.TRUE.equals(j.getIsPrioritized())
                     && ownerId != null && prioritizeOwnerIds.contains(ownerId);
-            return JobResponse.of(j, effectiveHighlighted, effectivePrioritized, null, null, null);
+            boolean isTopEmployer = ownerId != null && topEmployerOwnerIds.contains(ownerId);
+            return JobResponse.of(j, effectiveHighlighted, effectivePrioritized, isTopEmployer, null, null, null);
         });
     }
 
@@ -109,6 +115,7 @@ public class JobService {
         Integer ownerId = job.getCompany() != null && job.getCompany().getOwner() != null ? job.getCompany().getOwner().getId() : null;
         boolean effectiveHighlighted = false;
         boolean effectivePrioritized = false;
+        boolean isTopEmployer = false;
 
         if (ownerId != null) {
             List<Subscription> activeSubs = subscriptionRepository.findInEffect(ownerId, SubscriptionStatus.ACTIVE, now);
@@ -116,8 +123,9 @@ public class JobService {
                     && activeSubs.stream().anyMatch(s -> Boolean.TRUE.equals(s.getPackageEntity().getCanHighlightJobs()));
             effectivePrioritized = Boolean.TRUE.equals(job.getIsPrioritized())
                     && activeSubs.stream().anyMatch(s -> Boolean.TRUE.equals(s.getPackageEntity().getCanPrioritizeJobs()));
+            isTopEmployer = activeSubs.stream().anyMatch(s -> Boolean.TRUE.equals(s.getPackageEntity().getIsTopEmployer()));
         }
 
-        return JobResponse.of(job, effectiveHighlighted, effectivePrioritized, null, null, null);
+        return JobResponse.of(job, effectiveHighlighted, effectivePrioritized, isTopEmployer, null, null, null);
     }
 }

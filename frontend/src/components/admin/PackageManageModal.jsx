@@ -9,6 +9,7 @@ const BENEFITS = [
   { key: 'canPrioritizeJobs', label: 'Ưu tiên hiển thị tin lên đầu' },
   { key: 'canSearchCandidates', label: 'Tìm kiếm trong kho hồ sơ ứng viên' },
   { key: 'canDirectContact', label: 'Chủ động nhắn tin trực tiếp với ứng viên' },
+  { key: 'isTopEmployer', label: 'Huy hiệu Nhà tuyển dụng hàng đầu' },
 ];
 
 const EMPTY_FORM = {
@@ -22,6 +23,7 @@ const EMPTY_FORM = {
   canPrioritizeJobs: false,
   canSearchCandidates: false,
   canDirectContact: false,
+  isTopEmployer: false,
 };
 
 /** '' → null (không giới hạn), còn lại đổi sang số. */
@@ -55,6 +57,7 @@ export const PackageManageModal = ({
         canPrioritizeJobs: Boolean(initialData.canPrioritizeJobs),
         canSearchCandidates: Boolean(initialData.canSearchCandidates),
         canDirectContact: Boolean(initialData.canDirectContact),
+        isTopEmployer: Boolean(initialData.isTopEmployer),
       });
     } else {
       setFormData(EMPTY_FORM);
@@ -126,6 +129,7 @@ export const PackageManageModal = ({
         canPrioritizeJobs: formData.canPrioritizeJobs,
         canSearchCandidates: formData.canSearchCandidates,
         canDirectContact: formData.canDirectContact,
+        isTopEmployer: formData.isTopEmployer,
       });
       onClose?.();
     } catch (err) {

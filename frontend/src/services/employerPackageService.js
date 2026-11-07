@@ -19,6 +19,7 @@ const buildFeatures = (pkg) => {
   if (pkg.canPrioritizeJobs) features.push('Ưu tiên hiển thị tin lên đầu');
   if (pkg.canSearchCandidates) features.push('Tìm kiếm trong kho hồ sơ ứng viên');
   if (pkg.canDirectContact) features.push('Nhắn tin trực tiếp với ứng viên');
+  if (pkg.isTopEmployer) features.push('🏆 Huy hiệu Nhà tuyển dụng hàng đầu');
   return features;
 };
 

@@ -82,6 +82,7 @@ export const AdminPackagesPage = () => {
           row.canPrioritizeJobs && 'Ưu tiên hiển thị',
           row.canSearchCandidates && 'Tìm ứng viên',
           row.canDirectContact && 'Nhắn tin ứng viên',
+          row.isTopEmployer && '🏆 Top NTD',
         ].filter(Boolean);
         return (
           <div>

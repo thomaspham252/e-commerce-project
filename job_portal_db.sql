@@ -507,6 +507,7 @@ CREATE TABLE `packages` (
   `can_prioritize_jobs` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Quyền lợi ưu tiên hiển thị tin lên đầu (1: Có, 0: Không)',
   `can_search_candidates` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Quyền lợi tìm kiếm trong kho hồ sơ ứng viên (1: Có, 0: Không)',
   `can_direct_contact` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Quyền lợi chủ động nhắn tin trực tiếp với ứng viên (1: Có, 0: Không)',
+  `is_top_employer` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Quyền lợi Huy hiệu Nhà tuyển dụng hàng đầu (1: Có, 0: Không)',
   `is_active` TINYINT(1) NOT NULL DEFAULT 1 COMMENT 'Trạng thái gói đang mở bán hay đã ngừng kinh doanh',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
@@ -654,6 +655,8 @@ CREATE TABLE `subscriptions` (
   `start_at` TIMESTAMP NOT NULL COMMENT 'Thời điểm bắt đầu hiệu lực của gói dịch vụ',
   `end_at` TIMESTAMP NOT NULL COMMENT 'Thời điểm hết hạn của gói dịch vụ',
   `status` ENUM('active', 'cancelled', 'expired') NOT NULL DEFAULT 'active' COMMENT 'Trạng thái gói đăng ký hiện tại',
+  `bonus_job_posts` INT NOT NULL DEFAULT 0 COMMENT 'Số tin đăng cộng dồn từ gói trước khi nâng cấp',
+  `bonus_cv_views` INT NOT NULL DEFAULT 0 COMMENT 'Số lượt xem CV cộng dồn từ gói trước khi nâng cấp',
   `cancelled_at` TIMESTAMP NULL DEFAULT NULL COMMENT '[CHỐT] Thời điểm hủy gói (Nhóm cần chốt: hủy là dùng tiếp đến end_at hay kết thúc hiệu lực ngay)',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_subscriptions_order_id` (`order_id`),

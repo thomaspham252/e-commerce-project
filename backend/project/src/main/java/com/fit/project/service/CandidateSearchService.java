@@ -82,7 +82,9 @@ public class CandidateSearchService {
             boolean alreadyViewed = candidateProfileViewRepository.existsBySubscriptionIdAndCandidateUserId(activeSub.getId(), candidateUserId);
             if (!alreadyViewed) {
                 long usedViews = candidateProfileViewRepository.countBySubscriptionId(activeSub.getId());
-                Integer limit = activeSub.getPackageEntity().getCvViewLimit();
+                int bonusViews = activeSub.getBonusCvViews() != null ? activeSub.getBonusCvViews() : 0;
+                Integer limit = activeSub.getPackageEntity().getCvViewLimit() != null
+                        ? activeSub.getPackageEntity().getCvViewLimit() + bonusViews : null;
                 if (limit != null && usedViews >= limit) {
                     throw ApiException.forbidden("QUOTA_EXCEEDED: Bạn đã sử dụng hết " + limit + " lượt xem hồ sơ của gói hiện tại. Vui lòng nâng cấp gói.");
                 }

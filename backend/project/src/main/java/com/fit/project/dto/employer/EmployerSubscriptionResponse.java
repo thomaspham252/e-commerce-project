@@ -18,12 +18,15 @@ public record EmployerSubscriptionResponse(
         long remainingDays,
         long usedJobPosts,
         Integer maxJobPosts,
+        int bonusJobPosts,
         long usedCvViews,
         Integer cvViewLimit,
+        int bonusCvViews,
         boolean allowRealtimeChat,
         boolean canHighlightJobs,
         boolean canPrioritizeJobs,
         boolean canSearchCandidates,
+        boolean isTopEmployer,
         String lastOrderId,
         QueuedSubscription queuedSubscription
 ) {
@@ -47,9 +50,9 @@ public record EmployerSubscriptionResponse(
             String lastOrderId
     ) {
         this(status, subscriptionId, packageId, packageName, companyName,
-                startDate, endDate, remainingDays, usedJobPosts, maxJobPosts,
-                usedCvViews, cvViewLimit, allowRealtimeChat, canHighlightJobs,
-                canPrioritizeJobs, canSearchCandidates, lastOrderId, null);
+                startDate, endDate, remainingDays, usedJobPosts, maxJobPosts, 0,
+                usedCvViews, cvViewLimit, 0, allowRealtimeChat, canHighlightJobs,
+                canPrioritizeJobs, canSearchCandidates, false, lastOrderId, null);
     }
 
     public record QueuedSubscription(

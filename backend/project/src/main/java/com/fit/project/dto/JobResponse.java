@@ -35,6 +35,7 @@ public record JobResponse(
         JobStatus status,
         Boolean isHighlighted,
         Boolean isPrioritized,
+        Boolean isTopEmployer,
         String rejectionReason,
         LocalDateTime reviewedAt,
         LocalDateTime createdAt,
@@ -43,7 +44,7 @@ public record JobResponse(
         Integer matchPercentage,
         List<String> matchedSkills
 ) {
-    public static JobResponse of(Job j, boolean effectiveHighlighted, boolean effectivePrioritized,
+    public static JobResponse of(Job j, boolean effectiveHighlighted, boolean effectivePrioritized, boolean isTopEmployer,
                                  Long applicationCount, Integer matchPercentage, List<String> matchedSkills) {
         Company comp = j.getCompany();
         return new JobResponse(
@@ -71,6 +72,7 @@ public record JobResponse(
                 j.getStatus(),
                 effectiveHighlighted,
                 effectivePrioritized,
+                isTopEmployer,
                 j.getRejectionReason(),
                 j.getReviewedAt(),
                 j.getCreatedAt(),
@@ -81,8 +83,13 @@ public record JobResponse(
         );
     }
 
+    public static JobResponse of(Job j, boolean effectiveHighlighted, boolean effectivePrioritized,
+                                 Long applicationCount, Integer matchPercentage, List<String> matchedSkills) {
+        return of(j, effectiveHighlighted, effectivePrioritized, false, applicationCount, matchPercentage, matchedSkills);
+    }
+
     public static JobResponse of(Job j, Long applicationCount, Integer matchPercentage, List<String> matchedSkills) {
-        return of(j, Boolean.TRUE.equals(j.getIsHighlighted()), Boolean.TRUE.equals(j.getIsPrioritized()),
+        return of(j, Boolean.TRUE.equals(j.getIsHighlighted()), Boolean.TRUE.equals(j.getIsPrioritized()), false,
                 applicationCount, matchPercentage, matchedSkills);
     }
 

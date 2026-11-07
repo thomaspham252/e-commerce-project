@@ -56,6 +56,10 @@ public class Package {
     @Builder.Default
     private Boolean canDirectContact = false;
 
+    @Column(name = "is_top_employer", nullable = false)
+    @Builder.Default
+    private Boolean isTopEmployer = false;
+
     @Column(name = "is_active", nullable = false)
     @Builder.Default
     private Boolean isActive = true;

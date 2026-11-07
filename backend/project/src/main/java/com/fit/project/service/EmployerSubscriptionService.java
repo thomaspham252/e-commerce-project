@@ -69,10 +69,16 @@ public class EmployerSubscriptionService {
                     jobRepository.countByCompanyOwnerIdAndCreatedAtGreaterThanEqual(employer.getId(), s.getStartAt()));
             long usedViews = candidateProfileViewRepository.countBySubscriptionId(s.getId());
             long remainingDays = Math.max(0, (long) Math.ceil(Duration.between(now, s.getEndAt()).toHours() / 24.0));
+            int bonusPosts = s.getBonusJobPosts() != null ? s.getBonusJobPosts() : 0;
+            int bonusViews = s.getBonusCvViews() != null ? s.getBonusCvViews() : 0;
+            Integer maxPosts = p.getJobPostLimit() != null ? p.getJobPostLimit() + bonusPosts : null;
+            Integer maxViews = p.getCvViewLimit() != null ? p.getCvViewLimit() + bonusViews : null;
+
             return new EmployerSubscriptionResponse("ACTIVE", s.getId(), p.getId(), p.getName(), companyName,
-                    s.getStartAt(), s.getEndAt(), remainingDays, used, p.getJobPostLimit(), usedViews, p.getCvViewLimit(),
+                    s.getStartAt(), s.getEndAt(), remainingDays, used, maxPosts, bonusPosts, usedViews, maxViews, bonusViews,
                     Boolean.TRUE.equals(p.getCanDirectContact()), Boolean.TRUE.equals(p.getCanHighlightJobs()),
                     Boolean.TRUE.equals(p.getCanPrioritizeJobs()), Boolean.TRUE.equals(p.getCanSearchCandidates()),
+                    Boolean.TRUE.equals(p.getIsTopEmployer()),
                     s.getOrder() != null ? s.getOrder().getOrderCode() : null, queuedInfo);
         }
 
@@ -83,17 +89,22 @@ public class EmployerSubscriptionService {
             long used = Math.max(jobRepository.countBySubscriptionId(s.getId()),
                     jobRepository.countByCompanyOwnerIdAndCreatedAtGreaterThanEqual(employer.getId(), s.getStartAt()));
             long usedViews = candidateProfileViewRepository.countBySubscriptionId(s.getId());
+            int bonusPosts = s.getBonusJobPosts() != null ? s.getBonusJobPosts() : 0;
+            int bonusViews = s.getBonusCvViews() != null ? s.getBonusCvViews() : 0;
+            Integer maxPosts = p.getJobPostLimit() != null ? p.getJobPostLimit() + bonusPosts : null;
+            Integer maxViews = p.getCvViewLimit() != null ? p.getCvViewLimit() + bonusViews : null;
+
             return new EmployerSubscriptionResponse("EXPIRED", s.getId(), p.getId(), p.getName(), companyName,
-                    s.getStartAt(), s.getEndAt(), 0, used, p.getJobPostLimit(), usedViews, p.getCvViewLimit(),
-                    false, false, false, false,
+                    s.getStartAt(), s.getEndAt(), 0, used, maxPosts, bonusPosts, usedViews, maxViews, bonusViews,
+                    false, false, false, false, false,
                     s.getOrder() != null ? s.getOrder().getOrderCode() : null, queuedInfo);
         }
 
         long totalFreeJobs = Math.max(jobRepository.countByCompanyOwnerIdAndSubscriptionIsNull(employer.getId()),
                 jobRepository.countByCompanyOwnerId(employer.getId()));
         return new EmployerSubscriptionResponse("FREE", null, null, "Gói miễn phí", companyName,
-                null, null, 0, totalFreeJobs, freeJobPosts, 0L, 0,
-                false, false, false, false, null, queuedInfo);
+                null, null, 0, totalFreeJobs, freeJobPosts, 0, 0L, 0, 0,
+                false, false, false, false, false, null, queuedInfo);
     }
 
     /** Chặn tạo tin khi hết hạn mức; gọi trước khi lưu tin mới. */
@@ -123,8 +134,11 @@ public class EmployerSubscriptionService {
                     .orElse(current.get());
             long used = Math.max(jobRepository.countBySubscriptionId(sub.getId()),
                     jobRepository.countByCompanyOwnerIdAndCreatedAtGreaterThanEqual(employer.getId(), sub.getStartAt()));
-            if (sub.getPackageEntity().getJobPostLimit() != null && used >= sub.getPackageEntity().getJobPostLimit()) {
-                throw ApiException.forbidden("QUOTA_EXCEEDED: Bạn đã dùng hết " + sub.getPackageEntity().getJobPostLimit()
+            int bonusPosts = sub.getBonusJobPosts() != null ? sub.getBonusJobPosts() : 0;
+            Integer maxPosts = sub.getPackageEntity().getJobPostLimit() != null
+                    ? sub.getPackageEntity().getJobPostLimit() + bonusPosts : null;
+            if (maxPosts != null && used >= maxPosts) {
+                throw ApiException.forbidden("QUOTA_EXCEEDED: Bạn đã dùng hết " + maxPosts
                         + " tin đăng của gói hiện tại. Vui lòng nâng cấp gói để đăng thêm.");
             }
             return sub;
