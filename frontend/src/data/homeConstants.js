@@ -13,13 +13,13 @@ export const HERO_POPULAR_KEYWORDS = [
 ];
 
 export const HERO_SIDEBAR_CATEGORIES = [
-  { id: 'cat-it', name: 'Công nghệ thông tin', icon: 'Monitor', count: 'IT' },
-  { id: 'cat-finance', name: 'Tài chính / Kế toán', icon: 'Calculator', count: 'Kế toán' },
-  { id: 'cat-marketing', name: 'Marketing / Truyền thông', icon: 'Megaphone', count: 'Marketing' },
-  { id: 'cat-sales', name: 'Kinh doanh / Bán lẻ', icon: 'ShoppingCart', count: 'Sales' },
-  { id: 'cat-hr', name: 'Nhân sự / Hành chính', icon: 'Building2', count: 'HR' },
-  { id: 'cat-design', name: 'Thiết kế / Đồ họa', icon: 'Compass', count: 'Design' },
-  { id: 'cat-support', name: 'Chăm sóc khách hàng', icon: 'Headphones', count: 'CSKH' },
+  { id: 'cat-it', name: 'Công nghệ thông tin', icon: 'Monitor' },
+  { id: 'cat-finance', name: 'Tài chính / Kế toán', icon: 'Calculator' },
+  { id: 'cat-marketing', name: 'Marketing / Truyền thông', icon: 'Megaphone' },
+  { id: 'cat-sales', name: 'Kinh doanh / Bán lẻ', icon: 'ShoppingCart' },
+  { id: 'cat-hr', name: 'Nhân sự / Hành chính', icon: 'Building2' },
+  { id: 'cat-design', name: 'Thiết kế / Đồ họa', icon: 'Compass' },
+  { id: 'cat-support', name: 'Chăm sóc khách hàng', icon: 'Headphones' },
 ];
 
 export const COMPANY_SECTORS = [
@@ -31,14 +31,14 @@ export const COMPANY_SECTORS = [
 ];
 
 export const HIGHLIGHT_CATEGORIES = [
-  { id: 'cat-it', name: 'Công nghệ thông tin', iconName: 'Monitor', jobCount: '100+' },
-  { id: 'cat-finance', name: 'Tài chính / Ngân hàng', iconName: 'Calculator', jobCount: '50+' },
-  { id: 'cat-marketing', name: 'Marketing & PR', iconName: 'Megaphone', jobCount: '40+' },
-  { id: 'cat-sales', name: 'Kinh doanh & Bán hàng', iconName: 'ShoppingCart', jobCount: '60+' },
-  { id: 'cat-hr', name: 'Nhân sự & Hành chính', iconName: 'Building2', jobCount: '30+' },
-  { id: 'cat-design', name: 'Thiết kế & Sáng tạo', iconName: 'Compass', jobCount: '25+' },
-  { id: 'cat-support', name: 'Chăm sóc khách hàng', iconName: 'Headphones', jobCount: '35+' },
-  { id: 'cat-all', name: 'Tất cả ngành nghề', iconName: 'Briefcase', jobCount: 'Toàn quốc' },
+  { id: 'cat-it', name: 'Công nghệ thông tin', iconName: 'Monitor', subtitle: 'Tuyển dụng sôi động' },
+  { id: 'cat-finance', name: 'Tài chính / Ngân hàng', iconName: 'Calculator', subtitle: 'Đãi ngộ hấp dẫn' },
+  { id: 'cat-marketing', name: 'Marketing & PR', iconName: 'Megaphone', subtitle: 'Môi trường sáng tạo' },
+  { id: 'cat-sales', name: 'Kinh doanh & Bán hàng', iconName: 'ShoppingCart', subtitle: 'Hoa hồng cạnh tranh' },
+  { id: 'cat-hr', name: 'Nhân sự & Hành chính', iconName: 'Building2', subtitle: 'Đa dạng vị trí' },
+  { id: 'cat-design', name: 'Thiết kế & Sáng tạo', iconName: 'Compass', subtitle: 'Dự án phong phú' },
+  { id: 'cat-support', name: 'Chăm sóc khách hàng', iconName: 'Headphones', subtitle: 'Tuyển dụng liên tục' },
+  { id: 'cat-all', name: 'Tất cả ngành nghề', iconName: 'Briefcase', subtitle: 'Cơ hội toàn quốc' },
 ];
 
 export const CANDIDATE_TOOLS = [
@@ -67,7 +67,3 @@ export const CANDIDATE_TOOLS = [
     link: '/cong-ty',
   },
 ];
-
-export const FEATURED_JOBS = [];
-export const FEATURED_COMPANIES = [];
-export const PLATFORM_STATS = [];

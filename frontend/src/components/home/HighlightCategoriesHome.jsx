@@ -49,7 +49,7 @@ export const HighlightCategoriesHome = () => {
                 </div>
                 <div className="category-tile-info">
                   <h3 className="category-tile-title">{cat.name}</h3>
-                  <span className="category-tile-jobs">{cat.jobCount} việc làm</span>
+                  <span className="category-tile-jobs">{cat.subtitle}</span>
                 </div>
               </div>
             );

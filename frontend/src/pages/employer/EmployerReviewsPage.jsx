@@ -160,10 +160,10 @@ export const EmployerReviewsPage = () => {
 
   const reviewsList = data?.reviews?.content || [];
   const totalReviews = data?.totalReviews || 0;
-  const avgRating = data?.averageRating || 5.0;
+  const avgRating = data?.averageRating ? Number(data.averageRating) : 0;
   const repliedCount = data?.repliedCount || 0;
   const unrepliedCount = data?.unrepliedCount || 0;
-  const responseRate = data?.responseRate || 100;
+  const responseRate = data?.responseRate ?? 0;
   const breakdown = data?.ratingBreakdown || { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
 
   return (
@@ -206,7 +206,9 @@ export const EmployerReviewsPage = () => {
           </div>
           <div className="emp-stat-info">
             <span className="emp-stat-label">Điểm trung bình</span>
-            <span className="emp-stat-value">{avgRating.toFixed(1)} / 5.0</span>
+            <span className="emp-stat-value">
+              {totalReviews > 0 ? `${avgRating.toFixed(1)} / 5.0` : 'Chưa có'}
+            </span>
             <span className="emp-stat-hint">Dựa trên {totalReviews} đánh giá</span>
           </div>
         </div>
