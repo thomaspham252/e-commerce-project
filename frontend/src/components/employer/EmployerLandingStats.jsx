@@ -1,12 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import { publicStatsService, FALLBACK_PUBLIC_STATS } from '../../services/publicStatsService';
+import { publicStatsService } from '../../services/publicStatsService';
 import { FiUsers, FiBriefcase, FiTrendingUp, FiCheckCircle } from 'react-icons/fi';
 
 /**
- * Thống kê thực tế: Lấy dữ liệu từ API GET /api/public/stats, có fallback an toàn.
+ * Thống kê thực tế: Lấy dữ liệu trực tiếp từ API GET /api/public/stats từ backend Spring Boot.
  */
 export const EmployerLandingStats = () => {
-  const [stats, setStats] = useState(FALLBACK_PUBLIC_STATS);
+  const [stats, setStats] = useState({
+    candidateCount: 0,
+    companyCount: 0,
+    jobCount: 0,
+    applicationCount: 0,
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

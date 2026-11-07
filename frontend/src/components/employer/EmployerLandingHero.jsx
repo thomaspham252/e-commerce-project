@@ -51,7 +51,7 @@ export const EmployerLandingHero = () => {
           </div>
         </div>
 
-        {/* Mockup Trực quan bên phải */}
+        {/* Minh họa tính năng gợi ý ứng viên bên phải */}
         <div className="hero-mockup-wrapper">
           <div className="mockup-card-main">
             <div className="mockup-card-header">
@@ -59,37 +59,37 @@ export const EmployerLandingHero = () => {
                 <FiZap className="mockup-spark-icon" />
                 <span>Gợi ý Ứng viên Phù hợp</span>
               </div>
-              <span className="match-tag-high">Độ phù hợp: 96%</span>
+              <span className="match-tag-high">Tính năng nổi bật</span>
             </div>
 
-            {/* Mock candidate list */}
+            {/* Danh sách minh họa hồ sơ */}
             <div className="mockup-candidate-list">
               <div className="mockup-candidate-item active">
-                <div className="candidate-avatar">NV</div>
+                <div className="candidate-avatar">IT</div>
                 <div className="candidate-info">
-                  <div className="candidate-name">Nguyễn Văn An</div>
+                  <div className="candidate-name">Hồ sơ Ứng viên #1</div>
                   <div className="candidate-role">Senior Fullstack Developer (Java & React)</div>
-                  <div className="candidate-meta">5 năm kinh nghiệm • Hà Nội</div>
+                  <div className="candidate-meta">Đầy đủ chứng chỉ chuyên môn • Hà Nội</div>
                 </div>
-                <span className="candidate-badge-verified">Đã duyệt</span>
+                <span className="candidate-badge-verified">Đã xác thực</span>
               </div>
 
               <div className="mockup-candidate-item">
-                <div className="candidate-avatar alt">TH</div>
+                <div className="candidate-avatar alt">MKT</div>
                 <div className="candidate-info">
-                  <div className="candidate-name">Trần Thị Hương</div>
+                  <div className="candidate-name">Hồ sơ Ứng viên #2</div>
                   <div className="candidate-role">Product Marketing Manager</div>
-                  <div className="candidate-meta">4 năm kinh nghiệm • TP. Hồ Chí Minh</div>
+                  <div className="candidate-meta">Kinh nghiệm dự án thực tế • TP. Hồ Chí Minh</div>
                 </div>
                 <span className="candidate-badge-ready">Sẵn sàng</span>
               </div>
 
               <div className="mockup-candidate-item">
-                <div className="candidate-avatar alt2">LM</div>
+                <div className="candidate-avatar alt2">DA</div>
                 <div className="candidate-info">
-                  <div className="candidate-name">Lê Minh Tuấn</div>
+                  <div className="candidate-name">Hồ sơ Ứng viên #3</div>
                   <div className="candidate-role">Data Analyst & BI Specialist</div>
-                  <div className="candidate-meta">3 năm kinh nghiệm • Đà Nẵng</div>
+                  <div className="candidate-meta">Chuyên môn phân tích dữ liệu • Đà Nẵng</div>
                 </div>
                 <span className="candidate-badge-ready">Sẵn sàng</span>
               </div>
@@ -98,7 +98,7 @@ export const EmployerLandingHero = () => {
             <div className="mockup-card-footer">
               <div className="footer-stat">
                 <FiUsers size={14} />
-                <span>+48 ứng viên mới ứng tuyển tuần này</span>
+                <span>Hồ sơ ứng viên được kết nối trực tiếp</span>
               </div>
               <Link to="/employer/register" className="mockup-link-action">
                 Tiếp cận ngay <FiArrowRight size={13} />
