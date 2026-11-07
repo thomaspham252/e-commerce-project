@@ -168,6 +168,7 @@ CREATE TABLE `jobs` (
   `working_schedule` VARCHAR(255) DEFAULT NULL COMMENT 'Thời gian làm việc (VD: Thứ 2 - Thứ 6, 8:30 - 17:30)',
   `deadline` DATE DEFAULT NULL COMMENT 'Hạn chót nhận hồ sơ ứng tuyển',
   `status` ENUM('draft', 'pending_review', 'open', 'closed', 'rejected', 'expired') NOT NULL DEFAULT 'draft' COMMENT 'Trạng thái tin tuyển dụng',
+  `subscription_id` INT DEFAULT NULL COMMENT 'ID gói đăng ký dịch vụ đang hiệu lực lúc đăng tin (tính hạn mức độc lập)',
   `is_highlighted` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Tin được làm nổi bật/bôi đậm (quyền lợi từ gói dịch vụ)',
   `is_prioritized` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Tin được ưu tiên đẩy lên đầu kết quả tìm kiếm (quyền lợi gói)',
   `reviewed_by` INT DEFAULT NULL COMMENT 'ID của Admin đã duyệt hoặc từ chối tin',
@@ -177,6 +178,7 @@ CREATE TABLE `jobs` (
   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Thời điểm cập nhật tin gần nhất',
   PRIMARY KEY (`id`),
   KEY `idx_jobs_company_id` (`company_id`),
+  KEY `idx_jobs_subscription_id` (`subscription_id`),
   KEY `idx_jobs_reviewed_by` (`reviewed_by`),
   KEY `idx_jobs_title` (`title`),
   KEY `idx_jobs_location` (`location`),
@@ -184,11 +186,14 @@ CREATE TABLE `jobs` (
   CONSTRAINT `fk_jobs_company_id`
     FOREIGN KEY (`company_id`) REFERENCES `companies` (`id`)
     ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_jobs_subscription_id`
+    FOREIGN KEY (`subscription_id`) REFERENCES `subscriptions` (`id`)
+    ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `fk_jobs_reviewed_by`
     FOREIGN KEY (`reviewed_by`) REFERENCES `users` (`id`)
     ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-COMMENT='Bảng lưu trữ tin tuyển dụng. Lưu ý [CHỐT]: job_post_limit của gói là số tin miễn phí trong gói; vượt quá hạn mức sẽ trừ vào ví token';
+COMMENT='Bảng lưu trữ tin tuyển dụng. Hạn mức tin đăng được kiểm soát theo chu kỳ gói subscriptions; tin đăng miễn phí có subscription_id = NULL';
 
 -- 2.2. Bảng job_skills
 DROP TABLE IF EXISTS `job_skills`;

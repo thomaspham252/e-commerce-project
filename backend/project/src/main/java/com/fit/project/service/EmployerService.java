@@ -7,6 +7,7 @@ import com.fit.project.dto.employer.CompanyRequest;
 import com.fit.project.dto.employer.JobRequest;
 import com.fit.project.entity.Company;
 import com.fit.project.entity.Job;
+import com.fit.project.entity.Subscription;
 import com.fit.project.entity.User;
 import com.fit.project.enums.JobStatus;
 import com.fit.project.enums.SalaryUnit;
@@ -15,12 +16,14 @@ import com.fit.project.exception.ApiException;
 import com.fit.project.repository.ApplicationRepository;
 import com.fit.project.repository.CompanyRepository;
 import com.fit.project.repository.JobRepository;
+import com.fit.project.repository.SubscriptionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.EnumSet;
 import java.util.Map;
 import java.util.Objects;
@@ -40,6 +43,7 @@ public class EmployerService {
     private final JobRepository jobRepository;
     private final ApplicationRepository applicationRepository;
     private final EmployerSubscriptionService subscriptionService;
+    private final SubscriptionRepository subscriptionRepository;
 
     // ===== Doanh nghiệp =====
 
@@ -107,11 +111,14 @@ public class EmployerService {
         Company company = companyRepository.findFirstByOwnerIdOrderByIdAsc(employer.getId())
                 .orElseThrow(() -> ApiException.badRequest("Vui lòng tạo hồ sơ doanh nghiệp trước khi đăng tin"));
         if (company.getVerificationStatus() != VerificationStatus.VERIFIED) {
-            throw ApiException.forbidden("Doanh nghiệp chưa được xác minh nên chưa thể đăng tin");
+            throw ApiException.forbidden("ACCOUNT_NOT_VERIFIED: Doanh nghiệp chưa được xác minh nên chưa thể đăng tin");
         }
-        subscriptionService.assertCanPostJob(employer);
-        Job job = Job.builder().company(company).build();
-        applyRequest(job, req);
+        Subscription activeSub = subscriptionService.getAndLockActiveSubscriptionForPosting(employer);
+        Job job = Job.builder()
+                .company(company)
+                .subscription(activeSub)
+                .build();
+        applyRequest(job, req, activeSub);
         job.setStatus(JobStatus.PENDING_REVIEW);
         return JobResponse.of(jobRepository.save(job));
     }
@@ -122,7 +129,10 @@ public class EmployerService {
         if (!EDITABLE.contains(job.getStatus())) {
             throw ApiException.conflict("Tin đã đóng hoặc hết hạn, không thể sửa");
         }
-        applyRequest(job, req);
+        Subscription activeSub = subscriptionRepository.findInEffect(employer.getId(),
+                com.fit.project.enums.SubscriptionStatus.ACTIVE, LocalDateTime.now())
+                .stream().findFirst().orElse(null);
+        applyRequest(job, req, activeSub);
         job.setStatus(JobStatus.PENDING_REVIEW);
         job.setRejectionReason(null);
         job.setReviewedAt(null);
@@ -155,7 +165,7 @@ public class EmployerService {
                 .orElseThrow(() -> ApiException.notFound("Không tìm thấy tin tuyển dụng"));
     }
 
-    private void applyRequest(Job job, JobRequest req) {
+    private void applyRequest(Job job, JobRequest req, Subscription activeSub) {
         if (req.salaryMin() != null && req.salaryMax() != null && req.salaryMin().compareTo(req.salaryMax()) > 0) {
             throw ApiException.badRequest("Lương tối thiểu không được lớn hơn lương tối đa");
         }
@@ -172,6 +182,24 @@ public class EmployerService {
         job.setVacancies(req.vacancies() != null ? req.vacancies() : 1);
         job.setWorkingSchedule(blankToNull(req.workingSchedule()));
         job.setDeadline(req.deadline());
+
+        if (Boolean.TRUE.equals(req.isHighlighted())) {
+            if (activeSub == null || !Boolean.TRUE.equals(activeSub.getPackageEntity().getCanHighlightJobs())) {
+                throw ApiException.forbidden("FEATURE_NOT_PERMITTED: Gói dịch vụ hiện tại không hỗ trợ quyền làm nổi bật tin tuyển dụng.");
+            }
+            job.setIsHighlighted(true);
+        } else if (req.isHighlighted() != null) {
+            job.setIsHighlighted(false);
+        }
+
+        if (Boolean.TRUE.equals(req.isPrioritized())) {
+            if (activeSub == null || !Boolean.TRUE.equals(activeSub.getPackageEntity().getCanPrioritizeJobs())) {
+                throw ApiException.forbidden("FEATURE_NOT_PERMITTED: Gói dịch vụ hiện tại không hỗ trợ quyền ưu tiên hiển thị tin tuyển dụng.");
+            }
+            job.setIsPrioritized(true);
+        } else if (req.isPrioritized() != null) {
+            job.setIsPrioritized(false);
+        }
     }
 
     private static String blankToNull(String s) {

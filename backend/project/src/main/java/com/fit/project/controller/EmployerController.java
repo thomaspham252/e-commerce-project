@@ -33,6 +33,7 @@ public class EmployerController {
     private final StatisticsService statisticsService;
     private final CompanyPublicService companyPublicService;
     private final EmployerSubscriptionService subscriptionService;
+    private final CandidateSearchService candidateSearchService;
 
     // ===== Gói dịch vụ =====
 
@@ -106,6 +107,29 @@ public class EmployerController {
     }
 
     // ===== Quản lý ứng tuyển =====
+
+    @GetMapping("/candidates")
+    public PageResponse<CandidateSummaryResponse> searchCandidates(
+            @RequestHeader(CurrentUserService.HEADER) Integer userId,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String location,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(
+                Math.max(0, page),
+                Math.clamp(size, 1, 100),
+                org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "userId"));
+        return candidateSearchService.searchCandidates(employer(userId), keyword, location, pageable);
+    }
+
+    @GetMapping("/candidates/{id}")
+    public CandidateDetailResponse getCandidateDetail(
+            @RequestHeader(CurrentUserService.HEADER) Integer userId,
+            @PathVariable Integer id
+    ) {
+        return candidateSearchService.getCandidateDetail(employer(userId), id);
+    }
 
     @GetMapping("/applications")
     public PageResponse<ApplicationResponse> listApplications(@RequestHeader(CurrentUserService.HEADER) Integer userId,

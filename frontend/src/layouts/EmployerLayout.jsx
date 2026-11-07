@@ -9,7 +9,8 @@ import {
   Package,
   CreditCard,
   Building2,
-  Star
+  Star,
+  Search
 } from 'lucide-react';
 import {
   EmployerMessagesProvider,
@@ -23,7 +24,8 @@ const EmployerLayoutContent = () => {
     { path: '/employer/dashboard', label: 'Dashboard', icon: <LayoutDashboard size={20} />, end: true },
     { path: '/employer/jobs', label: 'Tin tuyển dụng của tôi', icon: <Briefcase size={20} />, end: true },
     { path: '/employer/jobs/create', label: 'Đăng tin mới', icon: <PlusCircle size={20} /> },
-    { path: '/employer/applications', label: 'Hồ sơ ứng viên', icon: <Users size={20} /> },
+    { path: '/employer/candidates', label: 'Kho ứng viên', icon: <Search size={20} /> },
+    { path: '/employer/applications', label: 'Hồ sơ ứng tuyển', icon: <Users size={20} /> },
     {
       path: '/employer/messages',
       label: 'Tin nhắn',

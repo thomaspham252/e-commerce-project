@@ -7,12 +7,14 @@ import {
   FiArrowUpRight,
   FiRefreshCw,
   FiBriefcase,
+  FiUsers,
+  FiAlertCircle,
 } from 'react-icons/fi';
 import './CurrentPackageCard.css';
 
 /**
  * Thẻ hiển thị chi tiết gói dịch vụ đang hoạt động của Nhà tuyển dụng.
- * Có thanh tiến độ sử dụng tin đăng, đếm ngược số ngày còn lại và nút gia hạn / nâng cấp.
+ * Có thanh tiến độ sử dụng tin đăng, thanh tiến độ xem hồ sơ CV, đếm ngược số ngày còn lại và nút gia hạn / nâng cấp.
  */
 export const CurrentPackageCard = ({
   subscription,
@@ -28,6 +30,17 @@ export const CurrentPackageCard = ({
   const remainingPosts = unlimited ? null : Math.max(0, max - used);
   const isFree = subscription.status === 'FREE';
 
+  // Hạn mức xem CV hồ sơ ứng viên
+  const usedViews = subscription.usedCvViews || 0;
+  const maxViews = subscription.cvViewLimit;
+  const unlimitedViews = maxViews == null;
+  const percentViews = unlimitedViews
+    ? 0
+    : maxViews > 0
+      ? Math.min(100, Math.round((usedViews / maxViews) * 100))
+      : 100;
+  const remainingViews = unlimitedViews ? null : Math.max(0, maxViews - usedViews);
+
   const formatDate = (isoStr) => {
     if (!isoStr) return '—';
     const d = new Date(isoStr);
@@ -37,9 +50,22 @@ export const CurrentPackageCard = ({
   };
 
   const isExpired = subscription.status === 'EXPIRED';
+  const queued = subscription.queuedSubscription;
 
   return (
     <div className="current-package-card">
+      {/* Banner thông báo gói gối đầu nếu có */}
+      {queued && (
+        <div className="current-pkg-queued-banner">
+          <div className="queued-banner-content">
+            <FiAlertCircle className="queued-banner-icon" />
+            <div>
+              <strong>Gói gối đầu sẵn sàng:</strong> Gói <strong>{queued.packageName}</strong> sẽ tự động kích hoạt vào ngày {formatDate(queued.startDate)} (ngay sau khi gói hiện tại kết thúc).
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="current-pkg-top">
         <div className="current-pkg-header-info">
           <div className="current-pkg-badge-row">
@@ -112,9 +138,46 @@ export const CurrentPackageCard = ({
           ) : unlimited ? (
             <span>Gói của bạn được đăng tin <strong>không giới hạn</strong>.</span>
           ) : percent >= 100 ? (
-            <span className="text-danger">⚠️ Đã sử dụng hết 100% hạn mức tin đăng.</span>
+            <span className="text-danger">⚠️ Đã sử dụng hết 100% hạn mức tin đăng của gói.</span>
           ) : (
             <span>Bạn còn <strong>{remainingPosts} lượt</strong> đăng tin tuyển dụng mới.</span>
+          )}
+        </div>
+      </div>
+
+      {/* Thanh tiến độ xem hồ sơ CV */}
+      <div className="current-pkg-quota-section">
+        <div className="quota-header">
+          <span className="quota-title">
+            <FiUsers className="quota-icon" /> Hạn Mức Xem Hồ Sơ Ứng Viên
+          </span>
+          <span className="quota-count">
+            <strong>{usedViews}</strong> / {unlimitedViews ? '∞' : maxViews} lượt
+          </span>
+        </div>
+
+        <div className="quota-progress-bar-bg">
+          <div
+            className={`quota-progress-bar-fill ${
+              percentViews >= 100 ? 'fill--full' : percentViews >= 80 ? 'fill--warning' : ''
+            }`}
+            style={{ width: `${percentViews}%` }}
+          />
+        </div>
+
+        <div className="quota-footer-hint">
+          {isExpired ? (
+            <span className="text-danger">⚠️ Gói đã hết hạn, vui lòng gia hạn để xem thêm hồ sơ.</span>
+          ) : isFree ? (
+            <span className="text-muted">Gói miễn phí không bao gồm lượt mở xem hồ sơ ứng viên trong kho.</span>
+          ) : !subscription.canSearchCandidates ? (
+            <span className="text-muted">Gói hiện tại chưa hỗ trợ tìm kiếm kho hồ sơ ứng viên.</span>
+          ) : unlimitedViews ? (
+            <span>Gói của bạn được xem hồ sơ <strong>không giới hạn</strong>.</span>
+          ) : percentViews >= 100 ? (
+            <span className="text-danger">⚠️ Đã sử dụng hết hạn mức xem hồ sơ ứng viên của gói.</span>
+          ) : (
+            <span>Bạn còn <strong>{remainingViews} lượt</strong> mở xem hồ sơ ứng viên mới.</span>
           )}
         </div>
       </div>
@@ -126,6 +189,19 @@ export const CurrentPackageCard = ({
           <div className="benefit-item">
             <FiCheckCircle className="benefit-icon text-success" />
             <span>{unlimited ? 'Đăng tin không giới hạn' : `Đăng tối đa ${max} tin tuyển dụng`}</span>
+          </div>
+          <div className="benefit-item">
+            {subscription.canSearchCandidates ? (
+              <>
+                <FiCheckCircle className="benefit-icon text-success" />
+                <span>{unlimitedViews ? 'Xem hồ sơ không giới hạn' : `Xem tối đa ${maxViews} hồ sơ ứng viên`}</span>
+              </>
+            ) : (
+              <>
+                <FiClock className="benefit-icon text-muted" />
+                <span className="text-muted">Chưa có: xem kho hồ sơ ứng viên</span>
+              </>
+            )}
           </div>
           {[
             [subscription.allowRealtimeChat, 'Nhắn tin trực tiếp với ứng viên'],

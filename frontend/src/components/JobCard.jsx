@@ -11,7 +11,7 @@ export const JobCard = ({ job }) => {
   const saved = isJobSaved(job.id);
 
   return (
-    <div className="job-card">
+    <div className={`job-card ${job.isHighlighted ? 'job-card--highlighted' : ''}`}>
       <div className="job-card-header">
         <CompanyLogo
           companyName={job.companyName}
@@ -40,6 +40,16 @@ export const JobCard = ({ job }) => {
       </div>
 
       <div className="job-tags">
+        {job.isPrioritized && (
+          <span className="badge" style={{ background: '#fef3c7', color: '#b45309', border: '1px solid #fde68a', fontWeight: 'bold' }}>
+            <span>⭐ Ưu tiên</span>
+          </span>
+        )}
+        {job.isHighlighted && (
+          <span className="badge" style={{ background: '#fee2e2', color: '#b91c1c', border: '1px solid #fecaca', fontWeight: 'bold' }}>
+            <span>✨ Nổi bật</span>
+          </span>
+        )}
         {job.isHot && (
           <span className="badge badge-hot">
             <Icon name="flame" size="badge" />

@@ -13,6 +13,12 @@
   overflow: hidden;
 }
 
+.job-card--highlighted {
+  border: 2px solid #f59e0b;
+  background: linear-gradient(to bottom, #fffbeb, #ffffff);
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.15);
+}
+
 .job-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.1);

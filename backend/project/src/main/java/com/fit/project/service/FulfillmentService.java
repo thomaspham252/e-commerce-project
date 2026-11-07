@@ -124,37 +124,5 @@ public class FulfillmentService {
         subscriptionRepository.save(subscription);
         log.info("Kích hoạt gói {} cho employerId={}, hiệu lực từ {} đến {}",
                 packageEntity.getName(), employer.getId(), startAt, endAt);
-
-        // Nếu gói có tặng kèm tokens thì cộng vào ví của nhà tuyển dụng
-        if (packageEntity.getIncludedTokens() != null && packageEntity.getIncludedTokens() > 0) {
-            int bonusTokens = packageEntity.getIncludedTokens();
-            TokenWallet wallet = tokenWalletRepository.findByUserIdForUpdate(employer.getId())
-                    .orElseGet(() -> {
-                        TokenWallet newWallet = tokenWalletRepository.save(TokenWallet.builder()
-                                .user(employer)
-                                .balance(0)
-                                .build());
-                        return tokenWalletRepository.findByUserIdForUpdate(newWallet.getUser().getId())
-                                .orElse(newWallet);
-                    });
-            int newBalance = wallet.getBalance() + bonusTokens;
-            wallet.setBalance(newBalance);
-            tokenWalletRepository.save(wallet);
-
-            String idempotencyKey = "subscription_bonus:" + order.getId();
-            if (!tokenTransactionRepository.existsByIdempotencyKey(idempotencyKey)) {
-                TokenTransaction tx = TokenTransaction.builder()
-                        .wallet(wallet)
-                        .type(TokenTransactionType.WELCOME)
-                        .amount(bonusTokens)
-                        .balanceAfter(newBalance)
-                        .idempotencyKey(idempotencyKey)
-                        .order(order)
-                        .createdAt(LocalDateTime.now())
-                        .build();
-                tokenTransactionRepository.save(tx);
-            }
-            log.info("Đã tặng {} tokens khuyến mãi đi kèm gói cho employerId={}", bonusTokens, employer.getId());
-        }
     }
 }

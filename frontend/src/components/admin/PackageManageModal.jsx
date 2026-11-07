@@ -97,7 +97,6 @@ export const PackageManageModal = ({
     [
       ['jobPostLimit', 'Số tin đăng'],
       ['cvViewLimit', 'Số lượt xem CV'],
-      ['includedTokens', 'Số token tặng kèm'],
     ].forEach(([key, label]) => {
       const value = formData[key];
       if (value !== '' && value != null && (!Number.isInteger(Number(value)) || Number(value) < 0)) {
@@ -193,10 +192,6 @@ export const PackageManageModal = ({
             <div className="pkg-form-row">
               {numberField('jobPostLimit', 'Số tin đăng tối đa', { placeholder: 'VD: 5', hint: 'Để trống = không giới hạn' })}
               {numberField('cvViewLimit', 'Số lượt xem CV', { placeholder: 'VD: 50', hint: 'Để trống = không giới hạn' })}
-            </div>
-
-            <div className="pkg-form-row">
-              {numberField('includedTokens', 'Token tặng kèm', { placeholder: 'VD: 0' })}
             </div>
 
             <div className="pkg-form-group">

@@ -280,6 +280,29 @@
   transform: translateY(-1px);
 }
 
+/* Banner thông báo gói gối đầu */
+.current-pkg-queued-banner {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin-bottom: 8px;
+}
+
+.queued-banner-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.875rem;
+  color: #166534;
+}
+
+.queued-banner-icon {
+  font-size: 1.25rem;
+  color: #15803d;
+  flex-shrink: 0;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .benefits-grid {

@@ -5,6 +5,7 @@ import com.fit.project.entity.ChatMessage;
 import com.fit.project.entity.Company;
 import com.fit.project.entity.Conversation;
 import com.fit.project.entity.Job;
+import com.fit.project.entity.Subscription;
 import com.fit.project.entity.User;
 import com.fit.project.exception.ApiException;
 import com.fit.project.repository.*;
@@ -28,21 +29,37 @@ public class ChatServiceImpl implements ChatService {
     private final UserRepository userRepository;
     private final CompanyRepository companyRepository;
     private final JobRepository jobRepository;
+    private final SubscriptionRepository subscriptionRepository;
+    private final ApplicationRepository applicationRepository;
+    private final CandidateProfileViewRepository candidateProfileViewRepository;
 
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
 
     @Override
     @Transactional
-    public ConversationResponse findOrCreateConversation(Integer candidateUserId, CreateConversationRequest request) {
-        if (request.getCompanyId() == null) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, "Thiếu ID công ty tuyển dụng");
+    public ConversationResponse findOrCreateConversation(Integer callerUserId, CreateConversationRequest request) {
+        User caller = userRepository.findById(callerUserId)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Không tìm thấy tài khoản người dùng"));
+
+        User candidate;
+        Company company;
+
+        if (caller.getRole() == com.fit.project.enums.UserRole.EMPLOYER) {
+            if (request.getCandidateId() == null) {
+                throw new ApiException(HttpStatus.BAD_REQUEST, "Thiếu ID ứng viên cần liên hệ");
+            }
+            candidate = userRepository.findById(request.getCandidateId().intValue())
+                    .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Không tìm thấy tài khoản ứng viên"));
+            company = companyRepository.findFirstByOwnerIdOrderByIdAsc(caller.getId())
+                    .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Không tìm thấy thông tin doanh nghiệp của bạn"));
+        } else {
+            if (request.getCompanyId() == null) {
+                throw new ApiException(HttpStatus.BAD_REQUEST, "Thiếu ID công ty tuyển dụng");
+            }
+            candidate = caller;
+            company = companyRepository.findById(request.getCompanyId().intValue())
+                    .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Không tìm thấy thông tin doanh nghiệp"));
         }
-
-        User candidate = userRepository.findById(candidateUserId)
-                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Không tìm thấy tài khoản ứng viên"));
-
-        Company company = companyRepository.findById(request.getCompanyId().intValue())
-                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Không tìm thấy thông tin doanh nghiệp"));
 
         Job job = null;
         if (request.getJobId() != null) {
@@ -57,6 +74,24 @@ public class ChatServiceImpl implements ChatService {
         if (existing.isPresent()) {
             conv = existing.get();
         } else {
+            // Kiểm tra phân quyền nếu NTD là người chủ động khởi tạo hội thoại mới
+            if (caller.getRole() == com.fit.project.enums.UserRole.EMPLOYER) {
+                LocalDateTime now = LocalDateTime.now();
+                Subscription activeSub = subscriptionRepository.findInEffect(caller.getId(), com.fit.project.enums.SubscriptionStatus.ACTIVE, now)
+                        .stream().findFirst()
+                        .orElseThrow(() -> new ApiException(HttpStatus.FORBIDDEN, "PACKAGE_REQUIRED: Cần có gói dịch vụ còn hiệu lực để chủ động nhắn tin với ứng viên"));
+
+                if (!Boolean.TRUE.equals(activeSub.getPackageEntity().getCanDirectContact())) {
+                    throw new ApiException(HttpStatus.FORBIDDEN, "FEATURE_NOT_PERMITTED: Gói dịch vụ hiện tại không hỗ trợ quyền chủ động nhắn tin trực tiếp với ứng viên.");
+                }
+
+                boolean inScope = applicationRepository.existsByJobCompanyOwnerIdAndCandidateUserId(caller.getId(), candidate.getId())
+                        || candidateProfileViewRepository.existsByViewedByIdAndCandidateUserId(caller.getId(), candidate.getId());
+                if (!inScope) {
+                    throw new ApiException(HttpStatus.FORBIDDEN, "OUT_OF_SCOPE: Chỉ có thể chủ động liên hệ ứng viên đã ứng tuyển vào tin của công ty hoặc đã được mở khóa hồ sơ.");
+                }
+            }
+
             LocalDateTime now = LocalDateTime.now();
             conv = Conversation.builder()
                     .candidate(candidate)
@@ -73,7 +108,7 @@ public class ChatServiceImpl implements ChatService {
             conv = conversationRepository.save(conv);
         }
 
-        return mapToConversationResponse(conv, candidateUserId);
+        return mapToConversationResponse(conv, callerUserId);
     }
 
     @Override
@@ -128,6 +163,14 @@ public class ChatServiceImpl implements ChatService {
             conv.setEmployerUnreadCount(conv.getEmployerUnreadCount() + 1);
         } else {
             senderType = "EMPLOYER";
+            boolean candidateHasSent = chatMessageRepository.existsByConversationIdAndSenderType(conv.getId(), "CANDIDATE");
+            if (!candidateHasSent) {
+                Subscription activeSub = subscriptionRepository.findInEffect(sender.getId(),
+                        com.fit.project.enums.SubscriptionStatus.ACTIVE, now).stream().findFirst().orElse(null);
+                if (activeSub == null || !Boolean.TRUE.equals(activeSub.getPackageEntity().getCanDirectContact())) {
+                    throw new ApiException(HttpStatus.FORBIDDEN, "FEATURE_NOT_PERMITTED: Gói dịch vụ hiện tại không hỗ trợ quyền chủ động nhắn tin với ứng viên.");
+                }
+            }
             conv.setCandidateUnreadCount(conv.getCandidateUnreadCount() + 1);
         }
 

@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { MessageSquare } from 'lucide-react';
+import { MessageSquare, AlertCircle } from 'lucide-react';
 import { useEmployerMessages } from '../../context/EmployerMessagesContext';
+import { useEmployerPackage } from '../../context/EmployerPackageContext.jsx';
 import { ConversationList } from '../../components/employer/messages/ConversationList';
 import { ChatHeader } from '../../components/employer/messages/ChatHeader';
 import { MessageTimeline } from '../../components/employer/messages/MessageTimeline';
 import { QuickRepliesBar } from '../../components/employer/messages/QuickRepliesBar';
 import { MessageInput } from '../../components/employer/messages/MessageInput';
+import { toast } from 'react-toastify';
 import './EmployerMessagesPage.css';
 
 /**
@@ -20,6 +22,7 @@ export const EmployerMessagesPage = () => {
   const [isSending, setIsSending] = useState(false);
   const messagesEndRef = useRef(null);
 
+  const { subscription } = useEmployerPackage();
   const {
     conversations,
     activeConversation,
@@ -40,50 +43,19 @@ export const EmployerMessagesPage = () => {
   useEffect(() => {
     const candidateIdParam = searchParams.get('candidateId');
     if (candidateIdParam) {
-      // Tìm trong danh sách hội thoại hiện tại
       const found = conversations.find(
         (c) => String(c.candidateId) === String(candidateIdParam)
       );
-
       if (found) {
         selectConversation(found.id);
-      } else if (candidateIdParam === '1') {
-        openConversationForCandidate({
-          candidateId: 1,
-          candidateName: 'Nguyễn Văn A',
-          jobTitle: 'Frontend Developer',
-          applicationStatus: 'Đang xem xét'
-        });
-      } else if (candidateIdParam === '2') {
-        openConversationForCandidate({
-          candidateId: 2,
-          candidateName: 'Trần Thị B',
-          jobTitle: 'Frontend Developer',
-          applicationStatus: 'Phỏng vấn'
-        });
-      } else if (candidateIdParam === '3') {
-        openConversationForCandidate({
-          candidateId: 3,
-          candidateName: 'Lê Văn C',
-          jobTitle: 'Backend Node.js',
-          applicationStatus: 'Đã ứng tuyển'
-        });
-      } else if (candidateIdParam === '4') {
-        openConversationForCandidate({
-          candidateId: 4,
-          candidateName: 'Phạm Minh D',
-          jobTitle: 'UI/UX Designer',
-          applicationStatus: 'Trúng tuyển'
-        });
       }
     } else if (!activeConversationId && conversations.length > 0) {
-      // Mặc định trên desktop: tự động chọn hội thoại đầu tiên nếu chưa chọn
       const isMobile = window.innerWidth < 768;
       if (!isMobile) {
         selectConversation(conversations[0].id);
       }
     }
-  }, [searchParams, conversations, activeConversationId, openConversationForCandidate, selectConversation]);
+  }, [searchParams, conversations, activeConversationId, selectConversation]);
 
   // Tự động cuộn xuống tin nhắn mới nhất mỗi khi messages hoặc hội thoại thay đổi
   useEffect(() => {
@@ -92,16 +64,30 @@ export const EmployerMessagesPage = () => {
     }
   }, [messages, activeConversationId]);
 
+  // Kiểm tra xem ứng viên đã gửi tin nhắn nào trong hội thoại này chưa
+  const candidateHasSent = messages.some((m) => m.senderType === 'CANDIDATE' || m.senderRole === 'CANDIDATE');
+  const canSend = Boolean(subscription?.allowRealtimeChat) || candidateHasSent;
+
   // Xử lý gửi tin nhắn
   const handleSend = async () => {
     if (!inputText.trim() || isSending) return;
+
+    if (!canSend) {
+      toast.error('Gói dịch vụ hiện tại không hỗ trợ chủ động nhắn tin. Vui lòng nâng cấp gói hoặc chờ ứng viên nhắn trước.');
+      return;
+    }
 
     try {
       setIsSending(true);
       await sendMessage(inputText);
       setInputText('');
     } catch (error) {
-      console.error('Không thể gửi tin nhắn:', error);
+      const msg = error?.response?.data?.message || error?.message || '';
+      if (msg.includes('FEATURE_NOT_PERMITTED')) {
+        toast.error('Gói dịch vụ hiện tại không hỗ trợ chủ động nhắn tin với ứng viên.');
+      } else {
+        toast.error('Không thể gửi tin nhắn: ' + msg);
+      }
     } finally {
       setIsSending(false);
     }

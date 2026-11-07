@@ -18,7 +18,7 @@ const buildFeatures = (pkg) => {
   if (pkg.canHighlightJobs) features.push('Làm nổi bật tin tuyển dụng');
   if (pkg.canPrioritizeJobs) features.push('Ưu tiên hiển thị tin lên đầu');
   if (pkg.canSearchCandidates) features.push('Tìm kiếm trong kho hồ sơ ứng viên');
-  if (pkg.includedTokens > 0) features.push(`Tặng kèm ${pkg.includedTokens} Token`);
+  if (pkg.canDirectContact) features.push('Nhắn tin trực tiếp với ứng viên');
   return features;
 };
 
@@ -110,6 +110,25 @@ export const checkPackagePermission = async (actionType = 'POST_JOB') => {
       message: 'Gói dịch vụ hiện tại của bạn chưa kích hoạt quyền Nhắn tin trực tiếp với ứng viên.',
       subscription: sub,
     };
+  }
+
+  if (actionType === 'CV_VIEW') {
+    if (!sub.canSearchCandidates) {
+      return {
+        allowed: false,
+        reason: 'NO_PERMISSION',
+        message: 'Gói dịch vụ hiện tại của bạn chưa kích hoạt quyền Tìm kiếm và xem kho hồ sơ ứng viên.',
+        subscription: sub,
+      };
+    }
+    if (sub.cvViewLimit != null && sub.usedCvViews >= sub.cvViewLimit) {
+      return {
+        allowed: false,
+        reason: 'CV_LIMIT_REACHED',
+        message: `Bạn đã sử dụng hết ${sub.usedCvViews}/${sub.cvViewLimit} lượt xem hồ sơ của gói hiện tại. Vui lòng nâng cấp gói.`,
+        subscription: sub,
+      };
+    }
   }
 
   return { allowed: true, subscription: sub };

@@ -19,6 +19,10 @@ export const employerService = {
   closeJob: (id) => apiClient.patch(`/employer/jobs/${id}/close`, null, cfg()).then((r) => r.data),
   deleteJob: (id) => apiClient.delete(`/employer/jobs/${id}`, cfg()),
 
+  // Kho hồ sơ ứng viên
+  getCandidates: (params) => apiClient.get('/employer/candidates', cfg(params)).then((r) => r.data),
+  getCandidateDetail: (id) => apiClient.get(`/employer/candidates/${id}`, cfg()).then((r) => r.data),
+
   // Quản lý ứng tuyển
   getApplications: (params) => apiClient.get('/employer/applications', cfg(params)).then((r) => r.data),
   getApplication: (id) => apiClient.get(`/employer/applications/${id}`, cfg()).then((r) => r.data),
