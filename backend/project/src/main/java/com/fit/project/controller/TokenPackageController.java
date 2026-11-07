@@ -39,6 +39,9 @@ public class TokenPackageController {
         }
         List<TokenPackage> packages = all ? tokenPackageRepository.findAll() : tokenPackageRepository.findByIsActiveTrue();
 
+        // Sắp xếp theo số token từ nhỏ đến lớn
+        packages.sort((a, b) -> Integer.compare(a.getTokens(), b.getTokens()));
+
         List<TokenPackageResponse> responses = packages.stream().map(pkg -> {
             int bonus = pkg.getBonusTokens() != null ? pkg.getBonusTokens() : 0;
             boolean isPopular = Boolean.TRUE.equals(pkg.getIsPopular());

@@ -3,10 +3,13 @@ import { JOB_FORM_DEFAULTS } from '../../utils/jobFormValues';
 import './JobForm.css';
 
 /** Form tin tuyển dụng. Dùng utils/jobFormValues để chuyển đổi với dữ liệu backend. */
-export const JobForm = ({ initialData, onSubmit, onCancel, isLoading }) => {
+export const JobForm = ({ initialData, subscription, onSubmit, onCancel, isLoading }) => {
   const { register, handleSubmit, getValues, formState: { errors } } = useForm({
     defaultValues: initialData || JOB_FORM_DEFAULTS,
   });
+
+  const canHighlight = Boolean(subscription?.canHighlightJobs);
+  const canPrioritize = Boolean(subscription?.canPrioritizeJobs);
 
   return (
     <form className="job-form" onSubmit={handleSubmit(onSubmit)}>
@@ -148,6 +151,52 @@ export const JobForm = ({ initialData, onSubmit, onCancel, isLoading }) => {
             />
             {errors.deadline && <span className="error-message">{errors.deadline.message}</span>}
           </div>
+        </div>
+      </div>
+
+      {/* SECTION 5: Quyền lợi gói dịch vụ */}
+      <div className="form-section" style={{ background: '#f8fafc', padding: '16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+        <h3 className="section-title" style={{ marginBottom: '12px', fontSize: '15px' }}>
+          Quyền lợi gói dịch vụ
+        </h3>
+        <p style={{ fontSize: '13px', color: '#64748b', marginBottom: '16px' }}>
+          Tối ưu lượt tiếp cận ứng viên bằng các tính năng cao cấp từ gói dịch vụ đang kích hoạt của bạn.
+        </p>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: canHighlight ? 'pointer' : 'not-allowed' }}>
+            <input
+              type="checkbox"
+              disabled={!canHighlight}
+              {...register('isHighlighted')}
+              style={{ marginTop: '3px' }}
+            />
+            <div>
+              <div style={{ fontWeight: 600, fontSize: '14px', color: canHighlight ? '#1e293b' : '#94a3b8' }}>
+                Làm nổi bật tin tuyển dụng {canHighlight ? '✨' : '(Cần Gói Pro / Enterprise)'}
+              </div>
+              <div style={{ fontSize: '12px', color: '#64748b' }}>
+                Tin sẽ được gắn nhãn nổi bật và hiển thị với giao diện thu hút ánh nhìn hơn.
+              </div>
+            </div>
+          </label>
+
+          <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: canPrioritize ? 'pointer' : 'not-allowed' }}>
+            <input
+              type="checkbox"
+              disabled={!canPrioritize}
+              {...register('isPrioritized')}
+              style={{ marginTop: '3px' }}
+            />
+            <div>
+              <div style={{ fontWeight: 600, fontSize: '14px', color: canPrioritize ? '#1e293b' : '#94a3b8' }}>
+                Ưu tiên hiển thị lên đầu {canPrioritize ? '⭐' : '(Cần Gói Pro / Enterprise)'}
+              </div>
+              <div style={{ fontSize: '12px', color: '#64748b' }}>
+                Tin sẽ được tự động xếp vào nhóm ưu tiên hàng đầu trên danh sách tìm kiếm việc làm khi gói còn hạn.
+              </div>
+            </div>
+          </label>
         </div>
       </div>
 

@@ -60,6 +60,9 @@ public interface ApplicationRepository extends JpaRepository<Application, Intege
 
     boolean existsByJobIdAndCandidateUserId(Integer jobId, Integer candidateId);
 
+    /** Kiểm tra xem ứng viên đã từng nộp hồ sơ vào bất kỳ tin nào của NTD chưa. */
+    boolean existsByJobCompanyOwnerIdAndCandidateUserId(Integer ownerId, Integer candidateUserId);
+
     long countByJobId(Integer jobId);
 
     boolean existsByJobId(Integer jobId);

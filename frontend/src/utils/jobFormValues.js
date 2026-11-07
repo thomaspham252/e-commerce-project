@@ -12,6 +12,8 @@ export const JOB_FORM_DEFAULTS = {
   description: '',
   requirements: '',
   deadline: '',
+  isHighlighted: false,
+  isPrioritized: false,
 };
 
 /** Lương nhập theo đơn vị triệu, backend lưu VND. */
@@ -23,6 +25,8 @@ export const jobToFormValues = (job) => ({
   ...Object.fromEntries(Object.entries(job).filter(([k, v]) => k in JOB_FORM_DEFAULTS && v !== null)),
   salaryMin: job.salaryMin ? Number(job.salaryMin) / MILLION : '',
   salaryMax: job.salaryMax ? Number(job.salaryMax) / MILLION : '',
+  isHighlighted: Boolean(job.isHighlighted),
+  isPrioritized: Boolean(job.isPrioritized),
 });
 
 /** Giá trị form → body JobRequest của backend. */
@@ -32,4 +36,6 @@ export const formValuesToJob = (data) => ({
   salaryMin: data.salaryMin === '' ? null : Math.round(Number(data.salaryMin) * MILLION),
   salaryMax: data.salaryMax === '' ? null : Math.round(Number(data.salaryMax) * MILLION),
   salaryUnit: 'MONTH',
+  isHighlighted: Boolean(data.isHighlighted),
+  isPrioritized: Boolean(data.isPrioritized),
 });

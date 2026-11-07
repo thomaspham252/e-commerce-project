@@ -20,6 +20,8 @@ public record JobRequest(
         @Min(value = 1, message = "Số lượng tuyển tối thiểu là 1") Integer vacancies,
         @Size(max = 255) String workingSchedule,
         @NotNull(message = "Vui lòng chọn hạn nộp hồ sơ")
-        @FutureOrPresent(message = "Hạn nộp không được ở quá khứ") LocalDate deadline
+        @FutureOrPresent(message = "Hạn nộp không được ở quá khứ") LocalDate deadline,
+        Boolean isHighlighted,
+        Boolean isPrioritized
 ) {
 }

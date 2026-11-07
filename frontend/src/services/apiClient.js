@@ -20,19 +20,17 @@ export const getAuthSession = () => {
   }
 };
 
-export const saveAuthSession = (user, remember) => {
-  const storage = remember ? localStorage : sessionStorage;
-  const otherStorage = remember ? sessionStorage : localStorage;
-  otherStorage.removeItem(AUTH_SESSION_KEY);
-  storage.setItem(AUTH_SESSION_KEY, JSON.stringify(user));
+export const saveAuthSession = (user) => {
+  // Luôn luôn lưu phiên đăng nhập vào localStorage để thống nhất tài khoản trên toàn bộ trình duyệt
+  sessionStorage.removeItem(AUTH_SESSION_KEY);
+  localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(user));
   window.dispatchEvent(new Event('auth-session-changed'));
 };
 
 export const updateAuthSession = (updates) => {
   const session = getAuthSession();
   if (!session) return;
-  const remember = localStorage.getItem(AUTH_SESSION_KEY) !== null;
-  saveAuthSession({ ...session, ...updates }, remember);
+  saveAuthSession({ ...session, ...updates });
 };
 
 export const clearAuthSession = () => {
@@ -58,6 +56,7 @@ export const getErrorMessage = (error) => {
   const data = error?.response?.data;
   if (data?.errors) return Object.values(data.errors).join('. ');
   if (data?.message) return data.message;
+  if (data?.detail) return data.detail;
   if (!error?.response) return 'Không kết nối được máy chủ. Hãy kiểm tra backend đã chạy chưa.';
   return 'Đã có lỗi xảy ra, vui lòng thử lại.';
 };

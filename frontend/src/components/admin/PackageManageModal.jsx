@@ -9,6 +9,7 @@ const BENEFITS = [
   { key: 'canPrioritizeJobs', label: 'Ưu tiên hiển thị tin lên đầu' },
   { key: 'canSearchCandidates', label: 'Tìm kiếm trong kho hồ sơ ứng viên' },
   { key: 'canDirectContact', label: 'Chủ động nhắn tin trực tiếp với ứng viên' },
+  { key: 'isTopEmployer', label: 'Huy hiệu Nhà tuyển dụng hàng đầu' },
 ];
 
 const EMPTY_FORM = {
@@ -22,6 +23,7 @@ const EMPTY_FORM = {
   canPrioritizeJobs: false,
   canSearchCandidates: false,
   canDirectContact: false,
+  isTopEmployer: false,
 };
 
 /** '' → null (không giới hạn), còn lại đổi sang số. */
@@ -55,6 +57,7 @@ export const PackageManageModal = ({
         canPrioritizeJobs: Boolean(initialData.canPrioritizeJobs),
         canSearchCandidates: Boolean(initialData.canSearchCandidates),
         canDirectContact: Boolean(initialData.canDirectContact),
+        isTopEmployer: Boolean(initialData.isTopEmployer),
       });
     } else {
       setFormData(EMPTY_FORM);
@@ -97,7 +100,6 @@ export const PackageManageModal = ({
     [
       ['jobPostLimit', 'Số tin đăng'],
       ['cvViewLimit', 'Số lượt xem CV'],
-      ['includedTokens', 'Số token tặng kèm'],
     ].forEach(([key, label]) => {
       const value = formData[key];
       if (value !== '' && value != null && (!Number.isInteger(Number(value)) || Number(value) < 0)) {
@@ -127,6 +129,7 @@ export const PackageManageModal = ({
         canPrioritizeJobs: formData.canPrioritizeJobs,
         canSearchCandidates: formData.canSearchCandidates,
         canDirectContact: formData.canDirectContact,
+        isTopEmployer: formData.isTopEmployer,
       });
       onClose?.();
     } catch (err) {
@@ -193,10 +196,6 @@ export const PackageManageModal = ({
             <div className="pkg-form-row">
               {numberField('jobPostLimit', 'Số tin đăng tối đa', { placeholder: 'VD: 5', hint: 'Để trống = không giới hạn' })}
               {numberField('cvViewLimit', 'Số lượt xem CV', { placeholder: 'VD: 50', hint: 'Để trống = không giới hạn' })}
-            </div>
-
-            <div className="pkg-form-row">
-              {numberField('includedTokens', 'Token tặng kèm', { placeholder: 'VD: 0' })}
             </div>
 
             <div className="pkg-form-group">

@@ -14,7 +14,9 @@ import {
   getTokenTransactions,
   getDepositHistory,
   getServiceFees,
+  purchaseUtilityCombo,
 } from '../../services/walletService.js';
+import { getCandidateBenefits } from '../../services/candidateBenefitService.js';
 import { createPaymentOrder } from '../../services/paymentService.js';
 
 import { WalletBalanceCard } from '../../components/wallet/WalletBalanceCard.jsx';
@@ -23,6 +25,9 @@ import { TokenTransactionList } from '../../components/wallet/TokenTransactionLi
 import { DepositHistoryList } from '../../components/wallet/DepositHistoryList.jsx';
 import { ServiceFeeTable } from '../../components/wallet/ServiceFeeTable.jsx';
 import { TokenConsumeModal } from '../../components/wallet/TokenConsumeModal.jsx';
+import { CandidateUtilityCombos } from '../../components/wallet/CandidateUtilityCombos.jsx';
+import { CandidateMyPackages } from '../../components/wallet/CandidateMyPackages.jsx';
+import { ComboPurchaseModal } from '../../components/wallet/ComboPurchaseModal.jsx';
 
 import './CandidateWalletPage.css';
 
@@ -46,7 +51,7 @@ export const CandidateWalletPage = () => {
     window.addEventListener('auth-session-changed', checkAuth);
     return () => window.removeEventListener('auth-session-changed', checkAuth);
   }, [navigate]);
-  const { wallet, balance, loading: walletLoading, consume } = useWallet();
+  const { wallet, balance, loading: walletLoading, consume, refreshWallet } = useWallet();
 
   const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'transactions' | 'deposits' | 'fees'
   const [packages, setPackages] = useState([]);
@@ -55,6 +60,12 @@ export const CandidateWalletPage = () => {
   const [serviceFees, setServiceFees] = useState([]);
   const [loadingData, setLoadingData] = useState(true);
   const [toastMessage, setToastMessage] = useState(null);
+  const [benefits, setBenefits] = useState(null);
+
+  // Trạng thái modal mua combo tiện ích ứng tuyển
+  const [selectedCombo, setSelectedCombo] = useState(null);
+  const [isComboModalOpen, setIsComboModalOpen] = useState(false);
+  const [comboSubmitting, setComboSubmitting] = useState(false);
 
   // Trạng thái modal trừ token
   const [modalConfig, setModalConfig] = useState({
@@ -77,16 +88,18 @@ export const CandidateWalletPage = () => {
   const loadInitialData = useCallback(async () => {
     try {
       setLoadingData(true);
-      const [pkgs, txs, deps, fees] = await Promise.all([
+      const [pkgs, txs, deps, fees, bnf] = await Promise.all([
         getTokenPackages(),
         getTokenTransactions(),
         getDepositHistory(),
         getServiceFees(),
+        getCandidateBenefits(),
       ]);
       setPackages(pkgs);
       setTransactions(txs);
       setDeposits(deps);
       setServiceFees(fees);
+      setBenefits(bnf);
     } catch (err) {
       console.error('Lỗi khi tải dữ liệu trang ví từ DB:', err);
       showToast('Không thể tải dữ liệu ví. Vui lòng thử lại sau.', 'error');
@@ -194,6 +207,57 @@ export const CandidateWalletPage = () => {
     }
   };
 
+  // 6. Mở modal xác nhận mua combo tiện ích
+  const handleSelectCombo = (combo) => {
+    setSelectedCombo(combo);
+    setIsComboModalOpen(true);
+  };
+
+  // 7. Xác nhận thực hiện mua combo tiện ích
+  const handleConfirmPurchaseCombo = async (combo) => {
+    try {
+      setComboSubmitting(true);
+      const res = await purchaseUtilityCombo(combo.id);
+
+      if (res.success) {
+        showToast(
+          res.message || `Đã kích hoạt combo "${combo.name}" thành công!`,
+          'success'
+        );
+        setIsComboModalOpen(false);
+        setSelectedCombo(null);
+
+        // Cập nhật lại số dư ví toàn cục ngay lập tức
+        if (refreshWallet) {
+          await refreshWallet();
+        }
+
+        // Cập nhật lại danh sách lịch sử biến động và quyền lợi
+        const [updatedTxs, updatedBnf] = await Promise.all([
+          getTokenTransactions(),
+          getCandidateBenefits(),
+        ]);
+        setTransactions(updatedTxs);
+        setBenefits(updatedBnf);
+        // Chuyển ngay sang tab "Gói tiện ích của tôi" để ứng viên xem các quyền lợi vừa kích hoạt
+        setActiveTab('my-packages');
+      } else {
+        showToast(res.message || 'Không thể kích hoạt combo. Vui lòng kiểm tra lại.', 'error');
+      }
+    } catch (err) {
+      console.error('Lỗi khi mua combo:', err);
+      showToast('Có lỗi xảy ra khi thực hiện mua combo tiện ích', 'error');
+    } finally {
+      setComboSubmitting(false);
+    }
+  };
+
+  // 8. Chuyển hướng nạp tiền khi thiếu số dư trong modal combo
+  const handleNavigateDepositFromCombo = () => {
+    setIsComboModalOpen(false);
+    handleDepositClick();
+  };
+
   // Lấy chi phí mở khóa liên hệ NTD từ danh sách biểu phí
   const unlockFeeItem = serviceFees.find((f) => f.featureKey === 'UNLOCK_CONTACT');
   const unlockCost = unlockFeeItem?.tokenCost || 30;
@@ -252,10 +316,10 @@ export const CandidateWalletPage = () => {
           <span className="wallet-breadcrumb-current">Ví token</span>
         </nav>
 
-        {/* Tiêu đề trang */}
+        {/* Tiêu đề trang - giống EmployerPricingPage */}
         <div className="wallet-page-header">
           <div>
-            <h1 className="wallet-page-title">Ví token của tôi</h1>
+            <h1 className="wallet-page-title">Ví Token Của Tôi</h1>
             <p className="wallet-page-subtitle">
               Dùng token để mở liên hệ nhà tuyển dụng, đẩy CV lên đầu và gắn huy hiệu nổi bật.
             </p>
@@ -292,6 +356,28 @@ export const CandidateWalletPage = () => {
           <button
             type="button"
             role="tab"
+            aria-selected={activeTab === 'my-packages'}
+            className={`wallet-tab-btn ${activeTab === 'my-packages' ? 'wallet-tab-btn--active' : ''}`}
+            onClick={() => setActiveTab('my-packages')}
+            id="tab-btn-my-packages"
+          >
+            Gói tiện ích của tôi
+          </button>
+
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === 'fees'}
+            className={`wallet-tab-btn ${activeTab === 'fees' ? 'wallet-tab-btn--active' : ''}`}
+            onClick={() => setActiveTab('fees')}
+            id="tab-btn-fees"
+          >
+            Biểu phí tiện ích
+          </button>
+
+          <button
+            type="button"
+            role="tab"
             aria-selected={activeTab === 'transactions'}
             className={`wallet-tab-btn ${activeTab === 'transactions' ? 'wallet-tab-btn--active' : ''}`}
             onClick={() => setActiveTab('transactions')}
@@ -309,17 +395,6 @@ export const CandidateWalletPage = () => {
             id="tab-btn-deposits"
           >
             Lịch sử nạp tiền
-          </button>
-
-          <button
-            type="button"
-            role="tab"
-            aria-selected={activeTab === 'fees'}
-            className={`wallet-tab-btn ${activeTab === 'fees' ? 'wallet-tab-btn--active' : ''}`}
-            onClick={() => setActiveTab('fees')}
-            id="tab-btn-fees"
-          >
-            Biểu phí tiện ích
           </button>
         </div>
 
@@ -353,7 +428,32 @@ export const CandidateWalletPage = () => {
             </div>
           )}
 
-          {/* TAB 2: Lịch sử biến động token */}
+          {/* TAB 2: Gói tiện ích của tôi - Chi tiết các quyền lợi đã kích hoạt */}
+          {activeTab === 'my-packages' && (
+            <div className="wallet-tab-pane">
+              <CandidateMyPackages
+                benefits={benefits}
+                transactions={transactions}
+                balance={balance}
+                onViewFeesClick={() => setActiveTab('fees')}
+                onDepositClick={handleDepositClick}
+              />
+            </div>
+          )}
+
+          {/* TAB 3: Biểu phí tiện ích - Bảng giá combo tiện ích tuyển dụng cố định */}
+          {activeTab === 'fees' && (
+            <div className="wallet-tab-pane">
+              <CandidateUtilityCombos
+                onSelectCombo={handleSelectCombo}
+                balance={balance}
+                benefits={benefits}
+                onViewMyPackagesClick={() => setActiveTab('my-packages')}
+              />
+            </div>
+          )}
+
+          {/* TAB 4: Lịch sử biến động token */}
           {activeTab === 'transactions' && (
             <div className="wallet-tab-pane">
               <div className="section-intro">
@@ -368,7 +468,7 @@ export const CandidateWalletPage = () => {
             </div>
           )}
 
-          {/* TAB 3: Lịch sử nạp tiền */}
+          {/* TAB 5: Lịch sử nạp tiền */}
           {activeTab === 'deposits' && (
             <div className="wallet-tab-pane">
               <DepositHistoryList
@@ -378,19 +478,22 @@ export const CandidateWalletPage = () => {
               />
             </div>
           )}
-
-          {/* TAB 4: Biểu phí tiện ích */}
-          {activeTab === 'fees' && (
-            <div className="wallet-tab-pane">
-              <ServiceFeeTable
-                serviceFees={serviceFees}
-                onTryFeature={handleOpenConsumeModal}
-                loading={loadingData}
-              />
-            </div>
-          )}
         </div>
       </div>
+
+      {/* Modal xác nhận mua combo tiện ích ứng tuyển */}
+      <ComboPurchaseModal
+        isOpen={isComboModalOpen}
+        combo={selectedCombo}
+        currentBalance={balance}
+        loading={comboSubmitting}
+        onClose={() => {
+          setIsComboModalOpen(false);
+          setSelectedCombo(null);
+        }}
+        onConfirm={handleConfirmPurchaseCombo}
+        onNavigateDeposit={handleNavigateDepositFromCombo}
+      />
 
       {/* Modal trừ token dùng chung */}
       <TokenConsumeModal

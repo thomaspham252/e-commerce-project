@@ -18,11 +18,47 @@ public record EmployerSubscriptionResponse(
         long remainingDays,
         long usedJobPosts,
         Integer maxJobPosts,
+        int bonusJobPosts,
+        long usedCvViews,
         Integer cvViewLimit,
+        int bonusCvViews,
         boolean allowRealtimeChat,
         boolean canHighlightJobs,
         boolean canPrioritizeJobs,
         boolean canSearchCandidates,
-        String lastOrderId
+        boolean isTopEmployer,
+        String lastOrderId,
+        QueuedSubscription queuedSubscription
 ) {
+    public EmployerSubscriptionResponse(
+            String status,
+            Integer subscriptionId,
+            Integer packageId,
+            String packageName,
+            String companyName,
+            LocalDateTime startDate,
+            LocalDateTime endDate,
+            long remainingDays,
+            long usedJobPosts,
+            Integer maxJobPosts,
+            long usedCvViews,
+            Integer cvViewLimit,
+            boolean allowRealtimeChat,
+            boolean canHighlightJobs,
+            boolean canPrioritizeJobs,
+            boolean canSearchCandidates,
+            String lastOrderId
+    ) {
+        this(status, subscriptionId, packageId, packageName, companyName,
+                startDate, endDate, remainingDays, usedJobPosts, maxJobPosts, 0,
+                usedCvViews, cvViewLimit, 0, allowRealtimeChat, canHighlightJobs,
+                canPrioritizeJobs, canSearchCandidates, false, lastOrderId, null);
+    }
+
+    public record QueuedSubscription(
+            Integer subscriptionId,
+            String packageName,
+            LocalDateTime startDate,
+            LocalDateTime endDate
+    ) {}
 }

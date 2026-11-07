@@ -1,237 +1,145 @@
-/* Lưới mốc nạp token ứng viên - Thiết kế tối giản, sạch sẽ, không icon trang trí */
+/* ================================================
+   Token Packages Grid - Đồng bộ với EmployerPricingPage
+   ================================================ */
+
 .token-packages-grid-container {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
 }
 
+/* Header giống EmployerPricingPage */
 .token-packages-grid-header {
-  display: flex;
-  flex-direction: column;
+  text-align: center;
+  margin-bottom: 48px;
 }
 
-.token-packages-grid-title-area {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+.token-pkg-badge-header {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+  color: #047857;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  border: 1px solid #a7f3d0;
 }
 
 .token-packages-grid-title {
-  font-size: 1.25rem;
+  font-size: 36px;
   font-weight: 700;
   color: #111827;
-  margin: 0;
-  letter-spacing: -0.01em;
+  margin: 0 0 16px 0;
+  line-height: 1.2;
 }
 
-.token-packages-grid-desc {
-  margin: 0;
-  font-size: 0.875rem;
-  color: #4b5563;
-  line-height: 1.5;
-}
-
-.token-packages-grid-note {
-  margin: 0;
-  font-size: 0.8125rem;
+.token-packages-grid-subtitle {
+  font-size: 16px;
   color: #6b7280;
-  line-height: 1.45;
+  margin: 0;
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.6;
 }
 
-/* Lưới 4 thẻ ngang */
+/* Grid layout - 4 cột cố định trong một hàng */
 .token-packages-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  margin-bottom: 48px;
+}
+
+/* Policy Section giống EmployerPricingPage */
+.token-pkg-policy-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
+  margin-top: 48px;
+  padding-top: 48px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.policy-box {
+  display: flex;
   gap: 16px;
-  align-items: stretch;
-}
-
-/* Thẻ card */
-.token-package-card {
-  background: #ffffff;
+  padding: 24px;
+  background: #f9fafb;
   border-radius: 12px;
-  padding: 22px 20px;
-  border: 2px solid #e5e7eb;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  border: 1px solid #e5e7eb;
 }
 
-.token-package-card:hover {
-  border-color: #0eb258;
+.policy-box-icon {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  margin-top: 2px;
 }
 
-/* Gói 120 token nổi bật bằng viền đậm và nền nhạt */
-.token-package-card--popular {
-  border: 2px solid #00b14f;
-  background-color: #fafdfa;
+.policy-box-icon.text-green {
+  color: #047857;
 }
 
-.token-package-card--popular:hover {
-  border-color: #009643;
+.policy-box-icon.text-blue {
+  color: #2563eb;
 }
 
-.token-package-card__top {
-  display: flex;
-  flex-direction: column;
-}
-
-/* Dòng nhãn: chữ "Phổ biến" thuần túy, không icon, không nền màu */
-.token-package-card__tag-row {
-  min-height: 20px;
-  margin-bottom: 6px;
-  display: flex;
-  align-items: center;
-}
-
-.pkg-text-popular {
-  font-size: 0.8125rem;
+.policy-box h4 {
+  font-size: 16px;
   font-weight: 600;
-  color: #00873c;
-  line-height: 1;
-}
-
-.pkg-text-placeholder {
-  display: block;
-  min-height: 18px;
-}
-
-/* Dòng số token */
-.token-package-card__amount-row {
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
-  margin-bottom: 6px;
-}
-
-.token-package-card__tokens {
-  font-size: 2rem;
-  font-weight: 700;
   color: #111827;
-  line-height: 1;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -0.02em;
+  margin: 0 0 8px 0;
 }
 
-.token-package-card__unit {
-  font-size: 0.9375rem;
-  font-weight: 500;
-  color: #4b5563;
-}
-
-/* Dòng token thưởng: chữ màu xanh, không nền, không viền */
-.token-package-card__reward-row {
-  min-height: 20px;
-  margin-bottom: 4px;
-  display: flex;
-  align-items: center;
-}
-
-.pkg-reward-text {
-  font-size: 0.8125rem;
-  font-weight: 500;
-  color: #059669;
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
-}
-
-.pkg-reward-placeholder {
-  display: block;
-  min-height: 18px;
-}
-
-/* Dòng tổng nhận: chữ xám */
-.token-package-card__total-row {
-  min-height: 20px;
-  margin-bottom: 16px;
-  display: flex;
-  align-items: center;
-}
-
-.pkg-total-receive {
-  font-size: 0.8125rem;
+.policy-box p {
+  font-size: 14px;
   color: #6b7280;
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
+  margin: 0;
+  line-height: 1.6;
 }
 
-.pkg-total-placeholder {
-  display: block;
-  min-height: 18px;
+/* Responsive - Giữ 4 cột trên tablet, xuống 2 cột trên mobile */
+@media (max-width: 1200px) {
+  .token-packages-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+  }
 }
 
-/* Giá thanh toán: có khoảng trắng trước ₫, không gạch chân */
-.token-package-card__price {
-  margin-bottom: 20px;
-  padding-top: 14px;
-  border-top: 1px solid #f3f4f6;
-  text-decoration: none;
-}
-
-.token-package-card__price-value {
-  font-size: 1.375rem;
-  font-weight: 700;
-  color: #111827;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -0.01em;
-  text-decoration: none !important;
-  display: inline-block;
-  font-family: inherit;
-}
-
-/* Nút chọn gói: Căn đáy thẻ, thẳng hàng ngang */
-.token-package-card__btn {
-  margin-top: auto;
-  width: 100%;
-  height: 38px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 16px;
-  background-color: #ffffff;
-  color: #374151;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  font-weight: 500;
-  font-size: 0.875rem;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  white-space: nowrap;
-  text-decoration: none;
-}
-
-.token-package-card__btn:hover {
-  background-color: #00b14f;
-  border-color: #9ca3af;
-  color: #ffffff;
-}
-
-.token-package-card--popular .token-package-card__btn {
-  border-color: #00b14f;
-  color: #00873c;
-}
-
-.token-package-card--popular .token-package-card__btn:hover {
-  background-color: #00b14f;
-  color: #ffffff;
-}
-
-.token-package-card__btn:focus-visible {
-  outline: 2px solid #00b14f;
-  outline-offset: 2px;
-}
-
-/* Responsive quy chuẩn */
 @media (max-width: 1024px) {
   .token-packages-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+
+  .token-packages-grid-title {
+    font-size: 28px;
+  }
 }
 
-@media (max-width: 580px) {
+@media (max-width: 640px) {
   .token-packages-grid {
     grid-template-columns: 1fr;
-    gap: 16px;
+  }
+
+  .token-packages-grid-title {
+    font-size: 24px;
+  }
+
+  .token-packages-grid-subtitle {
+    font-size: 14px;
+  }
+
+  .token-pkg-policy-section {
+    grid-template-columns: 1fr;
+  }
+
+  .policy-box {
+    flex-direction: column;
+    gap: 12px;
   }
 }

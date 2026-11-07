@@ -69,18 +69,22 @@ export const EmployerCreateJob = () => {
       }
       navigate('/employer/jobs');
     } catch (err) {
-      toast.error(getErrorMessage(err));
+      const msg = getErrorMessage(err);
+      if (msg.includes('QUOTA_EXCEEDED') || msg.includes('hết hạn mức') || msg.includes('dùng hết')) {
+        setModalReason('LIMIT_REACHED');
+        setLimitModalOpen(true);
+      } else if (msg.includes('PACKAGE_EXPIRED') || msg.includes('hết hạn')) {
+        setModalReason('PACKAGE_EXPIRED');
+        setLimitModalOpen(true);
+      } else {
+        toast.error(msg);
+      }
     } finally {
       setSaving(false);
     }
   };
 
   const companyBlocked = !isEdit && company !== undefined && company?.verificationStatus !== 'VERIFIED';
-
-  const handleSimulateLimit = () => {
-    setModalReason('LIMIT_REACHED');
-    setLimitModalOpen(true);
-  };
 
   return (
     <>
@@ -109,25 +113,8 @@ export const EmployerCreateJob = () => {
             <span style={{ color: '#475569' }}>
               <FiBriefcase style={{ color: '#2563eb', marginRight: '4px' }} />
               Gói: <strong>{subscription.packageName}</strong> (Đã dùng{' '}
-              <strong>{subscription.usedJobPosts}/{subscription.maxJobPosts}</strong> tin)
+              <strong>{subscription.usedJobPosts}/{subscription.maxJobPosts == null ? '∞' : subscription.maxJobPosts}</strong> tin)
             </span>
-            <button
-              type="button"
-              onClick={handleSimulateLimit}
-              style={{
-                background: '#fee2e2',
-                color: '#b91c1c',
-                border: '1px solid #fecaca',
-                borderRadius: '6px',
-                padding: '4px 10px',
-                fontSize: '12px',
-                fontWeight: '600',
-                cursor: 'pointer',
-              }}
-              title="Nhấn để thử nghiệm popup khi hết tin đăng"
-            >
-              Thử nghiệm báo hết hạn mức
-            </button>
           </div>
         )}
       </div>
@@ -149,6 +136,7 @@ export const EmployerCreateJob = () => {
         <JobForm
           key={id || 'new'}
           initialData={initialData}
+          subscription={subscription}
           onSubmit={handleSubmit}
           onCancel={() => navigate('/employer/jobs')}
           isLoading={saving}

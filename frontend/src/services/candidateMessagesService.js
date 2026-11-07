@@ -144,7 +144,6 @@ export const getOrCreateCandidateConversation = async ({
   jobTitle = 'Vị trí tuyển dụng'
 }) => {
   try {
-    // Nếu chưa có companyId, thử dùng company 2 (TechAsia) mặc định
     const targetCompanyId = companyId || 2;
     const res = await apiClient.post('/v1/chat/conversations', {
       companyId: targetCompanyId,
@@ -153,7 +152,11 @@ export const getOrCreateCandidateConversation = async ({
     return normalizeConversation(res.data);
   } catch (error) {
     console.error('Lỗi khi tìm/khởi tạo hội thoại:', error);
-    // Fallback trả về object tạm thời nếu API lỗi
+    // Nếu bị chặn do chưa mua combo hoặc thiếu quyền, ném lỗi để hiển thị modal nâng cấp gói
+    if (error.response?.status === 403 || error.response?.data?.message?.includes('PACKAGE_REQUIRED')) {
+      throw error;
+    }
+    // Fallback chỉ dùng khi mất mạng hoặc dev local không có backend
     return {
       id: Date.now(),
       companyName,

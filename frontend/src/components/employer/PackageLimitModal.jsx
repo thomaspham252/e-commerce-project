@@ -59,6 +59,18 @@ export const PackageLimitModal = ({
           icon: <FiMessageSquare className="modal-alert-icon text-blue" />,
           badgeClass: 'badge-permission',
         };
+      case 'CV_LIMIT_REACHED':
+        return {
+          title: customTitle || 'Đạt Giới Hạn Mở Xem Hồ Sơ Ứng Viên',
+          message:
+            customMessage ||
+            `Bạn đã sử dụng hết ${currentSubscription?.usedCvViews || 0}/${
+              currentSubscription?.cvViewLimit || 0
+            } lượt mở xem hồ sơ ứng viên của gói hiện tại. Vui lòng nâng cấp gói để tiếp tục tìm kiếm nhân tài tiềm năng.`,
+          icon: <FiBriefcase className="modal-alert-icon text-amber" />,
+          badgeClass: 'badge-limit',
+        };
+      case 'QUOTA_EXCEEDED':
       case 'LIMIT_REACHED':
       default:
         return {

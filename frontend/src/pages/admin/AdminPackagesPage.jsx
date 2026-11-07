@@ -81,7 +81,8 @@ export const AdminPackagesPage = () => {
           row.canHighlightJobs && 'Nổi bật tin',
           row.canPrioritizeJobs && 'Ưu tiên hiển thị',
           row.canSearchCandidates && 'Tìm ứng viên',
-          row.includedTokens > 0 && `Tặng ${row.includedTokens} token`,
+          row.canDirectContact && 'Nhắn tin ứng viên',
+          row.isTopEmployer && '🏆 Top NTD',
         ].filter(Boolean);
         return (
           <div>

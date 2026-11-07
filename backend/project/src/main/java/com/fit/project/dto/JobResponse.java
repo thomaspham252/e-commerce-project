@@ -34,6 +34,8 @@ public record JobResponse(
         LocalDate deadline,
         JobStatus status,
         Boolean isHighlighted,
+        Boolean isPrioritized,
+        Boolean isTopEmployer,
         String rejectionReason,
         LocalDateTime reviewedAt,
         LocalDateTime createdAt,
@@ -45,7 +47,8 @@ public record JobResponse(
         Double moderationScore,
         String moderationReasons
 ) {
-    public static JobResponse of(Job j, Long applicationCount, Integer matchPercentage, List<String> matchedSkills) {
+    public static JobResponse of(Job j, boolean effectiveHighlighted, boolean effectivePrioritized, boolean isTopEmployer,
+                                 Long applicationCount, Integer matchPercentage, List<String> matchedSkills) {
         Company comp = j.getCompany();
         return new JobResponse(
                 j.getId(),
@@ -70,7 +73,9 @@ public record JobResponse(
                 j.getWorkingSchedule(),
                 j.getDeadline(),
                 j.getStatus(),
-                j.getIsHighlighted(),
+                effectiveHighlighted,
+                effectivePrioritized,
+                isTopEmployer,
                 j.getRejectionReason(),
                 j.getReviewedAt(),
                 j.getCreatedAt(),
@@ -82,6 +87,16 @@ public record JobResponse(
                 j.getModerationScore(),
                 j.getModerationReasons()
         );
+    }
+
+    public static JobResponse of(Job j, boolean effectiveHighlighted, boolean effectivePrioritized,
+                                 Long applicationCount, Integer matchPercentage, List<String> matchedSkills) {
+        return of(j, effectiveHighlighted, effectivePrioritized, false, applicationCount, matchPercentage, matchedSkills);
+    }
+
+    public static JobResponse of(Job j, Long applicationCount, Integer matchPercentage, List<String> matchedSkills) {
+        return of(j, Boolean.TRUE.equals(j.getIsHighlighted()), Boolean.TRUE.equals(j.getIsPrioritized()), false,
+                applicationCount, matchPercentage, matchedSkills);
     }
 
     public static JobResponse of(Job j, Long applicationCount) {

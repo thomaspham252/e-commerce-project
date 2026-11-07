@@ -38,6 +38,9 @@ import { useApplications } from '../../context/ApplicationsContext';
 import { jobService } from '../../services/jobService';
 import { companyService } from '../../services/companyService';
 import { formatSalary } from '../../utils/formatSalary';
+import { getAuthSession } from '../../services/apiClient';
+import { getCandidateBenefits } from '../../services/candidateBenefitService';
+import { CandidateBenefitLimitModal } from '../../components/candidate/CandidateBenefitLimitModal';
 import './CandidateShared.css';
 import './JobDetailPage.css';
 
@@ -55,6 +58,33 @@ export const JobDetailPage = () => {
   const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'reviews' | 'jobs' | 'locations'
   const [activeOfficeIdx, setActiveOfficeIdx] = useState(0);
   const [previewPhoto, setPreviewPhoto] = useState(null);
+  const [benefitModalOpen, setBenefitModalOpen] = useState(false);
+
+  const handleChatClick = async () => {
+    const session = getAuthSession();
+    // Nếu chưa đăng nhập, mở ngay popup thông báo yêu cầu mua gói/đăng nhập
+    if (!session?.id) {
+      setBenefitModalOpen(true);
+      return;
+    }
+    const cid = job?.company?.id || job?.companyId || '';
+    const compName = companyDetail?.name || job?.company?.name || 'Doanh nghiệp';
+    try {
+      const benefits = await getCandidateBenefits();
+      const isUnlocked = Boolean(benefits?.unlockedCompanyIds?.includes(Number(cid)));
+      const hasQuota = (benefits?.contactUnlockQuota || 0) > 0;
+      if (!isUnlocked && !hasQuota) {
+        setBenefitModalOpen(true);
+        return;
+      }
+      navigate(
+        `/ung-vien/tin-nhan?company=${encodeURIComponent(compName)}&companyId=${cid}&jobId=${job?.id || ''}&jobTitle=${encodeURIComponent(job?.title || '')}`
+      );
+    } catch (err) {
+      console.warn('Không thể kiểm tra quyền lợi hoặc chưa mua gói tiện ích:', err);
+      setBenefitModalOpen(true);
+    }
+  };
 
   useEffect(() => {
     let active = true;
@@ -299,12 +329,7 @@ export const JobDetailPage = () => {
                   <button
                     className="itv-btn itv-btn-chat-employer"
                     type="button"
-                    onClick={() => {
-                      const cid = company.id || job.companyId || '';
-                      navigate(
-                        `/ung-vien/tin-nhan?company=${encodeURIComponent(companyName)}&companyId=${cid}&jobId=${job.id}&jobTitle=${encodeURIComponent(job.title)}`
-                      );
-                    }}
+                    onClick={handleChatClick}
                     title="Nhắn tin trực tiếp với Nhà tuyển dụng"
                   >
                     <MessageSquare size={17} />
@@ -647,11 +672,7 @@ export const JobDetailPage = () => {
                 <button
                   className="itv-btn itv-btn-chat-widget itv-w-full"
                   type="button"
-                  onClick={() =>
-                    navigate(
-                      `/ung-vien/tin-nhan?company=${encodeURIComponent(companyName)}&jobTitle=${encodeURIComponent(job.title)}`
-                    )
-                  }
+                  onClick={handleChatClick}
                 >
                   <MessageSquare size={17} />
                   <span>Chat với Nhà tuyển dụng</span>
@@ -794,6 +815,12 @@ export const JobDetailPage = () => {
           </div>
         </div>
       )}
+
+      {/* MODAL KHÓA QUYỀN LỢI TIỆN ÍCH CHO ỨNG VIÊN */}
+      <CandidateBenefitLimitModal
+        isOpen={benefitModalOpen}
+        onClose={() => setBenefitModalOpen(false)}
+      />
     </div>
   );
 };

@@ -13,6 +13,8 @@ public interface TokenTransactionRepository extends JpaRepository<TokenTransacti
 
     Optional<TokenTransaction> findByIdempotencyKey(String idempotencyKey);
 
+    Optional<TokenTransaction> findByWalletUserIdAndIdempotencyKey(Integer userId, String idempotencyKey);
+
     boolean existsByIdempotencyKey(String idempotencyKey);
 
     Page<TokenTransaction> findByWalletUserIdOrderByCreatedAtDesc(Integer userId, Pageable pageable);

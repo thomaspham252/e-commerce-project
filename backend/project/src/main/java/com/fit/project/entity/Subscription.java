@@ -49,6 +49,14 @@ public class Subscription {
     @Builder.Default
     private SubscriptionStatus status = SubscriptionStatus.ACTIVE;
 
+    @Column(name = "bonus_job_posts", nullable = false)
+    @Builder.Default
+    private Integer bonusJobPosts = 0;
+
+    @Column(name = "bonus_cv_views", nullable = false)
+    @Builder.Default
+    private Integer bonusCvViews = 0;
+
     @Column(name = "cancelled_at")
     private LocalDateTime cancelledAt;
 }

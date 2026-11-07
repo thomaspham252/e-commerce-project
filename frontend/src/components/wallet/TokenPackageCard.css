@@ -1,0 +1,271 @@
+/* ================================================
+   Token Package Card - Đồng bộ với EmployerPackageCard
+   ================================================ */
+
+.token-package-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 24px;
+  transition: all 0.2s ease;
+  min-height: 500px;
+  height: 100%;
+}
+
+.token-package-card:hover {
+  border-color: #047857;
+  box-shadow: 0 4px 12px rgba(4, 120, 87, 0.08);
+  transform: translateY(-2px);
+}
+
+.token-package-card--popular {
+  border: 2px solid #047857;
+  box-shadow: 0 4px 16px rgba(4, 120, 87, 0.12);
+}
+
+.token-package-card--popular:hover {
+  box-shadow: 0 6px 20px rgba(4, 120, 87, 0.18);
+}
+
+/* Badge trên cùng */
+.token-pkg-badge {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  z-index: 2;
+}
+
+.token-pkg-badge--popular {
+  background: linear-gradient(135deg, #047857 0%, #059669 100%);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(4, 120, 87, 0.3);
+}
+
+.token-pkg-badge--custom {
+  background: #f3f4f6;
+  color: #374151;
+  border: 1px solid #d1d5db;
+}
+
+/* Phần trên cùng của thẻ */
+.token-pkg-card-top {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.token-pkg-amount-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.token-pkg-icon {
+  width: 40px;
+  height: 40px;
+  color: #047857;
+  flex-shrink: 0;
+}
+
+.token-pkg-amount {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.token-pkg-number {
+  font-size: 36px;
+  font-weight: 700;
+  color: #111827;
+  line-height: 1;
+}
+
+.token-pkg-unit {
+  font-size: 16px;
+  font-weight: 500;
+  color: #6b7280;
+}
+
+.token-pkg-desc {
+  font-size: 14px;
+  color: #6b7280;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Giá tiền */
+.token-pkg-price-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 16px 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.token-pkg-price {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.token-pkg-price-number {
+  font-size: 32px;
+  font-weight: 700;
+  color: #047857;
+}
+
+.token-pkg-currency {
+  font-size: 20px;
+  font-weight: 600;
+  color: #047857;
+}
+
+/* Highlights */
+.token-pkg-highlights {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.token-highlight-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: #374151;
+}
+
+.token-highlight-item--bonus {
+  color: #047857;
+  font-weight: 500;
+}
+
+.token-highlight-icon {
+  width: 18px;
+  height: 18px;
+  color: #047857;
+  flex-shrink: 0;
+}
+
+/* Danh sách tính năng */
+.token-pkg-features-list {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 0;
+}
+
+.token-features-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.token-pkg-features-list ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.token-feature-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 14px;
+  color: #374151;
+  line-height: 1.5;
+}
+
+.feature-check-icon {
+  width: 16px;
+  height: 16px;
+  color: #047857;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+/* Footer với nút hành động */
+.token-pkg-card-footer {
+  margin-top: auto;
+  padding-top: 16px;
+}
+
+.token-pkg-btn-action {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 24px;
+  background: linear-gradient(135deg, #047857 0%, #059669 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.token-pkg-btn-action:hover:not(:disabled) {
+  background: linear-gradient(135deg, #065f46 0%, #047857 100%);
+  box-shadow: 0 4px 12px rgba(4, 120, 87, 0.3);
+  transform: translateY(-1px);
+}
+
+.token-pkg-btn-action:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.token-pkg-btn-action:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.token-pkg-btn-action svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .token-package-card {
+    min-height: auto;
+    padding: 20px;
+  }
+
+  .token-pkg-number {
+    font-size: 28px;
+  }
+
+  .token-pkg-price-number {
+    font-size: 26px;
+  }
+
+  .token-pkg-badge {
+    font-size: 11px;
+    padding: 5px 12px;
+  }
+}

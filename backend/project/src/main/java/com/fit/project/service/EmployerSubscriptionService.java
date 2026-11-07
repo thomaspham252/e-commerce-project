@@ -15,6 +15,7 @@ import com.fit.project.repository.JobRepository;
 import com.fit.project.repository.OrderRepository;
 import com.fit.project.repository.SubscriptionRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,60 +37,125 @@ import java.util.Optional;
 @Transactional(readOnly = true)
 public class EmployerSubscriptionService {
 
-    /** Số tin được đăng miễn phí khi NTD chưa từng mua gói. */
-    public static final int FREE_JOB_POSTS = 3;
+    @Value("${app.employer.free-job-posts:3}")
+    private int freeJobPosts = 3;
 
     private final SubscriptionRepository subscriptionRepository;
     private final JobRepository jobRepository;
     private final CompanyRepository companyRepository;
     private final OrderRepository orderRepository;
+    private final com.fit.project.repository.CandidateProfileViewRepository candidateProfileViewRepository;
 
     public EmployerSubscriptionResponse getCurrent(User employer) {
         LocalDateTime now = LocalDateTime.now();
         String companyName = companyRepository.findFirstByOwnerIdOrderByIdAsc(employer.getId())
                 .map(Company::getName).orElse(null);
 
+        Optional<Subscription> queuedOpt = subscriptionRepository.findQueuedSubscriptions(
+                employer.getId(), SubscriptionStatus.ACTIVE, now).stream().findFirst();
+        EmployerSubscriptionResponse.QueuedSubscription queuedInfo = queuedOpt
+                .map(q -> new EmployerSubscriptionResponse.QueuedSubscription(
+                        q.getId(),
+                        q.getPackageEntity() != null ? q.getPackageEntity().getName() : "Gói dịch vụ",
+                        q.getStartAt(),
+                        q.getEndAt()))
+                .orElse(null);
+
         Optional<Subscription> current = currentSubscription(employer, now);
         if (current.isPresent()) {
             Subscription s = current.get();
             Package p = s.getPackageEntity();
-            long used = jobRepository.countByCompanyOwnerIdAndCreatedAtGreaterThanEqual(employer.getId(), s.getStartAt());
+            long used = Math.max(jobRepository.countBySubscriptionId(s.getId()),
+                    jobRepository.countByCompanyOwnerIdAndCreatedAtGreaterThanEqual(employer.getId(), s.getStartAt()));
+            long usedViews = candidateProfileViewRepository.countBySubscriptionId(s.getId());
             long remainingDays = Math.max(0, (long) Math.ceil(Duration.between(now, s.getEndAt()).toHours() / 24.0));
+            int bonusPosts = s.getBonusJobPosts() != null ? s.getBonusJobPosts() : 0;
+            int bonusViews = s.getBonusCvViews() != null ? s.getBonusCvViews() : 0;
+            Integer maxPosts = p.getJobPostLimit() != null ? p.getJobPostLimit() + bonusPosts : null;
+            Integer maxViews = p.getCvViewLimit() != null ? p.getCvViewLimit() + bonusViews : null;
+
             return new EmployerSubscriptionResponse("ACTIVE", s.getId(), p.getId(), p.getName(), companyName,
-                    s.getStartAt(), s.getEndAt(), remainingDays, used, p.getJobPostLimit(), p.getCvViewLimit(),
+                    s.getStartAt(), s.getEndAt(), remainingDays, used, maxPosts, bonusPosts, usedViews, maxViews, bonusViews,
                     Boolean.TRUE.equals(p.getCanDirectContact()), Boolean.TRUE.equals(p.getCanHighlightJobs()),
                     Boolean.TRUE.equals(p.getCanPrioritizeJobs()), Boolean.TRUE.equals(p.getCanSearchCandidates()),
-                    s.getOrder() != null ? s.getOrder().getOrderCode() : null);
+                    Boolean.TRUE.equals(p.getIsTopEmployer()),
+                    s.getOrder() != null ? s.getOrder().getOrderCode() : null, queuedInfo);
         }
 
-        long totalJobs = jobRepository.countByCompanyOwnerId(employer.getId());
         Optional<Subscription> latest = subscriptionRepository.findFirstByEmployerIdOrderByEndAtDesc(employer.getId());
         if (latest.isPresent()) {
             Subscription s = latest.get();
             Package p = s.getPackageEntity();
-            long used = jobRepository.countByCompanyOwnerIdAndCreatedAtGreaterThanEqual(employer.getId(), s.getStartAt());
+            long used = Math.max(jobRepository.countBySubscriptionId(s.getId()),
+                    jobRepository.countByCompanyOwnerIdAndCreatedAtGreaterThanEqual(employer.getId(), s.getStartAt()));
+            long usedViews = candidateProfileViewRepository.countBySubscriptionId(s.getId());
+            int bonusPosts = s.getBonusJobPosts() != null ? s.getBonusJobPosts() : 0;
+            int bonusViews = s.getBonusCvViews() != null ? s.getBonusCvViews() : 0;
+            Integer maxPosts = p.getJobPostLimit() != null ? p.getJobPostLimit() + bonusPosts : null;
+            Integer maxViews = p.getCvViewLimit() != null ? p.getCvViewLimit() + bonusViews : null;
+
             return new EmployerSubscriptionResponse("EXPIRED", s.getId(), p.getId(), p.getName(), companyName,
-                    s.getStartAt(), s.getEndAt(), 0, used, p.getJobPostLimit(), p.getCvViewLimit(),
-                    false, false, false, false,
-                    s.getOrder() != null ? s.getOrder().getOrderCode() : null);
+                    s.getStartAt(), s.getEndAt(), 0, used, maxPosts, bonusPosts, usedViews, maxViews, bonusViews,
+                    false, false, false, false, false,
+                    s.getOrder() != null ? s.getOrder().getOrderCode() : null, queuedInfo);
         }
 
+        long totalFreeJobs = Math.max(jobRepository.countByCompanyOwnerIdAndSubscriptionIsNull(employer.getId()),
+                jobRepository.countByCompanyOwnerId(employer.getId()));
         return new EmployerSubscriptionResponse("FREE", null, null, "Gói miễn phí", companyName,
-                null, null, 0, totalJobs, FREE_JOB_POSTS, 0,
-                false, false, false, false, null);
+                null, null, 0, totalFreeJobs, freeJobPosts, 0, 0L, 0, 0,
+                false, false, false, false, false, null, queuedInfo);
     }
 
     /** Chặn tạo tin khi hết hạn mức; gọi trước khi lưu tin mới. */
     public void assertCanPostJob(User employer) {
         EmployerSubscriptionResponse sub = getCurrent(employer);
         if ("EXPIRED".equals(sub.status())) {
-            throw ApiException.forbidden("Gói dịch vụ của bạn đã hết hạn. Vui lòng gia hạn hoặc mua gói mới để tiếp tục đăng tin.");
+            throw ApiException.forbidden("PACKAGE_EXPIRED: Gói dịch vụ của bạn đã hết hạn. Vui lòng gia hạn hoặc mua gói mới để tiếp tục đăng tin.");
         }
         if (sub.maxJobPosts() != null && sub.usedJobPosts() >= sub.maxJobPosts()) {
             throw ApiException.forbidden("FREE".equals(sub.status())
-                    ? "Bạn đã dùng hết " + FREE_JOB_POSTS + " tin đăng miễn phí. Vui lòng mua gói dịch vụ để đăng thêm tin."
-                    : "Bạn đã dùng hết " + sub.maxJobPosts() + " tin đăng của gói hiện tại. Vui lòng nâng cấp gói để đăng thêm.");
+                    ? "QUOTA_EXCEEDED: Bạn đã dùng hết " + freeJobPosts + " tin đăng miễn phí. Vui lòng mua gói dịch vụ để đăng thêm tin."
+                    : "QUOTA_EXCEEDED: Bạn đã dùng hết " + sub.maxJobPosts() + " tin đăng của gói hiện tại. Vui lòng nâng cấp gói để đăng thêm.");
         }
+    }
+
+    /**
+     * Khóa bi quan và thẩm định hạn mức tạo tin cho NTD tại thời điểm xử lý.
+     * Trả về Subscription đang active (để gán vào Job mới), hoặc null nếu NTD dùng hạn mức miễn phí.
+     */
+    @Transactional
+    public Subscription getAndLockActiveSubscriptionForPosting(User employer) {
+        LocalDateTime now = LocalDateTime.now();
+        Optional<Subscription> current = currentSubscription(employer, now);
+
+        if (current.isPresent()) {
+            Subscription sub = subscriptionRepository.findByIdForUpdate(current.get().getId())
+                    .orElse(current.get());
+            long used = Math.max(jobRepository.countBySubscriptionId(sub.getId()),
+                    jobRepository.countByCompanyOwnerIdAndCreatedAtGreaterThanEqual(employer.getId(), sub.getStartAt()));
+            int bonusPosts = sub.getBonusJobPosts() != null ? sub.getBonusJobPosts() : 0;
+            Integer maxPosts = sub.getPackageEntity().getJobPostLimit() != null
+                    ? sub.getPackageEntity().getJobPostLimit() + bonusPosts : null;
+            if (maxPosts != null && used >= maxPosts) {
+                throw ApiException.forbidden("QUOTA_EXCEEDED: Bạn đã dùng hết " + maxPosts
+                        + " tin đăng của gói hiện tại. Vui lòng nâng cấp gói để đăng thêm.");
+            }
+            return sub;
+        }
+
+        Optional<Subscription> latest = subscriptionRepository.findFirstByEmployerIdOrderByEndAtDesc(employer.getId());
+        if (latest.isPresent()) {
+            throw ApiException.forbidden("PACKAGE_EXPIRED: Gói dịch vụ của bạn đã hết hạn. Vui lòng gia hạn hoặc mua gói mới để tiếp tục đăng tin.");
+        }
+
+        long totalFreeJobs = Math.max(jobRepository.countByCompanyOwnerIdAndSubscriptionIsNull(employer.getId()),
+                jobRepository.countByCompanyOwnerId(employer.getId()));
+        if (totalFreeJobs >= freeJobPosts) {
+            throw ApiException.forbidden("QUOTA_EXCEEDED: Bạn đã dùng hết " + freeJobPosts
+                    + " tin đăng miễn phí. Vui lòng mua gói dịch vụ để đăng thêm tin.");
+        }
+        return null;
     }
 
     /** Lịch sử đơn mua gói của chính NTD, mới nhất trước. */

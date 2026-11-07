@@ -28,7 +28,7 @@ public interface JobRepository extends JpaRepository<Job, Integer> {
                         @Param("status") JobStatus status,
                         Pageable pageable);
 
-    @EntityGraph(attributePaths = "company")
+    @EntityGraph(attributePaths = {"company", "company.owner"})
     @Query("""
             select j from Job j
             where j.status = :status
@@ -38,6 +38,13 @@ public interface JobRepository extends JpaRepository<Job, Integer> {
               and (:level is null or lower(j.level) = lower(:level))
               and (:minSalary is null or j.salaryMax is null or j.salaryMax >= :minSalary)
               and (:maxSalary is null or j.salaryMin is null or j.salaryMin <= :maxSalary)
+            order by (case when j.isPrioritized = true and exists (
+                select s from Subscription s
+                where s.employer.id = j.company.owner.id
+                  and s.status = :activeStatus
+                  and s.startAt <= :now and s.endAt > :now
+                  and s.packageEntity.canPrioritizeJobs = true
+            ) then 1 else 0 end) desc
             """)
     Page<Job> searchPublicJobs(
             @Param("kw") String keywordPattern,
@@ -47,8 +54,24 @@ public interface JobRepository extends JpaRepository<Job, Integer> {
             @Param("minSalary") BigDecimal minSalary,
             @Param("maxSalary") BigDecimal maxSalary,
             @Param("status") JobStatus status,
+            @Param("activeStatus") com.fit.project.enums.SubscriptionStatus activeStatus,
+            @Param("now") LocalDateTime now,
             Pageable pageable
     );
+
+    default Page<Job> searchPublicJobs(
+            String keywordPattern,
+            String locationPattern,
+            String jobType,
+            String level,
+            BigDecimal minSalary,
+            BigDecimal maxSalary,
+            JobStatus status,
+            Pageable pageable
+    ) {
+        return searchPublicJobs(keywordPattern, locationPattern, jobType, level, minSalary, maxSalary,
+                status, com.fit.project.enums.SubscriptionStatus.ACTIVE, LocalDateTime.now(), pageable);
+    }
 
     @EntityGraph(attributePaths = "company")
     Optional<Job> findByIdAndStatus(Integer id, JobStatus status);
@@ -77,6 +100,12 @@ public interface JobRepository extends JpaRepository<Job, Integer> {
     long countByCompanyOwnerIdAndStatus(Integer ownerId, JobStatus status);
 
     long countByCompanyOwnerId(Integer ownerId);
+
+    /** Đếm số tin đăng thuộc về một gói đăng ký cụ thể. */
+    long countBySubscriptionId(Integer subscriptionId);
+
+    /** Đếm số tin đăng miễn phí (chưa gán gói subscription) của nhà tuyển dụng. */
+    long countByCompanyOwnerIdAndSubscriptionIsNull(Integer ownerId);
 
     /** Số tin NTD đã tạo kể từ một thời điểm (tính hạn mức tin của gói đang dùng). */
     long countByCompanyOwnerIdAndCreatedAtGreaterThanEqual(Integer ownerId, LocalDateTime from);

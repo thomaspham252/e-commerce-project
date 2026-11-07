@@ -14,6 +14,8 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Intege
 
     List<ChatMessage> findByConversationIdOrderByCreatedAtAsc(Integer conversationId);
 
+    boolean existsByConversationIdAndSenderType(Integer conversationId, String senderType);
+
     @Modifying
     @Query("UPDATE ChatMessage m SET m.isRead = true WHERE m.conversation.id = :convId AND m.senderType <> :readerType AND m.isRead = false")
     void markMessagesAsRead(@Param("convId") Integer convId, @Param("readerType") String readerType);

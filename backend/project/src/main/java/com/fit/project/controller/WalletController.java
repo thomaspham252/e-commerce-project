@@ -1,8 +1,11 @@
 package com.fit.project.controller;
 
+import com.fit.project.dto.candidate.CandidateBenefitResponse;
 import com.fit.project.dto.wallet.ConsumeTokenRequest;
 import com.fit.project.dto.wallet.WalletResponse;
 import com.fit.project.dto.wallet.WalletTransactionResponse;
+import com.fit.project.entity.CandidateBenefitGrant;
+import com.fit.project.entity.CandidateUnlockedCompany;
 import com.fit.project.entity.Order;
 import com.fit.project.entity.TokenTransaction;
 import com.fit.project.entity.TokenWallet;
@@ -11,11 +14,9 @@ import com.fit.project.enums.OrderStatus;
 import com.fit.project.enums.OrderType;
 import com.fit.project.enums.TokenTransactionType;
 import com.fit.project.exception.ApiException;
-import com.fit.project.repository.OrderRepository;
-import com.fit.project.repository.ServiceFeeRepository;
-import com.fit.project.repository.TokenTransactionRepository;
-import com.fit.project.repository.TokenWalletRepository;
+import com.fit.project.repository.*;
 import com.fit.project.service.CurrentUserService;
+import com.fit.project.service.WalletService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -35,7 +36,6 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/v1/wallet")
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class WalletController {
 
     private final CurrentUserService currentUserService;
@@ -43,6 +43,10 @@ public class WalletController {
     private final TokenTransactionRepository tokenTransactionRepository;
     private final OrderRepository orderRepository;
     private final ServiceFeeRepository serviceFeeRepository;
+    private final WalletService walletService;
+    private final CandidateBenefitGrantRepository candidateBenefitGrantRepository;
+    private final CandidateUnlockedCompanyRepository candidateUnlockedCompanyRepository;
+    private final CompanyRepository companyRepository;
 
     @GetMapping
     public ResponseEntity<Map<String, Object>> getWallet(
@@ -156,68 +160,74 @@ public class WalletController {
     }
 
     @PostMapping("/consume")
-    @Transactional
     public ResponseEntity<Map<String, Object>> consumeTokens(
             @RequestBody ConsumeTokenRequest request,
+            @RequestHeader(value = "X-Idempotency-Key", required = false) String headerIdempotencyKey,
+            @RequestHeader(value = CurrentUserService.HEADER, required = true) Integer currentUserId) {
+        User user = currentUserService.requireUser(currentUserId);
+        Map<String, Object> result = walletService.consumeTokens(user, request, headerIdempotencyKey);
+        return ResponseEntity.ok(result);
+    }
+
+    /**
+     * Lấy trạng thái quyền lợi tiện ích ứng tuyển hiện tại của ứng viên.
+     */
+    @GetMapping("/benefits")
+    public ResponseEntity<Map<String, Object>> getBenefits(
             @RequestHeader(value = CurrentUserService.HEADER, required = false) Integer currentUserId) {
         User user = currentUserService.requireUser(currentUserId);
+        LocalDateTime now = LocalDateTime.now();
+        CandidateBenefitGrant grant = candidateBenefitGrantRepository.findByUserId(user.getId()).orElse(null);
+        List<CandidateUnlockedCompany> unlocked = candidateUnlockedCompanyRepository.findByCandidateUserId(user.getId());
+        List<Long> companyIds = unlocked.stream().map(CandidateUnlockedCompany::getCompanyId).toList();
 
-        TokenWallet wallet = tokenWalletRepository.findByUserId(user.getId())
-                .orElseGet(() -> tokenWalletRepository.save(TokenWallet.builder()
-                        .user(user)
-                        .balance(0)
-                        .build()));
+        List<Integer> cids = unlocked.stream().map(u -> u.getCompanyId().intValue()).toList();
+        Map<Integer, com.fit.project.entity.Company> compMap = cids.isEmpty() ? Map.of()
+                : companyRepository.findAllById(cids).stream().collect(Collectors.toMap(com.fit.project.entity.Company::getId, c -> c));
 
-        int cost = request.getTokenCost() != null ? request.getTokenCost() : 0;
-        String featureTitle = request.getFeatureName() != null ? request.getFeatureName() : request.getFeatureKey();
+        List<CandidateBenefitResponse.UnlockedCompanyInfo> companyInfos = unlocked.stream().map(u -> {
+            com.fit.project.entity.Company c = compMap.get(u.getCompanyId().intValue());
+            return CandidateBenefitResponse.UnlockedCompanyInfo.builder()
+                    .companyId(u.getCompanyId().intValue())
+                    .companyName(c != null ? c.getName() : "Doanh nghiệp tuyển dụng")
+                    .companyLogo(c != null ? c.getLogo() : null)
+                    .unlockedAt(u.getUnlockedAt())
+                    .build();
+        }).toList();
 
-        if (request.getFeatureKey() != null) {
-            var feeOpt = serviceFeeRepository.findByFeatureKey(request.getFeatureKey());
-            if (feeOpt.isPresent()) {
-                cost = feeOpt.get().getTokenCost();
-                featureTitle = feeOpt.get().getFeatureName();
-            }
-        }
+        boolean isBoostActive = grant != null && grant.getBoostCvExpireAt() != null && grant.getBoostCvExpireAt().isAfter(now);
+        boolean isFeaturedBadgeActive = grant != null && grant.getFeaturedBadgeExpireAt() != null && grant.getFeaturedBadgeExpireAt().isAfter(now);
+        boolean isPriorityActive = grant != null && grant.getPriorityDisplayExpireAt() != null && grant.getPriorityDisplayExpireAt().isAfter(now);
+        int contactUnlockQuota = (grant != null && grant.getContactUnlockQuota() != null) ? grant.getContactUnlockQuota() : 0;
+        int aiScoreQuota = (grant != null && grant.getAiScoreQuota() != null) ? grant.getAiScoreQuota() : 0;
 
-        if (cost <= 0) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, "Số token sử dụng phải lớn hơn 0");
-        }
-
-        if (wallet.getBalance() < cost) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
-                    "success", false,
-                    "error", "INSUFFICIENT_BALANCE",
-                    "message", "Số dư không đủ. Cần " + cost + " token nhưng bạn chỉ còn " + wallet.getBalance() + " token."
-            ));
-        }
-
-        int newBalance = wallet.getBalance() - cost;
-        wallet.setBalance(newBalance);
-        tokenWalletRepository.save(wallet);
-
-        String idempKey = "consume:" + user.getId() + ":" + System.currentTimeMillis();
-        TokenTransaction tx = TokenTransaction.builder()
-                .wallet(wallet)
-                .type(TokenTransactionType.SPEND)
-                .amount(-cost)
-                .balanceAfter(newBalance)
-                .idempotencyKey(idempKey)
-                .refType(featureTitle)
-                .createdAt(LocalDateTime.now())
+        CandidateBenefitResponse res = CandidateBenefitResponse.builder()
+                .userId(user.getId())
+                .isBoostActive(isBoostActive)
+                .boostCvExpireAt(grant != null ? grant.getBoostCvExpireAt() : null)
+                .isFeaturedBadgeActive(isFeaturedBadgeActive)
+                .featuredBadgeExpireAt(grant != null ? grant.getFeaturedBadgeExpireAt() : null)
+                .isPriorityActive(isPriorityActive)
+                .priorityDisplayExpireAt(grant != null ? grant.getPriorityDisplayExpireAt() : null)
+                .contactUnlockQuota(contactUnlockQuota)
+                .aiScoreQuota(aiScoreQuota)
+                .unlockedCompanyIds(companyIds)
+                .unlockedCompanies(companyInfos)
                 .build();
-        tokenTransactionRepository.save(tx);
 
-        return ResponseEntity.ok(Map.of(
-                "success", true,
-                "wallet", Map.of(
-                        "userId", user.getId(),
-                        "balance", newBalance
-                ),
-                "transaction", Map.of(
-                        "id", "TX-TOK-" + tx.getId(),
-                        "amount", -cost,
-                        "balanceAfter", newBalance
-                )
-        ));
+        return ResponseEntity.ok(Map.of("success", true, "data", res));
+    }
+
+    /**
+     * Mua gói combo tiện ích ứng tuyển bằng Token với cơ chế chống bấm đúp Idempotency.
+     */
+    @PostMapping("/combo/purchase")
+    public ResponseEntity<com.fit.project.dto.wallet.PurchaseComboResponse> purchaseCombo(
+            @RequestBody com.fit.project.dto.wallet.PurchaseComboRequest request,
+            @RequestHeader(value = "X-Idempotency-Key", required = false) String headerIdempotencyKey,
+            @RequestHeader(value = CurrentUserService.HEADER, required = false) Integer currentUserId) {
+        User user = currentUserService.requireUser(currentUserId);
+        com.fit.project.dto.wallet.PurchaseComboResponse response = walletService.purchaseCombo(user, request, headerIdempotencyKey);
+        return ResponseEntity.ok(response);
     }
 }

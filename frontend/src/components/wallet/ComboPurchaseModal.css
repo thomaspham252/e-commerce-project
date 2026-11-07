@@ -1,0 +1,346 @@
+/* ==========================================================================
+   ComboPurchaseModal.css
+   Style cho Modal Xác nhận Mua Combo & Cảnh báo Thiếu Số Dư Token
+   ========================================================================== */
+
+.combo-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1050;
+  padding: 1rem;
+  animation: comboFadeIn 0.2s ease-out;
+}
+
+@keyframes comboFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.combo-modal-card {
+  background: #ffffff;
+  border-radius: 1rem;
+  width: 100%;
+  max-width: 490px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  position: relative;
+  overflow: hidden;
+  animation: comboSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+}
+
+@keyframes comboSlideUp {
+  from {
+    transform: translateY(20px) scale(0.97);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+/* Nút đóng modal */
+.combo-modal-btn-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: transparent;
+  border: none;
+  font-size: 1.25rem;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 0.35rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.combo-modal-btn-close:hover {
+  background-color: #f1f5f9;
+  color: #0f172a;
+}
+
+/* Header Modal */
+.combo-modal-header {
+  padding: 1.75rem 1.75rem 1rem 1.75rem;
+  text-align: center;
+}
+
+.combo-modal-icon-badge {
+  width: 44px;
+  height: 44px;
+  background-color: #f0fdf4;
+  color: #0b4f37;
+  border: 1px solid #bbf7d0;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.75rem;
+}
+
+.combo-modal-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 0.35rem 0;
+}
+
+.combo-modal-subtitle {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.45;
+}
+
+/* Body Modal */
+.combo-modal-body {
+  padding: 0 1.75rem 1.25rem 1.75rem;
+}
+
+/* Hộp quyền lợi */
+.combo-modal-benefits-box {
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.box-section-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #64748b;
+  letter-spacing: 0.03em;
+  margin-bottom: 0.5rem;
+}
+
+.combo-modal-benefits-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.combo-modal-benefit-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: #334155;
+  font-weight: 500;
+}
+
+.modal-benefit-icon {
+  color: #10b981;
+  flex-shrink: 0;
+}
+
+/* Bảng tóm tắt số dư */
+.combo-modal-balance-summary {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  padding: 1rem 1.25rem;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+}
+
+.summary-label {
+  color: #64748b;
+}
+
+.summary-value {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.summary-value--cost {
+  color: #dc2626;
+  font-weight: 700;
+}
+
+.summary-divider {
+  height: 1px;
+  background-color: #f1f5f9;
+  margin: 0.5rem 0;
+}
+
+.summary-row--highlight {
+  margin-bottom: 0;
+  padding-top: 0.25rem;
+}
+
+.summary-row--highlight .summary-label {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.summary-value--remaining {
+  color: #0284c7;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+/* Trường hợp thiếu số dư */
+.insufficient-alert-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  background-color: #fef2f2;
+  border: 1px solid #fee2e2;
+  border-radius: 0.75rem;
+  padding: 0.85rem 1rem;
+  margin-bottom: 1rem;
+}
+
+.insufficient-alert-banner .alert-icon {
+  color: #dc2626;
+  font-size: 1.25rem;
+  margin-top: 0.15rem;
+  flex-shrink: 0;
+}
+
+.alert-heading {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #991b1b;
+  margin: 0 0 0.2rem 0;
+}
+
+.alert-desc {
+  font-size: 0.8rem;
+  color: #b91c1c;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.summary-row--danger {
+  margin-bottom: 0;
+  padding-top: 0.25rem;
+}
+
+.summary-row--danger .summary-label {
+  font-weight: 700;
+  color: #991b1b;
+}
+
+.summary-value--missing {
+  color: #dc2626;
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+/* Footer Modal */
+.combo-modal-footer {
+  padding: 1rem 1.75rem 1.75rem 1.75rem;
+  display: flex;
+  gap: 0.75rem;
+  background-color: #ffffff;
+}
+
+.btn-modal-cancel {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid #cbd5e1;
+  background-color: #ffffff;
+  color: #475569;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-modal-cancel:hover:not(:disabled) {
+  background-color: #f8fafc;
+  color: #0f172a;
+}
+
+.btn-modal-confirm {
+  flex: 2;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid #009643;
+  background-color: #00b14f;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.875rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  transition: all 0.15s ease;
+}
+
+.btn-modal-confirm:hover:not(:disabled) {
+  background-color: #009643;
+}
+
+.btn-modal-confirm:disabled,
+.btn-modal-cancel:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-modal-deposit {
+  flex: 2;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  border: none;
+  background-color: #16a34a;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.875rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  transition: all 0.15s ease;
+}
+
+.btn-modal-deposit:hover {
+  background-color: #15803d;
+  box-shadow: 0 4px 10px rgba(22, 163, 74, 0.25);
+}
+
+.icon-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+

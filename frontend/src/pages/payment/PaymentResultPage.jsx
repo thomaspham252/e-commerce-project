@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { getPaymentOrder, createPaymentOrder, cancelPaymentOrder } from '../../services/paymentService';
 import { getAuthSession } from '../../services/apiClient';
 import { useWallet } from '../../context/WalletContext.jsx';
+import { useEmployerPackage } from '../../context/EmployerPackageContext.jsx';
 import { formatCurrencyVND } from '../../utils/formatCurrency';
 import { StatusBadge } from '../../components/common/StatusBadge';
 import {
@@ -30,6 +31,7 @@ export const PaymentResultPage = () => {
   const { orderId } = useParams();
   const navigate = useNavigate();
   const { refreshWallet } = useWallet();
+  const { refreshSubscription } = useEmployerPackage();
 
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -54,12 +56,13 @@ export const PaymentResultPage = () => {
     }
   }, [orderId]);
 
-  // Khi đơn hàng thanh toán thành công, tự động làm mới số dư ví token
+  // Khi đơn hàng thanh toán thành công, tự động làm mới số dư ví token và thông tin gói dịch vụ
   useEffect(() => {
-    if (order?.status === 'SUCCESS') {
+    if (order?.status === 'SUCCESS' || order?.status === 'PAID' || order?.status === 'FULFILLED') {
       refreshWallet();
+      refreshSubscription?.();
     }
-  }, [order?.status, refreshWallet]);
+  }, [order?.status, refreshWallet, refreshSubscription]);
 
   // Xử lý tạo lại đơn thanh toán mới khi đơn cũ hết hạn
   const handleRecreateOrder = async () => {
@@ -116,8 +119,8 @@ export const PaymentResultPage = () => {
   const isPending = statusUpper === 'PENDING';
 
   const isEmployerOrder = order.orderType === 'EMPLOYER_PACKAGE' || order.orderType === 'SUBSCRIPTION';
-  const returnPath = isEmployerOrder ? '/employer/dashboard' : '/ung-vien/vi-token';
-  const returnLabel = isEmployerOrder ? 'Về trang Quản lý tuyển dụng' : 'Về ví token của tôi';
+  const returnPath = isEmployerOrder ? '/employer/subscription' : '/ung-vien/vi-token';
+  const returnLabel = isEmployerOrder ? 'Xem Gói dịch vụ của tôi' : 'Về ví token của tôi';
 
   return (
     <div className="payment-result-page">

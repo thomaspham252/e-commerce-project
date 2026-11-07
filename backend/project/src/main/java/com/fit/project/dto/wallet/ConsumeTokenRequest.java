@@ -13,4 +13,6 @@ public class ConsumeTokenRequest {
     private String featureKey;
     private String featureName;
     private Integer tokenCost;
+    private String idempotencyKey;
+    private Integer targetRefId;
 }

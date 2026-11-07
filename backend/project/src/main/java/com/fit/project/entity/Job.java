@@ -73,6 +73,10 @@ public class Job {
     @Builder.Default
     private JobStatus status = JobStatus.DRAFT;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "subscription_id")
+    private Subscription subscription;
+
     @Column(name = "is_highlighted", nullable = false)
     @Builder.Default
     private Boolean isHighlighted = false;

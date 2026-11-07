@@ -8,6 +8,7 @@ import { StatusBadge } from '../../components/common/StatusBadge';
 import { EmployerAnalyticsCharts } from '../../components/employer/EmployerAnalyticsCharts.jsx';
 import { PendingVerificationBanner } from '../../components/employer/PendingVerificationBanner.jsx';
 import { useEmployerPackage } from '../../context/EmployerPackageContext.jsx';
+import { PackageLimitModal } from '../../components/employer/PackageLimitModal.jsx';
 import { FiPlusCircle, FiBox, FiArrowRight, FiMessageSquare } from 'react-icons/fi';
 
 export const EmployerDashboard = () => {
@@ -15,6 +16,7 @@ export const EmployerDashboard = () => {
   const [recentApps, setRecentApps] = useState([]);
   const [loadingApps, setLoadingApps] = useState(true);
   const [company, setCompany] = useState(null);
+  const [limitModalOpen, setLimitModalOpen] = useState(false);
 
   useEffect(() => {
     // Tải thông tin công ty để kiểm tra verificationStatus
@@ -43,6 +45,12 @@ export const EmployerDashboard = () => {
         <Link
           to={`/employer/messages?candidateId=${row.candidateId}`}
           className="btn btn-outline"
+          onClick={(e) => {
+            if (!subscription?.allowRealtimeChat) {
+              e.preventDefault();
+              setLimitModalOpen(true);
+            }
+          }}
           style={{
             display: 'inline-flex',
             alignItems: 'center',
@@ -137,6 +145,15 @@ export const EmployerDashboard = () => {
         <DataTable columns={columns} data={recentApps} loading={loadingApps} searchable={false}
           emptyText="Chưa có hồ sơ ứng tuyển nào" />
       </div>
+
+      <PackageLimitModal
+        isOpen={limitModalOpen}
+        onClose={() => setLimitModalOpen(false)}
+        reason="NO_PERMISSION"
+        customTitle="Yêu Cầu Mua Gói Dịch Vụ Nhà Tuyển Dụng"
+        customMessage="Tính năng nhắn tin trực tiếp với ứng viên chỉ áp dụng cho Nhà tuyển dụng đã đăng ký Gói Dịch Vụ (Tiêu chuẩn hoặc Chuyên nghiệp). Vui lòng nâng cấp gói để mở khóa kênh liên hệ này!"
+        currentSubscription={subscription}
+      />
     </>
   );
 };

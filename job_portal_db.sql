@@ -168,6 +168,7 @@ CREATE TABLE `jobs` (
   `working_schedule` VARCHAR(255) DEFAULT NULL COMMENT 'Thời gian làm việc (VD: Thứ 2 - Thứ 6, 8:30 - 17:30)',
   `deadline` DATE DEFAULT NULL COMMENT 'Hạn chót nhận hồ sơ ứng tuyển',
   `status` ENUM('draft', 'pending_review', 'open', 'closed', 'rejected', 'expired') NOT NULL DEFAULT 'draft' COMMENT 'Trạng thái tin tuyển dụng',
+  `subscription_id` INT DEFAULT NULL COMMENT 'ID gói đăng ký dịch vụ đang hiệu lực lúc đăng tin (tính hạn mức độc lập)',
   `is_highlighted` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Tin được làm nổi bật/bôi đậm (quyền lợi từ gói dịch vụ)',
   `is_prioritized` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Tin được ưu tiên đẩy lên đầu kết quả tìm kiếm (quyền lợi gói)',
   `reviewed_by` INT DEFAULT NULL COMMENT 'ID của Admin đã duyệt hoặc từ chối tin',
@@ -177,6 +178,7 @@ CREATE TABLE `jobs` (
   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Thời điểm cập nhật tin gần nhất',
   PRIMARY KEY (`id`),
   KEY `idx_jobs_company_id` (`company_id`),
+  KEY `idx_jobs_subscription_id` (`subscription_id`),
   KEY `idx_jobs_reviewed_by` (`reviewed_by`),
   KEY `idx_jobs_title` (`title`),
   KEY `idx_jobs_location` (`location`),
@@ -184,11 +186,14 @@ CREATE TABLE `jobs` (
   CONSTRAINT `fk_jobs_company_id`
     FOREIGN KEY (`company_id`) REFERENCES `companies` (`id`)
     ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_jobs_subscription_id`
+    FOREIGN KEY (`subscription_id`) REFERENCES `subscriptions` (`id`)
+    ON DELETE SET NULL ON UPDATE CASCADE,
   CONSTRAINT `fk_jobs_reviewed_by`
     FOREIGN KEY (`reviewed_by`) REFERENCES `users` (`id`)
     ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-COMMENT='Bảng lưu trữ tin tuyển dụng. Lưu ý [CHỐT]: job_post_limit của gói là số tin miễn phí trong gói; vượt quá hạn mức sẽ trừ vào ví token';
+COMMENT='Bảng lưu trữ tin tuyển dụng. Hạn mức tin đăng được kiểm soát theo chu kỳ gói subscriptions; tin đăng miễn phí có subscription_id = NULL';
 
 -- 2.2. Bảng job_skills
 DROP TABLE IF EXISTS `job_skills`;
@@ -502,6 +507,7 @@ CREATE TABLE `packages` (
   `can_prioritize_jobs` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Quyền lợi ưu tiên hiển thị tin lên đầu (1: Có, 0: Không)',
   `can_search_candidates` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Quyền lợi tìm kiếm trong kho hồ sơ ứng viên (1: Có, 0: Không)',
   `can_direct_contact` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Quyền lợi chủ động nhắn tin trực tiếp với ứng viên (1: Có, 0: Không)',
+  `is_top_employer` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Quyền lợi Huy hiệu Nhà tuyển dụng hàng đầu (1: Có, 0: Không)',
   `is_active` TINYINT(1) NOT NULL DEFAULT 1 COMMENT 'Trạng thái gói đang mở bán hay đã ngừng kinh doanh',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
@@ -517,6 +523,23 @@ CREATE TABLE `token_packages` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='Bảng danh mục các mệnh giá gói nạp Token mua lẻ';
+
+-- 5.2.1. Bảng service_fees (Biểu phí tiêu thụ Token cho từng tính năng)
+DROP TABLE IF EXISTS `service_fees`;
+CREATE TABLE `service_fees` (
+  `id` INT NOT NULL AUTO_INCREMENT COMMENT 'ID biểu phí dịch vụ',
+  `feature_key` VARCHAR(50) NOT NULL COMMENT 'Mã định danh tính năng (duy nhất, VD: UNLOCK_CONTACT)',
+  `feature_name` VARCHAR(150) NOT NULL COMMENT 'Tên tính năng hiển thị',
+  `token_cost` INT NOT NULL COMMENT 'Mức trừ Token khi kích hoạt tính năng',
+  `badge` VARCHAR(50) DEFAULT NULL COMMENT 'Nhãn phụ hiển thị trên giao diện (VD: Phổ biến, Tiết kiệm)',
+  `description` VARCHAR(500) DEFAULT NULL COMMENT 'Mô tả chi tiết quyền lợi tính năng',
+  `is_active` TINYINT(1) NOT NULL DEFAULT 1 COMMENT 'Trạng thái áp dụng biểu phí (1: Có, 0: Ẩn)',
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Thời điểm tạo cấu hình',
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Thời điểm cập nhật biểu phí gần nhất',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_service_fees_feature_key` (`feature_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+COMMENT='Bảng cấu hình biểu phí tiêu thụ Token cho từng tính năng ứng viên và nhà tuyển dụng';
 
 -- 5.3. Bảng promotions
 DROP TABLE IF EXISTS `promotions`;
@@ -632,6 +655,8 @@ CREATE TABLE `subscriptions` (
   `start_at` TIMESTAMP NOT NULL COMMENT 'Thời điểm bắt đầu hiệu lực của gói dịch vụ',
   `end_at` TIMESTAMP NOT NULL COMMENT 'Thời điểm hết hạn của gói dịch vụ',
   `status` ENUM('active', 'cancelled', 'expired') NOT NULL DEFAULT 'active' COMMENT 'Trạng thái gói đăng ký hiện tại',
+  `bonus_job_posts` INT NOT NULL DEFAULT 0 COMMENT 'Số tin đăng cộng dồn từ gói trước khi nâng cấp',
+  `bonus_cv_views` INT NOT NULL DEFAULT 0 COMMENT 'Số lượt xem CV cộng dồn từ gói trước khi nâng cấp',
   `cancelled_at` TIMESTAMP NULL DEFAULT NULL COMMENT '[CHỐT] Thời điểm hủy gói (Nhóm cần chốt: hủy là dùng tiếp đến end_at hay kết thúc hiệu lực ngay)',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_subscriptions_order_id` (`order_id`),

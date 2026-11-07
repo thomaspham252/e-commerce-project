@@ -89,12 +89,31 @@ export const getDepositHistory = async () => {
 
 /**
  * 5. Trừ token khi ứng viên sử dụng tiện ích (lưu vào bảng token_transactions trong DB).
+ * Bổ sung khóa chống trùng lặp Idempotency Key gắn liền với thao tác người dùng.
  */
-export const consumeTokens = async (_userId, featureKey = 'UNLOCK_CONTACT') => {
+export const consumeTokens = async (_userId, featureKey = 'UNLOCK_CONTACT', options = {}) => {
   try {
-    const res = await apiClient.post('/v1/wallet/consume', {
-      featureKey,
-    });
+    const idempotencyKey =
+      options.idempotencyKey ||
+      (typeof crypto !== 'undefined' && crypto.randomUUID
+        ? crypto.randomUUID()
+        : `consume-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`);
+
+    const res = await apiClient.post(
+      '/v1/wallet/consume',
+      {
+        featureKey,
+        featureName: options.featureName,
+        tokenCost: options.tokenCost,
+        targetRefId: options.targetRefId,
+        idempotencyKey,
+      },
+      {
+        headers: {
+          'X-Idempotency-Key': idempotencyKey,
+        },
+      }
+    );
 
     if (res.data?.success) {
       return {
@@ -189,3 +208,65 @@ export const saveServiceFee = async (feeData) => {
     throw err;
   }
 };
+
+/**
+ * 10. Mua gói combo tiện ích ứng tuyển bằng Token qua API POST /api/v1/wallet/combo/purchase.
+ * Tự động tạo Idempotency Key bảo vệ chống bấm đúp gửi trùng.
+ *
+ * @param {string} comboId Mã gói combo (ví dụ: 'COMBO_HIGHLIGHT', 'COMBO_QUICK_CONTACT', 'COMBO_COMPREHENSIVE')
+ * @param {object} options Các tùy chọn mở rộng (idempotencyKey)
+ * @returns {Promise<object>} Kết quả phản hồi từ backend
+ */
+export const purchaseUtilityCombo = async (comboId, options = {}) => {
+  try {
+    const idempotencyKey =
+      options.idempotencyKey ||
+      (typeof crypto !== 'undefined' && crypto.randomUUID
+        ? crypto.randomUUID()
+        : `combo-buy-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`);
+
+    const res = await apiClient.post(
+      '/v1/wallet/combo/purchase',
+      {
+        comboId,
+        idempotencyKey,
+      },
+      {
+        headers: {
+          'X-Idempotency-Key': idempotencyKey,
+        },
+      }
+    );
+
+    if (res.data?.success) {
+      return {
+        success: true,
+        data: res.data,
+        wallet: res.data.wallet,
+        transaction: res.data.transaction,
+        benefits: res.data.benefits,
+        message: res.data.message || 'Kích hoạt combo thành công!',
+      };
+    }
+    return {
+      success: false,
+      message: res.data?.message || 'Không thể kích hoạt combo.',
+    };
+  } catch (err) {
+    const backendMsg =
+      err.response?.data?.message ||
+      err.response?.data?.detail ||
+      (err.response?.status === 404
+        ? 'Máy chủ backend chưa cập nhật tính năng mua combo. Vui lòng khởi động lại backend Spring Boot.'
+        : !err.response
+        ? 'Không kết nối được máy chủ backend. Vui lòng kiểm tra backend đã chạy chưa.'
+        : 'Có lỗi xảy ra khi thực hiện kích hoạt combo tiện ích.');
+    const isInsufficient = backendMsg.includes('INSUFFICIENT_BALANCE');
+    return {
+      success: false,
+      isInsufficientBalance: isInsufficient,
+      message: backendMsg,
+    };
+  }
+};
+

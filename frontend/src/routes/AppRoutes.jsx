@@ -47,6 +47,7 @@ import { EmployerSubscriptionPage } from '../pages/employer/EmployerSubscription
 import { EmployerMessagesPage } from '../pages/employer/EmployerMessagesPage.jsx';
 import { EmployerCompanyPage } from '../pages/employer/EmployerCompanyPage.jsx';
 import { EmployerReviewsPage } from '../pages/employer/EmployerReviewsPage.jsx';
+import { EmployerCandidateSearchPage } from '../pages/employer/EmployerCandidateSearchPage.jsx';
 
 export const AppRoutes = () => {
   return (
@@ -111,6 +112,7 @@ export const AppRoutes = () => {
           <Route path="/employer/pricing" element={<EmployerPricingPage />} />
           <Route path="/employer/subscription" element={<EmployerSubscriptionPage />} />
           <Route path="/employer/jobs" element={<EmployerJobs />} />
+          <Route path="/employer/candidates" element={<EmployerCandidateSearchPage />} />
           <Route path="/employer/jobs/create" element={<EmployerCreateJob />} />
           <Route path="/employer/jobs/:id/edit" element={<EmployerCreateJob />} />
           <Route path="/employer/company" element={<EmployerCompanyPage />} />

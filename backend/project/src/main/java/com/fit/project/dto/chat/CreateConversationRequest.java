@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CreateConversationRequest {
+    private Long candidateId;
     private Long companyId;
     private Long jobId;
 }

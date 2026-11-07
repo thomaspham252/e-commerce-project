@@ -25,6 +25,11 @@ export const Sidebar = ({ title, items, isOpen, toggleSidebar }) => {
                   to={item.path} 
                   className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
                   end={item.end}
+                  onClick={(e) => {
+                    if (item.onClick) {
+                      item.onClick(e);
+                    }
+                  }}
                 >
                   <span className="sidebar-icon">{item.icon}</span>
                   <span className="sidebar-text">{item.label}</span>
