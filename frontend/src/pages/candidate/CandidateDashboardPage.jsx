@@ -66,7 +66,6 @@ import {
   sendCandidateMessage,
   markCandidateConversationRead,
   getOrCreateCandidateConversation,
-  simulateEmployerReply,
   getCandidateTotalUnread,
   CANDIDATE_QUICK_QUESTIONS
 } from '../../services/candidateMessagesService';
