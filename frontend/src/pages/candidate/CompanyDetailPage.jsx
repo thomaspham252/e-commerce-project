@@ -233,15 +233,15 @@ export const CompanyDetailPage = () => {
 
   const totalReviewsPages = Math.ceil(reviews.length / reviewsPerPage) || 1;
   const paginatedReviews = reviews.slice((reviewsPage - 1) * reviewsPerPage, reviewsPage * reviewsPerPage);
-  const offices = company.offices || [
-    {
-      city: 'Trụ sở chính',
-      address: company.address || 'Hà Nội & TP. HCM, Việt Nam',
-      isPrimary: true,
-      lat: 10.8542,
-      lng: 106.7865,
-    },
-  ];
+  const offices = Array.isArray(company.offices) && company.offices.length > 0
+    ? company.offices
+    : [
+        {
+          city: 'Trụ sở chính',
+          address: company.address || 'Chưa cập nhật địa chỉ',
+          isPrimary: true,
+        },
+      ];
   const currentOffice = offices[activeOfficeIdx] || offices[0];
 
   return (
@@ -482,13 +482,13 @@ export const CompanyDetailPage = () => {
                 Về {companyName}
               </h2>
               <div className="itv-prose">
-                <p>
-                  {company.description ||
-                    `${companyName} là doanh nghiệp hàng đầu trong lĩnh vực ${company.industry || 'công nghệ thông tin'}, chuyên cung cấp giải pháp sáng tạo và sản phẩm chất lượng cao đến hàng triệu người dùng.`}
-                </p>
-                <p>
-                  Tại {companyName}, chúng tôi tin rằng con người là tài sản quý giá nhất. Công ty cam kết xây dựng một môi trường làm việc cởi mở, minh bạch, đề cao tinh thần học hỏi không ngừng và trao quyền tự chủ tối đa cho từng thành viên.
-                </p>
+                {company.description ? (
+                  <p>{company.description}</p>
+                ) : (
+                  <p style={{ color: '#64748B', fontStyle: 'italic' }}>
+                    Doanh nghiệp chưa cập nhật thông tin giới thiệu chi tiết.
+                  </p>
+                )}
               </div>
             </section>
 

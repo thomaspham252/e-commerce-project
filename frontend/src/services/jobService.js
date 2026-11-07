@@ -50,12 +50,12 @@ export const mapBackendJob = (item) => ({
     id: item.companyId,
     name: item.companyName,
     logo: item.companyLogo || null,
-    industry: item.companyIndustry || 'IT - Phần mềm',
-    description: item.companyDescription || 'Doanh nghiệp uy tín đồng hành phát triển cùng người lao động.',
-    website: item.companyWebsite || 'https://jobviet.vn',
-    size: item.companySize || '100 - 499 nhân viên',
-    founded: '2015',
-    address: item.location || 'Việt Nam',
+    industry: item.companyIndustry || '',
+    description: item.companyDescription || '',
+    website: item.companyWebsite || '',
+    size: item.companySize || '',
+    founded: '',
+    address: item.location || '',
   },
 });
 
@@ -163,41 +163,5 @@ export const jobService = {
     } catch {
       return [];
     }
-  },
-
-  getCategories: async () => {
-    return [];
-  },
-
-  getCompanies: async () => {
-    return [];
-  },
-
-  getCvs: async () => {
-    // Trả về CV thực tế do ứng viên đã tải lên trong hồ sơ
-    try {
-      const saved = localStorage.getItem('jobviet.candidateProfile');
-      if (saved) {
-        const profile = JSON.parse(saved);
-        if (profile?.cvFileName) {
-          return [
-            {
-              id: 'cv-candidate-1',
-              name: profile.cvFileName,
-              updatedAt: profile.cvLastUpdated || 'Hôm nay',
-              size: 'PDF',
-              isDefault: true,
-            },
-          ];
-        }
-      }
-    } catch {
-      // ignore
-    }
-    return [];
-  },
-
-  getApplications: async () => {
-    return [];
   },
 };

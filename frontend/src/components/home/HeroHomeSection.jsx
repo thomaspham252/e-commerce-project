@@ -193,7 +193,7 @@ export const HeroHomeSection = ({ onSearch }) => {
                           <span className="category-nav-name">{cat.name}</span>
                         </div>
                         <div className="category-nav-right">
-                          <span className="category-nav-count">{cat.count}</span>
+                          {cat.count && <span className="category-nav-count">{cat.count}</span>}
                           <ChevronRight size={16} strokeWidth={1.75} className="category-nav-arrow" />
                         </div>
                       </button>

@@ -324,7 +324,7 @@ export const JobDetailPage = () => {
               </div>
             </div>
 
-            {/* Cột phải: Khối đánh giá & Giải thưởng nổi bật */}
+            {/* Cột phải: Khối đánh giá nổi bật nếu có */}
             <div className="itv-hero-right">
               <div className="itv-rating-box">
                 {reviewCount > 0 && ratingScore != null ? (
