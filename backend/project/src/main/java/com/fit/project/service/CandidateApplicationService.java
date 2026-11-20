@@ -112,9 +112,14 @@ public class CandidateApplicationService {
         }
         if (req.phone() != null) profile.setPhone(req.phone().trim());
         if (req.dob() != null) profile.setDob(req.dob());
+        if (req.gender() != null) profile.setGender(req.gender().trim());
         if (req.address() != null) profile.setAddress(req.address().trim());
         if (req.avatar() != null) profile.setAvatar(req.avatar().trim());
         if (req.summary() != null) profile.setSummary(req.summary().trim());
+        if (req.experienceYears() != null) profile.setExperienceYears(req.experienceYears().trim());
+        if (req.currentLevel() != null) profile.setCurrentLevel(req.currentLevel().trim());
+        if (req.workType() != null) profile.setWorkType(req.workType().trim());
+        if (req.expectedSalary() != null) profile.setExpectedSalary(req.expectedSalary().trim());
         if (req.isSearchable() != null) profile.setIsSearchable(req.isSearchable());
 
         profile = candidateProfileRepository.save(profile);

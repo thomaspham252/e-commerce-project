@@ -65,71 +65,72 @@ public class DataSeeder implements CommandLineRunner {
     @Transactional
     public void run(String... args) {
         seedPackagesIfEmpty();
+
+        if (userRepository.count() == 0) {
+            user("admin@jobportal.vn", UserRole.ADMIN, 200);
+
+            Company techAsia = company(user("hr@techasia.vn", UserRole.EMPLOYER, 170), "TechAsia",
+                    "0101234567", "Cầu Giấy, Hà Nội", "IT - Phần mềm", "100-499", VerificationStatus.VERIFIED);
+            Company fpt = company(user("hr@fptsoft.vn", UserRole.EMPLOYER, 150), "FPT Software",
+                    "0301234567", "Quận 9, TP.HCM", "IT - Phần mềm", "1000+", VerificationStatus.VERIFIED);
+            company(user("contact@newstartup.vn", UserRole.EMPLOYER, 5), "NewStartup",
+                    "0109876543", "Đống Đa, Hà Nội", "Marketing", "10-49", VerificationStatus.PENDING);
+
+            String[] names = {"Nguyễn Văn An", "Trần Thị Bình", "Lê Văn Cường", "Phạm Minh Dũng",
+                    "Hoàng Thu Hà", "Vũ Đức Huy", "Đặng Ngọc Lan", "Bùi Quang Minh"};
+            List<Cv> cvs = new ArrayList<>();
+            for (int i = 0; i < names.length; i++) {
+                User u = user("ungvien" + (i + 1) + "@gmail.com", UserRole.CANDIDATE, 160 - i * 20);
+                CandidateProfile profile = candidateProfileRepository.save(CandidateProfile.builder()
+                        .user(u).fullName(names[i]).phone("09" + (10000000 + i * 1234567)).build());
+                cvs.add(cvRepository.save(Cv.builder().candidate(profile)
+                        .fileUrl("/uploads/cv/ungvien" + (i + 1) + ".pdf")
+                        .fileName("CV_" + names[i].replace(' ', '_') + ".pdf")
+                        .isDefault(true).uploadedAt(u.getCreatedAt()).build()));
+            }
+
+            List<Job> jobs = List.of(
+                    job(techAsia, "Frontend Developer (React)", "Hà Nội", 15, 25, "Junior", JobStatus.OPEN, 140),
+                    job(techAsia, "Backend Developer (Spring Boot)", "Hà Nội", 20, 35, "Senior", JobStatus.OPEN, 110),
+                    job(techAsia, "QA/Tester", "Hà Nội", 10, 18, "Fresher", JobStatus.CLOSED, 90),
+                    job(techAsia, "DevOps Engineer", "Hà Nội", 25, 40, "Senior", JobStatus.PENDING_REVIEW, 2),
+                    job(techAsia, "Thực tập sinh IT", "Hà Nội", 3, 5, "Intern", JobStatus.REJECTED, 20),
+                    job(fpt, "Java Developer", "TP.HCM", 18, 30, "Junior", JobStatus.OPEN, 100),
+                    job(fpt, "Business Analyst", "TP.HCM", 20, 32, "Senior", JobStatus.OPEN, 60),
+                    job(fpt, "UI/UX Designer", "TP.HCM", 12, 22, "Junior", JobStatus.OPEN, 35),
+                    job(fpt, "Data Engineer", "TP.HCM", 25, 45, "Senior", JobStatus.PENDING_REVIEW, 1));
+
+            ApplicationStatus[] weighted = {ApplicationStatus.PENDING, ApplicationStatus.PENDING, ApplicationStatus.PENDING,
+                    ApplicationStatus.VIEWED, ApplicationStatus.VIEWED, ApplicationStatus.INVITED,
+                    ApplicationStatus.REJECTED, ApplicationStatus.HIRED};
+            int count = 0;
+            for (Job job : jobs) {
+                if (job.getStatus() != JobStatus.OPEN && job.getStatus() != JobStatus.CLOSED) continue;
+                List<Cv> shuffled = new ArrayList<>(cvs);
+                Collections.shuffle(shuffled, random);
+                for (Cv cv : shuffled.subList(0, 3 + random.nextInt(5))) {
+                    long maxDaysAgo = Math.min(75, java.time.Duration.between(job.getCreatedAt(), now).toDays());
+                    LocalDateTime appliedAt = now.minusDays(random.nextLong(maxDaysAgo + 1)).minusHours(random.nextInt(12));
+                    ApplicationStatus status = weighted[random.nextInt(weighted.length)];
+                    Application app = applicationRepository.save(Application.builder()
+                            .job(job).candidate(cv.getCandidate()).cv(cv).status(status)
+                            .coverLetter("Em rất mong muốn được làm việc tại " + job.getCompany().getName() + ".")
+                            .appliedAt(appliedAt).updatedAt(appliedAt).build());
+                    if (status != ApplicationStatus.PENDING) {
+                        historyRepository.save(ApplicationStatusHistory.builder().application(app)
+                                .fromStatus(ApplicationStatus.PENDING).toStatus(status)
+                                .changedBy(job.getCompany().getOwner()).changedAt(appliedAt.plusDays(1)).build());
+                    }
+                    count++;
+                }
+            }
+            log.info("Đã tạo dữ liệu mẫu: {} người dùng, {} tin, {} hồ sơ ứng tuyển",
+                    userRepository.count(), jobs.size(), count);
+        }
+
         seedChatIfEmpty();
         seedReviewsIfEmpty();
         jobCatalogSeeder.seedCompaniesAndJobsIfIncomplete();
-
-        if (userRepository.count() > 0) return;
-
-        user("admin@jobportal.vn", UserRole.ADMIN, 200);
-
-        Company techAsia = company(user("hr@techasia.vn", UserRole.EMPLOYER, 170), "TechAsia",
-                "0101234567", "Cầu Giấy, Hà Nội", "IT - Phần mềm", "100-499", VerificationStatus.VERIFIED);
-        Company fpt = company(user("hr@fptsoft.vn", UserRole.EMPLOYER, 150), "FPT Software",
-                "0301234567", "Quận 9, TP.HCM", "IT - Phần mềm", "1000+", VerificationStatus.VERIFIED);
-        company(user("contact@newstartup.vn", UserRole.EMPLOYER, 5), "NewStartup",
-                "0109876543", "Đống Đa, Hà Nội", "Marketing", "10-49", VerificationStatus.PENDING);
-
-        String[] names = {"Nguyễn Văn An", "Trần Thị Bình", "Lê Văn Cường", "Phạm Minh Dũng",
-                "Hoàng Thu Hà", "Vũ Đức Huy", "Đặng Ngọc Lan", "Bùi Quang Minh"};
-        List<Cv> cvs = new ArrayList<>();
-        for (int i = 0; i < names.length; i++) {
-            User u = user("ungvien" + (i + 1) + "@gmail.com", UserRole.CANDIDATE, 160 - i * 20);
-            CandidateProfile profile = candidateProfileRepository.save(CandidateProfile.builder()
-                    .user(u).fullName(names[i]).phone("09" + (10000000 + i * 1234567)).build());
-            cvs.add(cvRepository.save(Cv.builder().candidate(profile)
-                    .fileUrl("/uploads/cv/ungvien" + (i + 1) + ".pdf")
-                    .fileName("CV_" + names[i].replace(' ', '_') + ".pdf")
-                    .isDefault(true).uploadedAt(u.getCreatedAt()).build()));
-        }
-
-        List<Job> jobs = List.of(
-                job(techAsia, "Frontend Developer (React)", "Hà Nội", 15, 25, "Junior", JobStatus.OPEN, 140),
-                job(techAsia, "Backend Developer (Spring Boot)", "Hà Nội", 20, 35, "Senior", JobStatus.OPEN, 110),
-                job(techAsia, "QA/Tester", "Hà Nội", 10, 18, "Fresher", JobStatus.CLOSED, 90),
-                job(techAsia, "DevOps Engineer", "Hà Nội", 25, 40, "Senior", JobStatus.PENDING_REVIEW, 2),
-                job(techAsia, "Thực tập sinh IT", "Hà Nội", 3, 5, "Intern", JobStatus.REJECTED, 20),
-                job(fpt, "Java Developer", "TP.HCM", 18, 30, "Junior", JobStatus.OPEN, 100),
-                job(fpt, "Business Analyst", "TP.HCM", 20, 32, "Senior", JobStatus.OPEN, 60),
-                job(fpt, "UI/UX Designer", "TP.HCM", 12, 22, "Junior", JobStatus.OPEN, 35),
-                job(fpt, "Data Engineer", "TP.HCM", 25, 45, "Senior", JobStatus.PENDING_REVIEW, 1));
-
-        ApplicationStatus[] weighted = {ApplicationStatus.PENDING, ApplicationStatus.PENDING, ApplicationStatus.PENDING,
-                ApplicationStatus.VIEWED, ApplicationStatus.VIEWED, ApplicationStatus.INVITED,
-                ApplicationStatus.REJECTED, ApplicationStatus.HIRED};
-        int count = 0;
-        for (Job job : jobs) {
-            if (job.getStatus() != JobStatus.OPEN && job.getStatus() != JobStatus.CLOSED) continue;
-            List<Cv> shuffled = new ArrayList<>(cvs);
-            Collections.shuffle(shuffled, random);
-            for (Cv cv : shuffled.subList(0, 3 + random.nextInt(5))) {
-                long maxDaysAgo = Math.min(75, java.time.Duration.between(job.getCreatedAt(), now).toDays());
-                LocalDateTime appliedAt = now.minusDays(random.nextLong(maxDaysAgo + 1)).minusHours(random.nextInt(12));
-                ApplicationStatus status = weighted[random.nextInt(weighted.length)];
-                Application app = applicationRepository.save(Application.builder()
-                        .job(job).candidate(cv.getCandidate()).cv(cv).status(status)
-                        .coverLetter("Em rất mong muốn được làm việc tại " + job.getCompany().getName() + ".")
-                        .appliedAt(appliedAt).updatedAt(appliedAt).build());
-                if (status != ApplicationStatus.PENDING) {
-                    historyRepository.save(ApplicationStatusHistory.builder().application(app)
-                            .fromStatus(ApplicationStatus.PENDING).toStatus(status)
-                            .changedBy(job.getCompany().getOwner()).changedAt(appliedAt.plusDays(1)).build());
-                }
-                count++;
-            }
-        }
-        log.info("Đã tạo dữ liệu mẫu: {} người dùng, {} tin, {} hồ sơ ứng tuyển",
-                userRepository.count(), jobs.size(), count);
     }
 
     private User user(String email, UserRole role, int daysAgo) {

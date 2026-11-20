@@ -31,6 +31,9 @@ public class CandidateProfile {
 
     private LocalDate dob;
 
+    @Column(length = 30)
+    private String gender;
+
     @Column(length = 500)
     private String address;
 
@@ -39,6 +42,18 @@ public class CandidateProfile {
 
     @Column(columnDefinition = "TEXT")
     private String summary;
+
+    @Column(name = "experience_years", length = 100)
+    private String experienceYears;
+
+    @Column(name = "current_level", length = 100)
+    private String currentLevel;
+
+    @Column(name = "work_type", length = 100)
+    private String workType;
+
+    @Column(name = "expected_salary", length = 100)
+    private String expectedSalary;
 
     @Column(name = "is_searchable", nullable = false)
     @Builder.Default

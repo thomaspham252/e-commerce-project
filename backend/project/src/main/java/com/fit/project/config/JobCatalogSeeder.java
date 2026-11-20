@@ -77,6 +77,13 @@ public class JobCatalogSeeder {
             if (comp == null) {
                 comp = companies.get("techasia");
             }
+            if (comp == null) {
+                comp = companyRepository.findAll().stream().findFirst().orElse(null);
+            }
+            if (comp == null) {
+                log.warn("Không tìm thấy công ty nào để liên kết job: {}", item.title());
+                continue;
+            }
 
             // Tránh trùng lặp tiêu đề công việc tại cùng công ty
             boolean exists = jobRepository.findByCompanyIdAndStatus(comp.getId(), JobStatus.OPEN).stream()

@@ -34,6 +34,7 @@ CREATE TABLE `users` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='Bảng lưu thông tin đăng ký, đăng nhập, phân quyền và quản lý trạng thái tài khoản';
 
+DROP TABLE IF EXISTS `email_verifications`;
 CREATE TABLE `email_verifications` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `user_id` INT NOT NULL,
@@ -56,9 +57,14 @@ CREATE TABLE `candidate_profiles` (
   `full_name` VARCHAR(255) NOT NULL COMMENT 'Họ và tên đầy đủ của ứng viên',
   `phone` VARCHAR(20) DEFAULT NULL COMMENT 'Số điện thoại liên hệ của ứng viên',
   `dob` DATE DEFAULT NULL COMMENT 'Ngày tháng năm sinh của ứng viên',
+  `gender` VARCHAR(30) DEFAULT NULL COMMENT 'Giới tính của ứng viên',
   `address` VARCHAR(500) DEFAULT NULL COMMENT 'Địa chỉ sinh sống hiện tại',
   `avatar` VARCHAR(500) DEFAULT NULL COMMENT 'Đường dẫn URL ảnh đại diện của ứng viên',
   `summary` TEXT DEFAULT NULL COMMENT 'Giới thiệu bản thân, mục tiêu nghề nghiệp tóm tắt',
+  `experience_years` VARCHAR(100) DEFAULT NULL COMMENT 'Tổng số năm kinh nghiệm',
+  `current_level` VARCHAR(100) DEFAULT NULL COMMENT 'Cấp bậc hiện tại',
+  `work_type` VARCHAR(100) DEFAULT NULL COMMENT 'Hình thức làm việc mong muốn',
+  `expected_salary` VARCHAR(100) DEFAULT NULL COMMENT 'Mức lương mong muốn',
   `is_searchable` TINYINT(1) NOT NULL DEFAULT 1 COMMENT 'Cho phép nhà tuyển dụng tìm kiếm thấy hồ sơ này (1: Có, 0: Không)',
   PRIMARY KEY (`user_id`),
   CONSTRAINT `fk_candidate_profiles_user_id`

@@ -132,9 +132,14 @@ Table candidate_profiles {
   full_name varchar(255) [not null]
   phone varchar(20)
   dob date
+  gender varchar(30)
   address varchar(500)
   avatar varchar(500)
   summary text
+  experience_years varchar(100)
+  current_level varchar(100)
+  work_type varchar(100)
+  expected_salary varchar(100)
   is_searchable boolean [not null, default: true, note: 'Ứng viên cho phép xuất hiện trong tìm kiếm hồ sơ']
 
   Note: 'Backend kiểm tra users.role = candidate'

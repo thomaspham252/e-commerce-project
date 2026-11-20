@@ -1112,6 +1112,14 @@
   overflow: hidden;
 }
 
+.itv-profile-modal {
+  max-width: 760px;
+  max-height: calc(100vh - 32px);
+  max-height: calc(100dvh - 32px);
+  display: flex;
+  flex-direction: column;
+}
+
 .itv-modal-header {
   display: flex;
   align-items: center;
@@ -1158,6 +1166,31 @@
   gap: 16px;
 }
 
+.itv-profile-modal-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 20px;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  min-height: 0;
+  overscroll-behavior: contain;
+}
+
+.itv-profile-modal-form > .itv-form-group:first-child,
+.itv-profile-modal-form > .itv-form-group:nth-child(8),
+.itv-profile-modal-form > .itv-modal-actions {
+  grid-column: 1 / -1;
+}
+
+.itv-profile-modal-form > .itv-modal-actions {
+  position: sticky;
+  bottom: -20px;
+  margin: 0 -24px -20px;
+  padding: 14px 24px;
+  background: #FFFFFF;
+  border-top: 1px solid #E2E8F0;
+}
+
 .itv-form-group {
   display: flex;
   flex-direction: column;
@@ -1171,6 +1204,7 @@
 }
 
 .itv-form-group input,
+.itv-form-group select,
 .itv-textarea-custom {
   padding: 10px 14px;
   border: 1px solid #CBD5E1;
@@ -1188,6 +1222,7 @@
 }
 
 .itv-form-group input:focus,
+.itv-form-group select:focus,
 .itv-textarea-custom:focus {
   border-color: #EA1E30;
   box-shadow: 0 0 0 3px rgba(234, 30, 48, 0.12);
@@ -1214,6 +1249,27 @@
 
 .itv-btn-cancel:hover {
   background: #F8FAFC;
+}
+
+@media (max-width: 640px) {
+  .itv-modal-overlay {
+    padding: 12px;
+  }
+
+  .itv-profile-modal-form {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 16px;
+  }
+
+  .itv-profile-modal-form > .itv-form-group,
+  .itv-profile-modal-form > .itv-modal-actions {
+    grid-column: 1;
+  }
+
+  .itv-profile-modal-form > .itv-modal-actions {
+    margin: 0 -16px -16px;
+    padding: 12px 16px;
+  }
 }
 
 .itv-btn-save {

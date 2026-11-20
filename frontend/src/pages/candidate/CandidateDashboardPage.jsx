@@ -375,6 +375,10 @@ export const CandidateDashboardPage = () => {
   // Modals & toast
   const [modalType, setModalType] = useState(null);
   const [modalForm, setModalForm] = useState(profile);
+  const [isSavingBasicInfo, setIsSavingBasicInfo] = useState(false);
+  const [isSavingGeneralInfo, setIsSavingGeneralInfo] = useState(false);
+  const [isSavingCoverLetter, setIsSavingCoverLetter] = useState(false);
+  const [isSavingSearchability, setIsSavingSearchability] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const fileInputRef = useRef(null);
   const chatAttachInputRef = useRef(null);
@@ -396,11 +400,17 @@ export const CandidateDashboardPage = () => {
           const p = profData.value;
           updatedFields = {
             fullName: p.fullName || profile.fullName,
-            phone: p.phone || profile.phone,
-            desiredLocation: p.address || profile.desiredLocation,
-            avatarUrl: p.avatar || profile.avatarUrl || '',
-            summary: p.summary || profile.summary || '',
-            isSearchable: p.isSearchable ?? profile.isSearchable,
+            phone: p.phone ?? '',
+            birthday: p.dob ?? '',
+            gender: p.gender ?? '',
+            desiredLocation: p.address ?? '',
+            avatarUrl: p.avatar ?? '',
+            summary: p.summary ?? '',
+            experienceYears: p.experienceYears ?? '',
+            currentLevel: p.currentLevel ?? '',
+            workType: p.workType ?? '',
+            expectedSalary: p.expectedSalary ?? '',
+            isSearchable: p.isSearchable ?? true,
           };
         }
 
@@ -510,21 +520,105 @@ export const CandidateDashboardPage = () => {
 
   const handleSaveModal = async (e) => {
     e.preventDefault();
-    setProfile(modalForm);
-    localStorage.setItem('jobviet.candidateProfile', JSON.stringify(modalForm));
+    setIsSavingBasicInfo(true);
     try {
-      await candidateService.updateProfile({
-        fullName: modalForm.fullName,
-        phone: modalForm.phone,
-        address: modalForm.desiredLocation,
-        avatar: modalForm.avatarUrl,
-        summary: modalForm.title,
+      const savedProfile = await candidateService.updateProfile({
+        fullName: modalForm.fullName?.trim() || '',
+        phone: modalForm.phone?.trim() || '',
+        dob: modalForm.birthday || null,
+        gender: modalForm.gender || '',
+        address: modalForm.desiredLocation?.trim() || '',
+        avatar: modalForm.avatarUrl?.trim() || '',
+        summary: modalForm.summary?.trim() || '',
       });
+      const updatedProfile = {
+        ...modalForm,
+        fullName: savedProfile.fullName || modalForm.fullName,
+        phone: savedProfile.phone || modalForm.phone,
+        birthday: savedProfile.dob || '',
+        gender: savedProfile.gender ?? '',
+        desiredLocation: savedProfile.address || modalForm.desiredLocation,
+        avatarUrl: savedProfile.avatar || modalForm.avatarUrl,
+        summary: savedProfile.summary ?? '',
+      };
+      setProfile(updatedProfile);
+      localStorage.setItem('jobviet.candidateProfile', JSON.stringify(updatedProfile));
+      closeModal();
+      showToast('Cập nhật thông tin cơ bản thành công!');
     } catch (saveErr) {
       console.warn('Lưu hồ sơ vào backend thất bại:', saveErr);
+      showToast(`Không thể lưu thông tin cơ bản: ${getErrorMessage(saveErr)}`);
+    } finally {
+      setIsSavingBasicInfo(false);
     }
-    closeModal();
-    showToast('Cập nhật thông tin thành công!');
+  };
+
+  const handleSaveCoverLetter = async (e) => {
+    e.preventDefault();
+    setIsSavingCoverLetter(true);
+    try {
+      // Lưu thư xin việc vào state và localStorage
+      const updatedProfile = {
+        ...profile,
+        coverLetter: modalForm.coverLetter?.trim() || '',
+      };
+      setProfile(updatedProfile);
+      localStorage.setItem('jobviet.candidateProfile', JSON.stringify(updatedProfile));
+      closeModal();
+      showToast('Cập nhật thư xin việc thành công!');
+    } catch (err) {
+      showToast('Không thể cập nhật thư xin việc.');
+    } finally {
+      setIsSavingCoverLetter(false);
+    }
+  };
+
+  const handleSaveGeneralInfo = async (e) => {
+    e.preventDefault();
+    setIsSavingGeneralInfo(true);
+    try {
+      const savedProfile = await candidateService.updateProfile({
+        experienceYears: modalForm.experienceYears?.trim() || '',
+        currentLevel: modalForm.currentLevel?.trim() || '',
+        workType: modalForm.workType?.trim() || '',
+        expectedSalary: modalForm.expectedSalary?.trim() || '',
+      });
+      const updatedProfile = {
+        ...profile,
+        experienceYears: savedProfile.experienceYears ?? '',
+        currentLevel: savedProfile.currentLevel ?? '',
+        workType: savedProfile.workType ?? '',
+        expectedSalary: savedProfile.expectedSalary ?? '',
+      };
+      setProfile(updatedProfile);
+      localStorage.setItem('jobviet.candidateProfile', JSON.stringify(updatedProfile));
+      closeModal();
+      showToast('Cập nhật thông tin chung thành công!');
+    } catch (error) {
+      showToast(`Không thể lưu thông tin chung: ${getErrorMessage(error)}`);
+    } finally {
+      setIsSavingGeneralInfo(false);
+    }
+  };
+
+  const handleSearchabilityToggle = async () => {
+    const next = !profile.isSearchable;
+    setIsSavingSearchability(true);
+    try {
+      const savedProfile = await candidateService.updateProfile({ isSearchable: next });
+      const updatedProfile = {
+        ...profile,
+        isSearchable: savedProfile.isSearchable ?? next,
+      };
+      setProfile(updatedProfile);
+      localStorage.setItem('jobviet.candidateProfile', JSON.stringify(updatedProfile));
+      showToast(next ? 'Đã bật Cho phép tìm kiếm CV' : 'Đã tắt tìm kiếm CV');
+    } catch (error) {
+      console.error('Không thể cập nhật trạng thái tìm kiếm hồ sơ:', error);
+      showToast(`Không thể cập nhật trạng thái tìm kiếm: ${getErrorMessage(error)}`);
+    } finally {
+      setIsSavingSearchability(false);
+    }
   };
 
     // Danh sách việc làm đã xem gần đây
@@ -1003,17 +1097,17 @@ export const CandidateDashboardPage = () => {
                       <Briefcase size={14} />
                       <span>{profile.phone}</span>
                     </div>
-                    <div className="itv-cv-meta-cell is-empty" onClick={() => openModal('basic')}>
+                    <div className={`itv-cv-meta-cell ${profile.birthday ? '' : 'is-empty'}`} onClick={() => openModal('basic')}>
                       <Calendar size={14} />
-                      <span>Ngày sinh</span>
+                      <span>{profile.birthday ? profile.birthday.split('-').reverse().join('/') : 'Ngày sinh'}</span>
                     </div>
-                    <div className="itv-cv-meta-cell is-empty" onClick={() => openModal('basic')}>
+                    <div className={`itv-cv-meta-cell ${profile.gender ? '' : 'is-empty'}`} onClick={() => openModal('basic')}>
                       <User size={14} />
-                      <span>Giới tính</span>
+                      <span>{profile.gender || 'Giới tính'}</span>
                     </div>
-                    <div className="itv-cv-meta-cell is-empty" onClick={() => openModal('basic')}>
+                    <div className={`itv-cv-meta-cell ${profile.desiredLocation ? '' : 'is-empty'}`} onClick={() => openModal('basic')}>
                       <MapPin size={14} />
-                      <span>Địa chỉ hiện tại</span>
+                      <span>{profile.desiredLocation || 'Địa chỉ hiện tại'}</span>
                     </div>
                     <div className="itv-cv-meta-cell is-empty" onClick={() => openModal('basic')}>
                       <Globe size={14} />
@@ -1804,11 +1898,8 @@ export const CandidateDashboardPage = () => {
                   <button
                     type="button"
                     className={`itv-red-switch-btn ${profile.isSearchable ? 'is-active' : ''}`}
-                    onClick={() => {
-                      const next = !profile.isSearchable;
-                      setProfile({ ...profile, isSearchable: next });
-                      showToast(next ? 'Đã bật Cho phép tìm kiếm CV' : 'Đã tắt tìm kiếm CV');
-                    }}
+                    onClick={handleSearchabilityToggle}
+                    disabled={isSavingSearchability}
                   >
                     <span className="itv-switch-knob" />
                     <span className="itv-switch-label">{profile.isSearchable ? 'Bật' : 'Tắt'}</span>
@@ -1861,7 +1952,7 @@ export const CandidateDashboardPage = () => {
       {/* MODALS CHỈNH SỬA TỪNG PHẦN */}
       {modalType === 'basic' && (
         <div className="itv-modal-overlay" onClick={closeModal} role="dialog" aria-modal="true">
-          <div className="itv-modal-box" onClick={(e) => e.stopPropagation()}>
+          <div className="itv-modal-box itv-profile-modal" onClick={(e) => e.stopPropagation()}>
             <div className="itv-modal-header">
               <div className="itv-modal-title-row">
                 <SquarePen size={18} className="itv-modal-title-icon" />
@@ -1872,7 +1963,7 @@ export const CandidateDashboardPage = () => {
               </button>
             </div>
 
-            <form onSubmit={handleSaveModal} className="itv-modal-form">
+            <form onSubmit={handleSaveModal} className="itv-modal-form itv-profile-modal-form">
               <div className="itv-form-group">
                 <FileUploadField
                   label="Ảnh đại diện"
@@ -1917,13 +2008,50 @@ export const CandidateDashboardPage = () => {
               </div>
 
               <div className="itv-form-group">
-                <label>Nơi làm việc mong muốn</label>
+                <label>Địa chỉ hiện tại</label>
                 <input
                   type="text"
                   value={modalForm.desiredLocation}
                   onChange={(e) => setModalForm({ ...modalForm, desiredLocation: e.target.value })}
                   placeholder="Ho Chi Minh"
                   required
+                />
+              </div>
+
+              <div className="itv-form-group">
+                <label htmlFor="candidate-dob">Ngày sinh</label>
+                <input
+                  id="candidate-dob"
+                  type="date"
+                  value={modalForm.birthday || ''}
+                  onChange={(e) => setModalForm({ ...modalForm, birthday: e.target.value })}
+                />
+              </div>
+
+              <div className="itv-form-group">
+                <label htmlFor="candidate-gender">Giới tính</label>
+                <select
+                  id="candidate-gender"
+                  value={modalForm.gender || ''}
+                  onChange={(e) => setModalForm({ ...modalForm, gender: e.target.value })}
+                >
+                  <option value="">Chọn giới tính</option>
+                  <option value="Nam">Nam</option>
+                  <option value="Nữ">Nữ</option>
+                  <option value="Khác">Khác</option>
+                  <option value="Không muốn tiết lộ">Không muốn tiết lộ</option>
+                </select>
+              </div>
+
+              <div className="itv-form-group">
+                <label htmlFor="candidate-summary">Giới thiệu bản thân / Mục tiêu nghề nghiệp</label>
+                <textarea
+                  id="candidate-summary"
+                  rows={5}
+                  maxLength={5000}
+                  value={modalForm.summary || ''}
+                  onChange={(e) => setModalForm({ ...modalForm, summary: e.target.value })}
+                  placeholder="Tóm tắt kinh nghiệm, kỹ năng và mục tiêu nghề nghiệp của bạn"
                 />
               </div>
 
@@ -1951,8 +2079,122 @@ export const CandidateDashboardPage = () => {
                 <button type="button" className="itv-btn-cancel" onClick={closeModal}>
                   Hủy
                 </button>
-                <button type="submit" className="itv-btn-save">
-                  Lưu thay đổi
+                <button type="submit" className="itv-btn-save" disabled={isSavingBasicInfo}>
+                  {isSavingBasicInfo ? 'Đang lưu...' : 'Lưu thay đổi'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {modalType === 'general' && (
+        <div className="itv-modal-overlay" onClick={closeModal} role="dialog" aria-modal="true">
+          <div className="itv-modal-box" onClick={(e) => e.stopPropagation()}>
+            <div className="itv-modal-header">
+              <div className="itv-modal-title-row">
+                <SquarePen size={18} className="itv-modal-title-icon" />
+                <h3>Cập nhật Thông tin chung</h3>
+              </div>
+              <button type="button" className="itv-modal-close" onClick={closeModal}>
+                <X size={20} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveGeneralInfo} className="itv-modal-form">
+              <div className="itv-form-group">
+                <label htmlFor="candidate-experience-years">Tổng số năm kinh nghiệm</label>
+                <input
+                  id="candidate-experience-years"
+                  type="text"
+                  maxLength={100}
+                  value={modalForm.experienceYears || ''}
+                  onChange={(e) => setModalForm({ ...modalForm, experienceYears: e.target.value })}
+                  placeholder="Ví dụ: 3 năm"
+                />
+              </div>
+
+              <div className="itv-form-group">
+                <label htmlFor="candidate-current-level">Cấp bậc hiện tại</label>
+                <input
+                  id="candidate-current-level"
+                  type="text"
+                  maxLength={100}
+                  value={modalForm.currentLevel || ''}
+                  onChange={(e) => setModalForm({ ...modalForm, currentLevel: e.target.value })}
+                  placeholder="Ví dụ: Nhân viên"
+                />
+              </div>
+
+              <div className="itv-form-group">
+                <label htmlFor="candidate-work-type">Hình thức làm việc mong muốn</label>
+                <input
+                  id="candidate-work-type"
+                  type="text"
+                  maxLength={100}
+                  value={modalForm.workType || ''}
+                  onChange={(e) => setModalForm({ ...modalForm, workType: e.target.value })}
+                  placeholder="Ví dụ: Toàn thời gian, Hybrid"
+                />
+              </div>
+
+              <div className="itv-form-group">
+                <label htmlFor="candidate-expected-salary">Mức lương mong muốn</label>
+                <input
+                  id="candidate-expected-salary"
+                  type="text"
+                  maxLength={100}
+                  value={modalForm.expectedSalary || ''}
+                  onChange={(e) => setModalForm({ ...modalForm, expectedSalary: e.target.value })}
+                  placeholder="Ví dụ: 20–30 triệu/tháng"
+                />
+              </div>
+
+              <div className="itv-modal-actions">
+                <button type="button" className="itv-btn-cancel" onClick={closeModal}>
+                  Hủy
+                </button>
+                <button type="submit" className="itv-btn-save" disabled={isSavingGeneralInfo}>
+                  {isSavingGeneralInfo ? 'Đang lưu...' : 'Lưu thay đổi'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {modalType === 'coverLetter' && (
+        <div className="itv-modal-overlay" onClick={closeModal} role="dialog" aria-modal="true">
+          <div className="itv-modal-box" onClick={(e) => e.stopPropagation()}>
+            <div className="itv-modal-header">
+              <div className="itv-modal-title-row">
+                <FileText size={18} className="itv-modal-title-icon" />
+                <h3>Chỉnh sửa Thư xin việc</h3>
+              </div>
+              <button type="button" className="itv-modal-close" onClick={closeModal}>
+                <X size={20} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveCoverLetter} className="itv-modal-form">
+              <div className="itv-form-group">
+                <label htmlFor="candidate-cover-letter">Nội dung thư xin việc</label>
+                <textarea
+                  id="candidate-cover-letter"
+                  rows={8}
+                  style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #d1d5db', resize: 'vertical' }}
+                  value={modalForm.coverLetter || ''}
+                  onChange={(e) => setModalForm({ ...modalForm, coverLetter: e.target.value })}
+                  placeholder="Giới thiệu bản thân, kỹ năng và lý do muốn ứng tuyển..."
+                />
+              </div>
+
+              <div className="itv-modal-actions">
+                <button type="button" className="itv-btn-cancel" onClick={closeModal}>
+                  Hủy
+                </button>
+                <button type="submit" className="itv-btn-save" disabled={isSavingCoverLetter}>
+                  {isSavingCoverLetter ? 'Đang lưu...' : 'Lưu thay đổi'}
                 </button>
               </div>
             </form>

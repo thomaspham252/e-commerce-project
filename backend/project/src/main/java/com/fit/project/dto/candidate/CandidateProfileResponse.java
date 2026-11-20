@@ -10,9 +10,14 @@ public record CandidateProfileResponse(
         String email,
         String phone,
         LocalDate dob,
+        String gender,
         String address,
         String avatar,
         String summary,
+        String experienceYears,
+        String currentLevel,
+        String workType,
+        String expectedSalary,
         boolean isSearchable
 ) {
     public static CandidateProfileResponse of(CandidateProfile p) {
@@ -23,9 +28,14 @@ public record CandidateProfileResponse(
                 email,
                 p.getPhone(),
                 p.getDob(),
+                p.getGender(),
                 p.getAddress(),
                 p.getAvatar(),
                 p.getSummary(),
+                p.getExperienceYears(),
+                p.getCurrentLevel(),
+                p.getWorkType(),
+                p.getExpectedSalary(),
                 Boolean.TRUE.equals(p.getIsSearchable())
         );
     }
