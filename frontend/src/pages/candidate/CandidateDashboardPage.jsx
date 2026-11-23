@@ -543,6 +543,10 @@ export const CandidateDashboardPage = () => {
       };
       setProfile(updatedProfile);
       localStorage.setItem('jobviet.candidateProfile', JSON.stringify(updatedProfile));
+      updateAuthSession({
+        fullName: updatedProfile.fullName,
+        avatar: updatedProfile.avatarUrl || '',
+      });
       closeModal();
       showToast('Cập nhật thông tin cơ bản thành công!');
     } catch (saveErr) {

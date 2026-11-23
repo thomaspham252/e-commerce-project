@@ -21,7 +21,23 @@ import {
 } from 'lucide-react';
 import { useSavedJobs } from '../context/SavedJobsContext';
 import { useWallet } from '../context/WalletContext.jsx';
-import { getAuthSession, clearAuthSession, apiClient } from '../services/apiClient';
+import { getAuthSession, clearAuthSession, updateAuthSession, apiClient } from '../services/apiClient';
+
+const withCachedCandidateProfile = (user) => {
+  if (!user || String(user.role).toUpperCase() !== 'CANDIDATE' || !user.email) return user;
+
+  try {
+    const profile = JSON.parse(localStorage.getItem('jobviet.candidateProfile') || 'null');
+    if (profile?.email?.toLowerCase() !== user.email.toLowerCase()) return user;
+    return {
+      ...user,
+      fullName: profile.fullName || user.fullName,
+      avatar: profile.avatarUrl || user.avatar,
+    };
+  } catch {
+    return user;
+  }
+};
 
 /**
  * Thanh điều hướng chính (Header) của JobViet.
@@ -31,11 +47,13 @@ export const Header = () => {
   const navigate = useNavigate();
   const { savedJobIds } = useSavedJobs();
   const { balance = 0, loading = false } = useWallet();
-  const [currentUser, setCurrentUser] = useState(() => getAuthSession());
+  const [currentUser, setCurrentUser] = useState(() => withCachedCandidateProfile(getAuthSession()));
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [chatUnreadCount, setChatUnreadCount] = useState(0);
   const dropdownRef = useRef(null);
   const hoverTimeoutRef = useRef(null);
+  const userId = currentUser?.id;
+  const userRole = currentUser?.role;
 
   useEffect(() => {
     const fetchUnread = async () => {
@@ -57,7 +75,7 @@ export const Header = () => {
 
   useEffect(() => {
     const handleAuthChange = () => {
-      setCurrentUser(getAuthSession());
+      setCurrentUser(withCachedCandidateProfile(getAuthSession()));
     };
 
     window.addEventListener('auth-session-changed', handleAuthChange);
@@ -77,6 +95,33 @@ export const Header = () => {
       if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
     };
   }, []);
+
+  useEffect(() => {
+    if (!userId || String(userRole).toUpperCase() !== 'CANDIDATE') return undefined;
+
+    let active = true;
+    apiClient.get('/candidate/profile')
+      .then(({ data }) => {
+        if (!active || !data) return;
+
+        const session = getAuthSession();
+        if (!session || session.id !== userId) return;
+
+        const updates = {};
+        if (data.fullName && data.fullName !== session.fullName) updates.fullName = data.fullName;
+        if ((data.avatar || '') !== (session.avatar || '')) updates.avatar = data.avatar || '';
+        if (Object.keys(updates).length > 0) {
+          updateAuthSession(updates);
+        }
+      })
+      .catch((error) => {
+        console.warn('Không thể tải thông tin hồ sơ để hiển thị trong menu:', error);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [userId, userRole]);
 
   const handleMouseEnter = () => {
     if (hoverTimeoutRef.current) {
@@ -118,14 +163,7 @@ export const Header = () => {
 
   const getDisplayName = (user) => {
     if (!user) return 'Người dùng';
-    if (user.fullName) return user.fullName;
-    if (user.name) return user.name;
-    const email = user.email || '';
-    if (email === '22130143@st.hcmuaf.edu.vn' || email.includes('linh') || email === 'flack25.2@gmail.com') {
-      return 'Linh Phạm Văn';
-    }
-    const prefix = email.split('@')[0];
-    return prefix.charAt(0).toUpperCase() + prefix.slice(1);
+    return user.fullName?.trim() || user.name?.trim() || user.email || 'Người dùng';
   };
 
   const getAvatarLetter = (user) => {
@@ -229,7 +267,7 @@ export const Header = () => {
                   aria-haspopup="true"
                 >
                   <div className="header-user-avatar">
-                    <span>{avatarLetter}</span>
+                    {currentUser.avatar ? <img src={currentUser.avatar} alt="" /> : <span>{avatarLetter}</span>}
                   </div>
                   <div className="header-user-summary">
                     <span className="header-user-name" title={displayName}>
@@ -246,13 +284,15 @@ export const Header = () => {
                   <div className="header-dropdown-menu">
                     <div className="header-dropdown-user-header">
                       <div className="dropdown-avatar-circle">
-                        <span>{avatarLetter}</span>
+                        {currentUser.avatar ? <img src={currentUser.avatar} alt="" /> : <span>{avatarLetter}</span>}
                       </div>
                       <div className="dropdown-user-info-text">
                         <h4 className="dropdown-user-name">{displayName}</h4>
-                        <p className="dropdown-user-email" title={currentUser.email}>
-                          {currentUser.email}
-                        </p>
+                        {currentUser.email && currentUser.email !== displayName && (
+                          <p className="dropdown-user-email" title={currentUser.email}>
+                            {currentUser.email}
+                          </p>
+                        )}
                       </div>
                     </div>
 
