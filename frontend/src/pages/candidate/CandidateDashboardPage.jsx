@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import {
-  AlertCircle,
-  AlertTriangle,
   Award,
   Bell,
   Briefcase,
@@ -24,7 +22,6 @@ import {
   FileCheck,
   FileText,
   FolderKanban,
-  Globe,
   GraduationCap,
   Heart,
   HelpCircle,
@@ -164,7 +161,6 @@ export const CandidateDashboardPage = () => {
     const session = getAuthSession();
     return {
       fullName: session?.name || session?.fullName || 'Ứng viên',
-      title: 'Chưa cập nhật chức danh',
       email: session?.email || '',
       phone: session?.phone || '',
       birthday: '',
@@ -172,8 +168,6 @@ export const CandidateDashboardPage = () => {
       address: '',
       personalLink: '',
       desiredLocation: '',
-      expertise: '',
-      languages: '',
       experienceYears: '',
       currentLevel: '',
       workType: '',
@@ -186,6 +180,30 @@ export const CandidateDashboardPage = () => {
       isSearchable: true,
     };
   });
+
+  const [cvDraft, setCvDraft] = useState(() => {
+    try {
+      const saved = localStorage.getItem('jobviet.candidateCvDraft');
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
+  const [cvSectionEditing, setCvSectionEditing] = useState(null);
+  const [cvSectionDraft, setCvSectionDraft] = useState('');
+  const [cvPhoto, setCvPhoto] = useState(() => {
+    try {
+      const saved = localStorage.getItem('jobviet.candidateCvPhoto');
+      const photo = saved ? JSON.parse(saved) : null;
+      if (photo?.source === 'upload' && photo.uploadedUrl) {
+        return { source: 'upload', uploadedUrl: photo.uploadedUrl };
+      }
+      return { source: 'avatar', uploadedUrl: '' };
+    } catch {
+      return { source: 'avatar', uploadedUrl: '' };
+    }
+  });
+  const [isUploadingCvPhoto, setIsUploadingCvPhoto] = useState(false);
 
   // State riêng cho từng tab
   const [myJobsSubTab, setMyJobsSubTab] = useState('recent'); // 'applied' | 'saved' | 'recent'
@@ -382,6 +400,7 @@ export const CandidateDashboardPage = () => {
   const [toastMessage, setToastMessage] = useState('');
   const fileInputRef = useRef(null);
   const chatAttachInputRef = useRef(null);
+  const cvPhotoInputRef = useRef(null);
 
   // Đồng bộ hồ sơ và CV từ backend khi mở Dashboard
   useEffect(() => {
@@ -518,6 +537,72 @@ export const CandidateDashboardPage = () => {
     setModalType(null);
   };
 
+  const openCvSection = (section) => {
+    setCvSectionEditing(section);
+    setCvSectionDraft(cvDraft[section.id] || (
+      section.id === 'intro' ? profile.summary || '' : ''
+    ));
+  };
+
+  const saveCvSection = (event) => {
+    event.preventDefault();
+    if (!cvSectionEditing) return;
+    const content = cvSectionDraft.trim();
+    const updated = { ...cvDraft, [cvSectionEditing.id]: content };
+    setCvDraft(updated);
+    localStorage.setItem('jobviet.candidateCvDraft', JSON.stringify(updated));
+
+    const filledSections = ['intro', 'education', 'experience', 'skills', 'languages', 'projects', 'certificates', 'awards']
+      .filter((id) => (updated[id] || '').trim()).length;
+    const completion = Math.min(100, 40 + filledSections * 7);
+    const updatedProfile = { ...profile, completionRate: completion };
+    setProfile(updatedProfile);
+    localStorage.setItem('jobviet.candidateProfile', JSON.stringify(updatedProfile));
+    setCvSectionEditing(null);
+    setCvSectionDraft('');
+    showToast(`Đã lưu mục ${cvSectionEditing.title}`);
+  };
+
+  const printCv = () => {
+    setModalType('cv-preview');
+  };
+
+  const selectCvPhoto = (source) => {
+    const updatedPhoto = { ...cvPhoto, source };
+    setCvPhoto(updatedPhoto);
+    localStorage.setItem('jobviet.candidateCvPhoto', JSON.stringify(updatedPhoto));
+  };
+
+  const handleCvPhotoUpload = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      showToast('Vui lòng chọn tệp hình ảnh.');
+      event.target.value = '';
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      showToast('Ảnh CV tối đa 5MB. Vui lòng chọn ảnh nhỏ hơn.');
+      event.target.value = '';
+      return;
+    }
+
+    setIsUploadingCvPhoto(true);
+    try {
+      const uploaded = await uploadService.uploadImage(file);
+      if (!uploaded?.url) throw new Error('Máy chủ không trả về đường dẫn ảnh.');
+      const updatedPhoto = { source: 'upload', uploadedUrl: uploaded.url };
+      setCvPhoto(updatedPhoto);
+      localStorage.setItem('jobviet.candidateCvPhoto', JSON.stringify(updatedPhoto));
+      showToast('Đã cập nhật ảnh cho CV.');
+    } catch (error) {
+      showToast(error?.response ? getErrorMessage(error) : error?.message || 'Không thể tải ảnh CV lên.');
+    } finally {
+      setIsUploadingCvPhoto(false);
+      event.target.value = '';
+    }
+  };
+
   const handleSaveModal = async (e) => {
     e.preventDefault();
     setIsSavingBasicInfo(true);
@@ -534,11 +619,11 @@ export const CandidateDashboardPage = () => {
       const updatedProfile = {
         ...modalForm,
         fullName: savedProfile.fullName || modalForm.fullName,
-        phone: savedProfile.phone || modalForm.phone,
+        phone: savedProfile.phone ?? modalForm.phone ?? '',
         birthday: savedProfile.dob || '',
         gender: savedProfile.gender ?? '',
-        desiredLocation: savedProfile.address || modalForm.desiredLocation,
-        avatarUrl: savedProfile.avatar || modalForm.avatarUrl,
+        desiredLocation: savedProfile.address ?? modalForm.desiredLocation ?? '',
+        avatarUrl: savedProfile.avatar ?? modalForm.avatarUrl ?? '',
         summary: savedProfile.summary ?? '',
       };
       setProfile(updatedProfile);
@@ -647,6 +732,8 @@ export const CandidateDashboardPage = () => {
   ];
 
   const avatarLetter = (profile.fullName || 'L').trim().charAt(0).toUpperCase();
+  const accountAvatarUrl = profile.avatarUrl || getAuthSession()?.avatar || '';
+  const cvPhotoUrl = cvPhoto.source === 'upload' ? cvPhoto.uploadedUrl : accountAvatarUrl;
 
   return (
     <div className="itv-dash-page">
@@ -991,14 +1078,6 @@ export const CandidateDashboardPage = () => {
                     <span className="itv-df-label">Nơi làm việc mong muốn</span>
                     <strong className="itv-df-value">{profile.desiredLocation}</strong>
                   </div>
-                  <div className="itv-detail-field-row">
-                    <span className="itv-df-label">Chuyên môn</span>
-                    {profile.expertise ? <strong className="itv-df-value">{profile.expertise}</strong> : <button type="button" className="itv-missing-info-btn" onClick={() => openModal('basic')}><AlertCircle size={15} /><span>Thêm thông tin</span></button>}
-                  </div>
-                  <div className="itv-detail-field-row">
-                    <span className="itv-df-label">Ngoại ngữ</span>
-                    {profile.languages ? <strong className="itv-df-value">{profile.languages}</strong> : <button type="button" className="itv-missing-info-btn" onClick={() => openModal('basic')}><AlertCircle size={15} /><span>Thêm thông tin</span></button>}
-                  </div>
                 </div>
               </section>
 
@@ -1081,15 +1160,7 @@ export const CandidateDashboardPage = () => {
                           <SquarePen size={18} />
                         </button>
                       </div>
-                      <span className="itv-cv-job-title-prompt" onClick={() => openModal('basic')}>
-                        {profile.title || 'Cập nhật chức danh'}
-                      </span>
                     </div>
-                  </div>
-
-                  <div className="itv-cv-required-warning">
-                    <AlertTriangle size={15} />
-                    <span>Thiếu thông tin bắt buộc</span>
                   </div>
 
                   <div className="itv-cv-meta-grid">
@@ -1113,10 +1184,6 @@ export const CandidateDashboardPage = () => {
                       <MapPin size={14} />
                       <span>{profile.desiredLocation || 'Địa chỉ hiện tại'}</span>
                     </div>
-                    <div className="itv-cv-meta-cell is-empty" onClick={() => openModal('basic')}>
-                      <Globe size={14} />
-                      <span>Link cá nhân</span>
-                    </div>
                   </div>
                 </section>
 
@@ -1126,12 +1193,17 @@ export const CandidateDashboardPage = () => {
                     <div
                       key={sec.id}
                       className="itv-dash-card itv-cv-section-item"
-                      onClick={() => showToast(`Thêm mục: ${sec.title}`)}
+                      onClick={() => openCvSection(sec)}
                     >
                       <div className="itv-cv-sec-info">
                         <div className="itv-cv-sec-title-row">
                           <strong className="itv-cv-sec-title">{sec.title}</strong>
                           <span className="itv-bump-pill">{sec.bump}</span>
+                          {cvDraft[sec.id]?.trim() && (
+                            <span className="itv-cv-filled-badge">
+                              <CheckCircle2 size={12} /> Đã cập nhật
+                            </span>
+                          )}
                         </div>
                         <p className="itv-cv-sec-desc">{sec.desc}</p>
                       </div>
@@ -1156,6 +1228,9 @@ export const CandidateDashboardPage = () => {
                   <p className="itv-completion-hint">
                     Nâng cấp hồ sơ của bạn lên <strong>70%</strong> để bắt đầu tạo mẫu CV IT chuyên nghiệp.
                   </p>
+                  <button type="button" className="itv-cv-preview-btn" onClick={printCv}>
+                    <Eye size={16} /> Xem trước & tải CV
+                  </button>
                   <ul className="itv-completion-steps">
                     <li>
                       <div className="itv-cs-label">
@@ -1954,6 +2029,144 @@ export const CandidateDashboardPage = () => {
       />
 
       {/* MODALS CHỈNH SỬA TỪNG PHẦN */}
+      {cvSectionEditing && (
+        <div className="itv-modal-overlay" onClick={() => setCvSectionEditing(null)} role="dialog" aria-modal="true">
+          <div className="itv-modal-box" onClick={(event) => event.stopPropagation()}>
+            <div className="itv-modal-header">
+              <div className="itv-modal-title-row">
+                <SquarePen size={18} className="itv-modal-title-icon" />
+                <h3>{cvSectionEditing.title}</h3>
+              </div>
+              <button type="button" className="itv-modal-close" onClick={() => setCvSectionEditing(null)}>
+                <X size={20} />
+              </button>
+            </div>
+            <form onSubmit={saveCvSection} className="itv-modal-form">
+              <div className="itv-form-group">
+                <label htmlFor="candidate-cv-section">{cvSectionEditing.desc}</label>
+                <textarea
+                  id="candidate-cv-section"
+                  rows={8}
+                  value={cvSectionDraft}
+                  onChange={(event) => setCvSectionDraft(event.target.value)}
+                  placeholder={`Nhập nội dung ${cvSectionEditing.title.toLowerCase()}...`}
+                  required
+                />
+              </div>
+              <div className="itv-modal-actions">
+                <button type="button" className="itv-btn-cancel" onClick={() => setCvSectionEditing(null)}>Hủy</button>
+                <button type="submit" className="itv-btn-save">Lưu thông tin</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {modalType === 'cv-preview' && (
+        <div className="itv-modal-overlay itv-cv-preview-overlay" onClick={closeModal} role="dialog" aria-modal="true">
+          <div className="itv-modal-box itv-cv-preview-modal" onClick={(event) => event.stopPropagation()}>
+            <div className="itv-modal-header">
+              <div className="itv-modal-title-row">
+                <FileText size={18} className="itv-modal-title-icon" />
+                <h3>Xem trước CV</h3>
+              </div>
+              <button type="button" className="itv-modal-close" onClick={closeModal}>
+                <X size={20} />
+              </button>
+            </div>
+            <section className="itv-cv-photo-controls" aria-label="Ảnh CV">
+              <div>
+                <strong>Ảnh trên CV</strong>
+                <p>Chọn ảnh đại diện tài khoản hoặc tải ảnh khác lên (tối đa 5MB).</p>
+              </div>
+              <div className="itv-cv-photo-actions">
+                <button
+                  type="button"
+                  className={`itv-cv-photo-choice ${cvPhoto.source === 'avatar' ? 'is-selected' : ''}`}
+                  onClick={() => selectCvPhoto('avatar')}
+                  disabled={!accountAvatarUrl}
+                >
+                  {accountAvatarUrl
+                    ? <img src={accountAvatarUrl} alt="" />
+                    : <User size={18} />}
+                  Dùng ảnh tài khoản
+                </button>
+                <button
+                  type="button"
+                  className={`itv-cv-photo-choice ${cvPhoto.source === 'upload' ? 'is-selected' : ''}`}
+                  onClick={() => cvPhotoInputRef.current?.click()}
+                  disabled={isUploadingCvPhoto}
+                >
+                  <Upload size={16} />
+                  {isUploadingCvPhoto ? 'Đang tải ảnh...' : 'Tải ảnh lên'}
+                </button>
+                <input
+                  ref={cvPhotoInputRef}
+                  type="file"
+                  accept="image/*"
+                  hidden
+                  onChange={handleCvPhotoUpload}
+                />
+              </div>
+              {!accountAvatarUrl && cvPhoto.source === 'avatar' && (
+                <span className="itv-cv-photo-note">Tài khoản chưa có ảnh đại diện. Bạn có thể tải ảnh CV riêng lên.</span>
+              )}
+            </section>
+            {!Object.values(cvDraft).some((content) => typeof content === 'string' && content.trim()) && !profile.summary?.trim() && (
+              <p className="itv-cv-preview-empty-note">
+                CV chưa có nội dung. Hãy thêm ít nhất một mục trong trình tạo CV trước khi tải xuống.
+              </p>
+            )}
+            <div className="itv-cv-preview-document">
+              <header className="itv-cv-preview-header">
+                <div className="itv-cv-preview-identity">
+                  <span className="itv-cv-preview-eyebrow">HỒ SƠ ỨNG TUYỂN</span>
+                  {profile.fullName && <h1>{profile.fullName}</h1>}
+                  <div className="itv-cv-preview-contact">
+                    {[profile.email, profile.phone, profile.birthday ? profile.birthday.split('-').reverse().join('/') : '', profile.desiredLocation]
+                      .filter(Boolean)
+                      .map((item, index) => <span key={`${index}-${item}`}>{item}</span>)}
+                  </div>
+                </div>
+                {cvPhotoUrl && (
+                  <img
+                    className="itv-cv-preview-photo"
+                    src={cvPhotoUrl}
+                    alt={profile.fullName ? `Ảnh CV của ${profile.fullName}` : 'Ảnh CV'}
+                    onError={(event) => { event.currentTarget.style.display = 'none'; }}
+                  />
+                )}
+              </header>
+              {[
+                ['intro', 'Giới thiệu bản thân'],
+                ['education', 'Học vấn'],
+                ['experience', 'Kinh nghiệm làm việc'],
+                ['skills', 'Kỹ năng'],
+                ['languages', 'Ngoại ngữ'],
+                ['projects', 'Dự án nổi bật'],
+                ['certificates', 'Chứng chỉ'],
+                ['awards', 'Giải thưởng'],
+              ].map(([id, title]) => {
+                const content = (cvDraft[id] || (id === 'intro' ? profile.summary : '') || '').trim();
+                if (!content) return null;
+                return (
+                  <section key={id} className="itv-cv-preview-section">
+                    <h2>{title}</h2>
+                    <p>{content}</p>
+                  </section>
+                );
+              })}
+            </div>
+            <div className="itv-modal-actions">
+              <button type="button" className="itv-btn-cancel" onClick={closeModal}>Đóng</button>
+              <button type="button" className="itv-btn-save" onClick={() => window.print()}>
+                <Download size={16} /> Tải / in PDF
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {modalType === 'basic' && (
         <div className="itv-modal-overlay" onClick={closeModal} role="dialog" aria-modal="true">
           <div className="itv-modal-box itv-profile-modal" onClick={(e) => e.stopPropagation()}>
@@ -1987,16 +2200,6 @@ export const CandidateDashboardPage = () => {
                   onChange={(e) => setModalForm({ ...modalForm, fullName: e.target.value })}
                   placeholder="Linh Phạm Văn"
                   required
-                />
-              </div>
-
-              <div className="itv-form-group">
-                <label>Chức danh nghề nghiệp</label>
-                <input
-                  type="text"
-                  value={modalForm.title}
-                  onChange={(e) => setModalForm({ ...modalForm, title: e.target.value })}
-                  placeholder="Ví dụ: Fullstack Developer"
                 />
               </div>
 
@@ -2056,26 +2259,6 @@ export const CandidateDashboardPage = () => {
                   value={modalForm.summary || ''}
                   onChange={(e) => setModalForm({ ...modalForm, summary: e.target.value })}
                   placeholder="Tóm tắt kinh nghiệm, kỹ năng và mục tiêu nghề nghiệp của bạn"
-                />
-              </div>
-
-              <div className="itv-form-group">
-                <label>Chuyên môn</label>
-                <input
-                  type="text"
-                  value={modalForm.expertise}
-                  onChange={(e) => setModalForm({ ...modalForm, expertise: e.target.value })}
-                  placeholder="Ví dụ: Backend Developer (Java/Spring Boot)"
-                />
-              </div>
-
-              <div className="itv-form-group">
-                <label>Ngoại ngữ</label>
-                <input
-                  type="text"
-                  value={modalForm.languages}
-                  onChange={(e) => setModalForm({ ...modalForm, languages: e.target.value })}
-                  placeholder="Ví dụ: Tiếng Anh (Giao tiếp tốt, TOEIC 750)"
                 />
               </div>
 

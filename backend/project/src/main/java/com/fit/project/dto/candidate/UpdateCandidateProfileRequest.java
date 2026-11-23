@@ -5,8 +5,8 @@ import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 
 public record UpdateCandidateProfileRequest(
-        String fullName,
-        String phone,
+        @Size(max = 255) String fullName,
+        @Size(max = 20) String phone,
         LocalDate dob,
         @Size(max = 30) String gender,
         String address,
